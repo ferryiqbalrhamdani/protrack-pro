@@ -30,7 +30,13 @@ export default function ProjectPrint({ project }) {
             <style dangerouslySetInnerHTML={{__html: `
                 @media print {
                     @page { margin: 0; size: A4 landscape; }
-                    body { margin: 1cm; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: white !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
                     .no-print { display: none !important; }
                     .page-break { page-break-before: always; }
                     .avoid-break { page-break-inside: avoid; }
