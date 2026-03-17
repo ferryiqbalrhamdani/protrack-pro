@@ -101,9 +101,9 @@ php artisan key:generate
 Lalu edit file `.env` sesuai konfigurasi database Anda:
 
 ```dotenv
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=protrack_pro
 DB_USERNAME=root
 DB_PASSWORD=your_password
