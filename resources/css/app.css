@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    ::selection {
+        background-color: rgb(59 130 246 / 0.2); /* light blue selection */
+        color: inherit; /* Keep existing text color or use a specific one if needed */
+    }
+    
+    .dark ::selection {
+        background-color: rgb(59 130 246 / 0.4); /* slightly more visible blue for dark mode */
+        color: white; /* Ensure text is readable when selected in dark mode */
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'liga';
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+/* Modern Scrollbar Styles */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    /* slate-200 */
+    border-radius: 100px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    /* White with low opacity for subtle dark mode */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+    /* slate-300 */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+    /* More visible on hover */
+}
+
+/* Global scrollbar for the entire body */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+}
+
+/* Premium Tooltip */
+.premium-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.premium-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%; /* Slighly higher */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: #0f172a;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: none; /* Keep original case for better readability */
+    letter-spacing: normal;
+    white-space: normal; /* Allow wrap if very long */
+    width: max-content;
+    max-width: 250px;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999999; /* Ultra high */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.dark .premium-tooltip::after {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.premium-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip Arrow */
+.premium-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #0f172a transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999999;
+}
+
+.dark .premium-tooltip::before {
+    border-color: #ffffff transparent transparent transparent;
+}
+
+.premium-tooltip:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Ensure parents don't clip */
+.allow-tooltip-overflow {
+    overflow: visible !important;
+}
