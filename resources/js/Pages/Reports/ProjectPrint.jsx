@@ -30,11 +30,10 @@ export default function ProjectPrint({ project }) {
             <style dangerouslySetInnerHTML={{__html: `
                 @media print {
                     @page { margin: 0; size: A4 landscape; }
-                    body { margin: 0 !important; padding: 0 !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                    body { margin: 1cm; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
                     .no-print { display: none !important; }
                     .page-break { page-break-before: always; }
                     .avoid-break { page-break-inside: avoid; }
-                    .print-container { max-width: 100% !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
                     .watermark {
                         position: fixed !important;
                         top: 50% !important;
@@ -62,7 +61,7 @@ export default function ProjectPrint({ project }) {
             </button>
 
             {/* A4 Landscape Container */}
-            <div className="print-container max-w-[297mm] mx-auto bg-white sm:my-8 shadow-xl print:shadow-none print:m-0 relative overflow-hidden">
+            <div className="max-w-[297mm] mx-auto bg-white sm:my-8 shadow-xl print:shadow-none print:m-0 print:w-full print:max-w-none relative overflow-hidden">
 
                 {/* Status Watermark */}
                 {(() => {

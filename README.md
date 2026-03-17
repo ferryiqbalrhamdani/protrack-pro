@@ -1,200 +1,317 @@
 <div align="center">
 
-<br/>
+# 🚀 ProTrack Pro
 
-<img src="public/logo.png" alt="Protrack Pro Logo" width="96" height="96" />
-
-# **Protrack Pro**
-
-### Sistem Manajemen Proyek Terpadu
-
-*Contract • Merchandising • Billing • Shipping*
-
-<br/>
+**Sistem Manajemen Proyek Pengadaan Barang & Jasa**
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org)
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-2.x-9553E9?style=for-the-badge&logo=inertia&logoColor=white)](https://inertiajs.com)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+<br/>
+
+> *Kelola seluruh siklus hidup proyek pengadaan dari kontrak hingga pengiriman dalam satu platform yang terintegrasi.*
 
 </div>
 
 ---
 
-## 📋 Tentang Protrack Pro
+## 📋 Daftar Isi
 
-**Protrack Pro** adalah sistem manajemen proyek berbasis web yang dirancang untuk memudahkan pengelolaan proyek pengadaan barang dan jasa. Sistem ini menyediakan alur kerja terintegrasi mulai dari kontrak, merchandising, penagihan, hingga pengiriman — semuanya dalam satu platform yang modern dan responsif.
+- [Tentang Proyek](#-tentang-proyek)
+- [Fitur Utama](#-fitur-utama)
+- [Screenshot](#-screenshot)
+- [Teknologi](#-teknologi)
+- [Persyaratan Sistem](#-persyaratan-sistem)
+- [Instalasi](#-instalasi)
+- [Konfigurasi](#-konfigurasi)
+- [Menjalankan Aplikasi](#-menjalankan-aplikasi)
+- [Modul Aplikasi](#-modul-aplikasi)
+- [Struktur Proyek](#-struktur-proyek)
+- [Kontribusi](#-kontribusi)
+- [Lisensi](#-lisensi)
 
-### ✨ Fitur Utama
+---
 
-| Modul | Deskripsi |
-|---|---|
-| 📄 **Kontrak** | Manajemen nomor kontrak, tahapan pelaksanaan, dan jaminan (JAMLAK, JAMUK, JAMWAR) |
-| 🛒 **Merchandiser** | Tracking barang kontrak & diterima, Purchase Order (PO), dan invoice vendor |
-| 💰 **Penagihan** | Manajemen BAST dan tahapan tagihan |
-| 🚚 **Pengiriman** | Pencatatan BA Annaming & BA Inname dengan dokumen terkait |
-| 📊 **Laporan** | Detail project, preview, dan cetak PDF dengan watermark status |
-| 👥 **Manajemen Pengguna** | Role & permission berbasis Spatie, multi-user support |
+## 🎯 Tentang Proyek
+
+**ProTrack Pro** adalah aplikasi manajemen proyek berbasis web yang dirancang khusus untuk mengelola proyek pengadaan barang & jasa secara menyeluruh. Mulai dari penandatanganan kontrak, pelacakan merchandising, penagihan, hingga pengiriman barang — semua terintegrasi dalam satu dashboard yang modern dan responsif.
+
+Dibangun menggunakan **Laravel + Inertia.js + React**, ProTrack Pro menghadirkan pengalaman SPA (Single Page Application) yang cepat dan mulus tanpa meninggalkan kekuatan backend Laravel.
+
+---
+
+## ✨ Fitur Utama
+
+### 📊 Dashboard & Laporan
+- Overview ringkasan proyek aktif, pending, dan selesai
+- Widget lifecycle status per modul (Kontrak, Merchandiser, Penagihan, Pengiriman)
+- Akumulasi nilai kontrak dan pembayaran
+- Laporan detail proyek dengan kemampuan **cetak PDF landscape**
+- **Watermark otomatis** berdasarkan status proyek (ONGOING / PENDING / COMPLETED)
+
+### 📁 Manajemen Proyek
+- CRUD proyek lengkap dengan informasi kontrak, vendor, PIC, dan anggaran
+- Filter dan pencarian proyek dengan pagination server-side
+- Log aktivitas otomatis pada setiap perubahan
+
+### 📜 Modul Kontrak
+- Pengelolaan Nomor Jaminan (JAMLAK, JAMUK, JAMWAR) beserta nilai nominalnya
+- Tahapan/Steps kontrak dengan status penyelesaian
+- Lampiran dokumen kontrak
+
+### 🛒 Modul Merchandiser
+- Tracking items kontrak vs items diterima (dalam unit & EA)
+- Manajemen Purchase Order (PO) & Invoice terintegrasi
+- Upload multi-file dokumen pendukung
+- Progress tracking dengan persentase penyelesaian
+
+### 💰 Modul Penagihan (Billing)
+- Manajemen BAST (Berita Acara Serah Terima)
+- Tahapan tagihan dengan status lunas/pending
+- Lampiran dokumen penagihan
+
+### 🚚 Modul Pengiriman (Shipping)
+- Pencatatan BA Anname dan BA Inname
+- Status dan tanggal pengiriman
+- Dokumen pendukung pengiriman
+
+### 🗂️ Master Data
+- Manajemen **Perusahaan**, **Instansi**, **Vendor**, **PIC**
+- **Jenis Lelang**, **Jenis Anggaran**, **Asal Merek & Sertifikasi**
+- CRUD lengkap dengan activity logging
+
+### 👥 Manajemen Pengguna & Roles
+- Multi-role user management
+- Akses kontrol berbasis role
+- Activity log seluruh pengguna
+
+---
+
+## 🖥️ Screenshot
+
+> *Coming soon — tampilan dashboard, modul kontrak, dan laporan cetak.*
 
 ---
 
 ## 🛠️ Teknologi
 
-### Backend
-- **[Laravel 12](https://laravel.com)** – PHP Framework
-- **[Inertia.js (Server)](https://inertiajs.com)** – SSR Bridge antara Laravel dan React
-- **[Spatie Laravel Permission](https://spatie.be/docs/laravel-permission)** – Role & Permissions
-- **[Laravel Sanctum](https://laravel.com/docs/sanctum)** – API Authentication
-- **[Hashids](https://hashids.org/php/)** – Obfuscated URL IDs
-
-### Frontend
-- **[React 18](https://react.dev)** – UI Library
-- **[Inertia.js (Client)](https://inertiajs.com)** – SPA-style navigation tanpa API
-- **[TailwindCSS 3](https://tailwindcss.com)** – Utility-first CSS Framework
-- **[Framer Motion](https://www.framer.com/motion/)** – Animasi & transisi
-- **[React Hot Toast](https://react-hot-toast.com)** – Notifikasi toast
-- **[Headless UI](https://headlessui.com)** – Komponen UI aksesibel
-
-### Tooling
-- **[Vite](https://vitejs.dev)** – Build tool & dev server
-- **[PestPHP](https://pestphp.com)** – Testing framework
+| Layer | Teknologi |
+|---|---|
+| **Backend** | [Laravel 12](https://laravel.com) |
+| **Frontend** | [React 18](https://reactjs.org) + [Inertia.js 2](https://inertiajs.com) |
+| **Styling** | [Tailwind CSS 4](https://tailwindcss.com) |
+| **Build Tool** | [Vite 6](https://vitejs.dev) |
+| **Database** | MySQL / MariaDB |
+| **UI Icons** | [Google Material Symbols](https://fonts.google.com/icons) |
+| **Animations** | [Framer Motion](https://www.framer.com/motion/) |
+| **Notifications** | [React Hot Toast](https://react-hot-toast.com) |
+| **PDF Export** | [html2pdf.js](https://ekoopmans.github.io/html2pdf.js/) |
 
 ---
 
-## ⚙️ Instalasi & Konfigurasi
+## 📦 Persyaratan Sistem
 
-### Prasyarat
+Pastikan sistem Anda memiliki:
 
-- PHP >= 8.2
-- Composer >= 2.x
-- Node.js >= 18.x & NPM
-- Database: MySQL / PostgreSQL / SQLite
+- **PHP** >= 8.2
+- **Composer** >= 2.x
+- **Node.js** >= 20.x & **NPM** >= 10.x
+- **MySQL** >= 8.0 atau **MariaDB** >= 10.4
+- **Git**
 
-### Langkah Instalasi
+---
 
-**1. Clone Repository**
+## 🚀 Instalasi
+
+### 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-org/protrack-pro.git
+git clone https://github.com/username/protrack-pro.git
 cd protrack-pro
 ```
 
-**2. Install Dependensi PHP**
+### 2. Install Dependensi PHP
 
 ```bash
 composer install
 ```
 
-**3. Install Dependensi Node.js**
+### 3. Install Dependensi JavaScript
 
 ```bash
 npm install
 ```
 
-**4. Konfigurasi Environment**
+### 4. Salin File Environment
 
 ```bash
 cp .env.example .env
+```
+
+### 5. Generate Application Key
+
+```bash
 php artisan key:generate
 ```
 
-Lalu edit file `.env` sesuai konfigurasi database Anda:
+### 6. Konfigurasi Database
 
-```dotenv
-DB_CONNECTION=pgsql
+Edit file `.env` dan sesuaikan konfigurasi database:
+
+```env
+DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
-DB_PORT=5432
+DB_PORT=3306
 DB_DATABASE=protrack_pro
 DB_USERNAME=root
-DB_PASSWORD=your_password
+DB_PASSWORD=
 ```
 
-**5. Migrasi & Seeder Database**
+### 7. Jalankan Migrasi & Seeder
 
 ```bash
 php artisan migrate --seed
 ```
 
-**6. Buat Symlink Storage**
+---
+
+## ⚙️ Konfigurasi
+
+### Storage Link (untuk upload file)
 
 ```bash
 php artisan storage:link
 ```
 
-**7. Jalankan Development Server**
+### Konfigurasi `.env` Penting
+
+```env
+APP_NAME=ProTrack Pro
+APP_URL=http://localhost
+
+# Email (opsional)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+```
+
+---
+
+## ▶️ Menjalankan Aplikasi
+
+### Mode Development (dengan HMR)
+
+Jalankan dua terminal secara bersamaan:
 
 ```bash
-# Jalankan semua sekaligus (Laravel + Vite + Queue + Logs)
-composer dev
-
-# Atau secara terpisah:
+# Terminal 1 — Backend
 php artisan serve
+
+# Terminal 2 — Frontend (Vite)
 npm run dev
 ```
 
 Akses aplikasi di: **http://localhost:8000**
 
+### Mode Production
+
+```bash
+npm run build
+php artisan serve
+```
+
 ---
 
-## 🗂️ Struktur Proyek
+## 🗂️ Modul Aplikasi
+
+```
+ProTrack Pro
+├── 📊 Dashboard          — Ringkasan & statistik proyek
+├── 📁 Proyek             — Daftar & manajemen proyek
+│   ├── Informasi Umum
+│   ├── Kontrak & Finansial
+│   ├── Modul Kontrak
+│   ├── Modul Merchandiser
+│   ├── Modul Penagihan
+│   └── Modul Pengiriman
+├── 📑 Laporan            — Laporan detail & cetak PDF
+├── 🗄️  Master Data
+│   ├── Perusahaan
+│   ├── Instansi
+│   ├── Vendor
+│   ├── Jenis Lelang
+│   ├── Jenis Anggaran
+│   └── Asal Merek & Sertifikasi
+└── 👤 Pengguna & Roles
+```
+
+---
+
+## 📂 Struktur Proyek
 
 ```
 protrack-pro/
 ├── app/
 │   ├── Http/
-│   │   ├── Controllers/        # Controller utama aplikasi
-│   │   └── Middleware/         # Middleware kustom
-│   ├── Models/                 # Eloquent models
-│   └── Support/                # Helper (Hashid, dll.)
+│   │   └── Controllers/       # Controller utama
+│   ├── Models/                # Eloquent Models
+│   └── Support/               # Helper (Hashid, dll.)
 ├── database/
-│   ├── migrations/             # Migrasi database
-│   └── seeders/                # Data seeder
+│   ├── migrations/            # Skema database
+│   └── seeders/               # Data awal
 ├── resources/
 │   └── js/
-│       ├── Components/         # Komponen React reusable
-│       ├── Layouts/            # Layout global
-│       └── Pages/              # Halaman utama (Inertia)
-│           ├── Contract/
-│           ├── Merchandiser/
-│           ├── Billing/
-│           ├── Shipping/
-│           └── Reports/
+│       └── Pages/             # Halaman React (Inertia)
+│           ├── Dashboard/
+│           ├── Projects/
+│           ├── Reports/
+│           ├── MasterData/
+│           └── Users/
 ├── routes/
-│   └── web.php                 # Routing web
-└── public/                     # Asset publik
+│   └── web.php                # Definisi routing
+└── public/                    # Asset publik
 ```
 
 ---
 
-## 🚀 Perintah Penting
+## 🤝 Kontribusi
 
-```bash
-# Development server all-in-one
-composer dev
+Kontribusi sangat diterima! Cara berkontribusi:
 
-# Build production assets
-npm run build
+1. **Fork** repository ini
+2. Buat **branch baru** (`git checkout -b feature/nama-fitur`)
+3. **Commit** perubahan (`git commit -m 'feat: menambahkan fitur X'`)
+4. **Push** ke branch (`git push origin feature/nama-fitur`)
+5. Buat **Pull Request**
 
-# Jalankan tests
-php artisan test
+### Konvensi Commit
 
-# Format kode PHP
-./vendor/bin/pint
+Gunakan format [Conventional Commits](https://www.conventionalcommits.org/):
 
-# Clear cache
-php artisan optimize:clear
-```
+- `feat:` — Fitur baru
+- `fix:` — Perbaikan bug
+- `docs:` — Perubahan dokumentasi
+- `style:` — Perubahan styling/formatting
+- `refactor:` — Refactoring kode
+- `chore:` — Perubahan tooling, config, dsb.
 
 ---
 
 ## 📄 Lisensi
 
-Proyek ini bersifat **proprietary** dan hanya untuk penggunaan internal.
+Proyek ini dilisensikan di bawah [MIT License](LICENSE).
 
 ---
 
 <div align="center">
 
-Dibuat dengan ❤️ menggunakan Laravel + React + Inertia.js
+**Dibuat dengan ❤️ menggunakan Laravel & React**
+
+[🐛 Laporkan Bug](../../issues) · [💡 Request Fitur](../../issues) · [📖 Dokumentasi](../../wiki)
 
 </div>
