@@ -13,13 +13,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Super Admin',
-            'username' => 'admin',
-            'email' => 'admin@admin.com',
-            'password' => '121232',
+        $this->call([
+            PermissionSeeder::class,
         ]);
+
+        $admin = User::firstOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'Super Admin',
+                'email' => null,
+                'password' => \Illuminate\Support\Facades\Hash::make('121232'),
+            ]
+        );
+
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Super Admin']);
+        
+        if (!$admin->hasRole('Super Admin')) {
+            $admin->assignRole($role);
+        }
     }
 }

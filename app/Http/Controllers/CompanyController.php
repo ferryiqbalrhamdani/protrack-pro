@@ -64,7 +64,9 @@ class CompanyController extends Controller
 
         $company->update($validated);
 
-        $this->logActivity('telah memperbarui data perusahaan', 'Perusahaan', $company->name, 'edit', 'text-amber-500');
+        if ($company->wasChanged()) {
+            $this->logActivity('telah memperbarui data perusahaan', 'Perusahaan', $company->name, 'edit', 'text-amber-500');
+        }
 
         return redirect()->back()->with('success', 'Perusahaan berhasil diperbarui.');
     }

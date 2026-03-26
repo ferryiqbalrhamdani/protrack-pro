@@ -48,7 +48,9 @@ class BrandOriginController extends Controller
 
         $brandOrigin->update($validated);
 
-        $this->logActivity('telah memperbarui data asal brand', 'Asal Brand', $brandOrigin->name, 'edit', 'text-amber-500');
+        if ($brandOrigin->wasChanged()) {
+            $this->logActivity('telah memperbarui data asal brand', 'Asal Brand', $brandOrigin->name, 'edit', 'text-amber-500');
+        }
 
         return redirect()->back()->with('success', 'Asal Brand berhasil diperbarui.');
     }

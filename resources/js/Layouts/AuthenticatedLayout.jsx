@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import SkeletonContent from '@/Components/SkeletonContent';
 import { Toaster, toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import BottomNavigation from '@/Components/BottomNavigation';
+import BottomSheet from '@/Components/BottomSheet';
 
 export default function AuthenticatedLayout({ header, children, stickySlot }) {
     const { user, permissions, is_admin } = usePage().props.auth;
@@ -11,11 +14,52 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system');
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
     const defaultNotifications = usePage().props.auth.notifications || [];
     const [notifications, setNotifications] = useState(defaultNotifications);
     const [isLoading, setIsLoading] = useState(false);
+    const [isTopbarHidden, setIsTopbarHidden] = useState(false);
     const profileRef = useRef(null);
     const notificationsRef = useRef(null);
+    const mainRef = useRef(null);
+    const lastScrollY = useRef(0);
+
+    // Sync navbar notifications with Inertia shared props (after markAllRead, page navigations, etc.)
+    useEffect(() => {
+        setNotifications(defaultNotifications);
+    }, [JSON.stringify(defaultNotifications)]);
+
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+    const searchInputRef = useRef(null);
+    const searchDebounceRef = useRef(null);
+    const resultsContainerRef = useRef(null);
+
+    const HISTORY_KEY = `protrack_search_history_${user?.id}`;
+    const getSearchHistory = () => {
+        try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+    };
+    const [searchHistory, setSearchHistory] = useState(getSearchHistory);
+
+    const addToHistory = (item) => {
+        const updated = [item, ...searchHistory.filter(h => h.url !== item.url)].slice(0, 8);
+        setSearchHistory(updated);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    };
+
+    const removeFromHistory = (url) => {
+        const updated = searchHistory.filter(h => h.url !== url);
+        setSearchHistory(updated);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    };
+
+    const clearHistory = () => {
+        setSearchHistory([]);
+        localStorage.removeItem(HISTORY_KEY);
+    };
 
     useEffect(() => {
         const start = (event) => {
@@ -84,6 +128,30 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Auto-hide topbar on mobile scroll
+    useEffect(() => {
+        const mainEl = mainRef.current;
+        if (!mainEl) return;
+
+        const handleScroll = () => {
+            // Only apply on mobile (< 1280px / xl breakpoint)
+            if (window.innerWidth >= 1280) {
+                setIsTopbarHidden(false);
+                return;
+            }
+            const currentY = mainEl.scrollTop;
+            if (currentY > lastScrollY.current && currentY > 60) {
+                setIsTopbarHidden(true);
+            } else {
+                setIsTopbarHidden(false);
+            }
+            lastScrollY.current = currentY;
+        };
+
+        mainEl.addEventListener('scroll', handleScroll, { passive: true });
+        return () => mainEl.removeEventListener('scroll', handleScroll);
+    }, []);
+
     // Flash message listener
     const flash = usePage().props.flash;
     useEffect(() => {
@@ -103,12 +171,47 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
     const navItems = [
         { name: 'Dashboard', icon: 'dashboard', href: route('dashboard'), active: route().current('dashboard'), permission: 'view_dashboard' },
         { name: 'Project', icon: 'business_center', href: route('projects'), active: route().current('projects*'), permission: 'view_projects' },
-        { name: 'Kontrak', icon: 'description', href: route('contracts'), active: route().current('contracts*'), permission: 'view_contracts' },
+        { name: 'Contract', icon: 'description', href: route('contracts'), active: route().current('contracts*'), permission: 'view_contracts' },
         { name: 'Merchandiser', icon: 'storefront', href: route('merchandiser'), active: route().current('merchandiser*'), permission: 'view_merchandiser' },
-        { name: 'Penagihan', icon: 'payments', href: route('billing'), active: route().current('billing*'), permission: 'view_billing' },
-        { name: 'Pengiriman', icon: 'local_shipping', href: route('shipping'), active: route().current('shipping*'), permission: 'view_shipping' },
-        { name: 'Laporan', icon: 'analytics', href: route('reports'), active: route().current('reports*'), permission: 'view_reports' },
-    ].filter(item => hasPermission(item.permission));
+        { name: 'Billing', icon: 'payments', href: route('billing'), active: route().current('billing*'), permission: 'view_billing' },
+        { name: 'Shipping', icon: 'local_shipping', href: route('shipping'), active: route().current('shipping*'), permission: 'view_shipping' },
+        { name: 'Reports', icon: 'analytics', href: route('reports'), active: route().current('reports*'), permission: 'view_reports' },
+        { name: 'Profile', icon: 'person', href: route('profile.edit'), active: route().current('profile.edit'), permission: true },
+    ].filter(item => item.permission === true || hasPermission(item.permission));
+    
+    const canViewMasterData = hasPermission('view_master_data') || 
+                            hasPermission('view_master_company') || 
+                            hasPermission('view_master_agency') || 
+                            hasPermission('view_master_vendor') || 
+                            hasPermission('view_master_auction_type') || 
+                            hasPermission('view_master_budget_type') || 
+                            hasPermission('view_master_brand_origin') || 
+                            hasPermission('manage_users_roles');
+
+    // Mobile Navigation Logic
+    const profileItem = navItems.find(i => i.name === 'Profile');
+    const mainItems = navItems.filter(i => i.name !== 'Profile');
+    
+    const profileInMenu = mainItems.length > 3 || (mainItems.length === 2 && canViewMasterData);
+    const showMenuButton = canViewMasterData || profileInMenu || mainItems.length > 3;
+    
+    let bottomNavDisplayItems = [];
+    let bottomNavHiddenItems = [];
+    
+    if (showMenuButton) {
+        if (!profileInMenu && profileItem) {
+            bottomNavDisplayItems = [...mainItems.slice(0, 2), profileItem].filter(Boolean);
+            bottomNavHiddenItems = mainItems.slice(2).filter(Boolean);
+        } else {
+            bottomNavDisplayItems = mainItems.slice(0, 3).filter(Boolean);
+            bottomNavHiddenItems = [...mainItems.slice(3), profileItem].filter(Boolean);
+        }
+    } else {
+        bottomNavDisplayItems = [...mainItems, profileItem].filter(Boolean);
+        bottomNavHiddenItems = [];
+    }
+
+
 
     useEffect(() => {
         // Request Browser Notification permission
@@ -127,7 +230,14 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                     };
                     
                     setNotifications(prev => [newNotif, ...prev]);
-                    toast.success(notification.title + ': ' + notification.message); // Fallback toast
+                    toast.success(notification.title + ': ' + notification.message);
+
+                    // Play notification sound
+                    try {
+                        const audio = new Audio('/sounds/notification.wav');
+                        audio.volume = 0.5;
+                        audio.play().catch(() => {});
+                    } catch(e) {}
 
                     // Trigger browser notification
                     if ('Notification' in window && Notification.permission === 'granted') {
@@ -152,43 +262,146 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
         });
     }
 
+    // Search debounced API call
+    useEffect(() => {
+        if (!searchQuery || searchQuery.length < 2) {
+            setSearchResults([]);
+            setIsSearching(false);
+            return;
+        }
+        setIsSearching(true);
+        setSelectedIndex(-1);
+        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = setTimeout(() => {
+            fetch(route('api.search') + '?q=' + encodeURIComponent(searchQuery), {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => { setSearchResults(data.results || []); setIsSearching(false); })
+            .catch(() => setIsSearching(false));
+        }, 300);
+        return () => clearTimeout(searchDebounceRef.current);
+    }, [searchQuery]);
+
+    // Ctrl+K / Cmd+K shortcut + ESC
+    useEffect(() => {
+        const handler = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsSearchOpen(prev => !prev);
+            }
+            if (e.key === 'Escape' && isSearchOpen) {
+                setIsSearchOpen(false);
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [isSearchOpen]);
+
+    // Reset search state when modal opens/closes
+    useEffect(() => {
+        if (isSearchOpen) {
+            setSearchQuery('');
+            setSearchResults([]);
+            setSelectedIndex(-1);
+            setTimeout(() => searchInputRef.current?.focus(), 50);
+        }
+    }, [isSearchOpen]);
+
+    // Flatten results for keyboard navigation
+    const flatResults = searchQuery.length >= 2 ? searchResults : [];
+    const displayItems = searchQuery.length >= 2 ? flatResults : searchHistory;
+    const totalItems = displayItems.length;
+
+    const handleSearchKeyDown = (e) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev + 1) % Math.max(1, totalItems));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev - 1 + totalItems) % Math.max(1, totalItems));
+        } else if (e.key === 'Enter' && selectedIndex >= 0 && selectedIndex < totalItems) {
+            e.preventDefault();
+            const item = displayItems[selectedIndex];
+            if (item?.url) {
+                addToHistory({ title: item.title, category: item.category || 'Riwayat', icon: item.icon || 'history', color: item.color || 'slate', url: item.url });
+                setIsSearchOpen(false);
+                router.visit(item.url);
+            }
+        }
+    };
+
+    // Scroll selected item into view
+    useEffect(() => {
+        if (selectedIndex >= 0 && resultsContainerRef.current) {
+            const el = resultsContainerRef.current.querySelector(`[data-index="${selectedIndex}"]`);
+            el?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [selectedIndex]);
+
+    const getColorClasses = (color) => {
+        const map = {
+            blue: 'bg-blue-500/10 text-blue-500', amber: 'bg-amber-500/10 text-amber-500',
+            purple: 'bg-purple-500/10 text-purple-500', rose: 'bg-rose-500/10 text-rose-500',
+            emerald: 'bg-emerald-500/10 text-emerald-500', teal: 'bg-teal-500/10 text-teal-500',
+            sky: 'bg-sky-500/10 text-sky-500', indigo: 'bg-indigo-500/10 text-indigo-500',
+            orange: 'bg-orange-500/10 text-orange-500', pink: 'bg-pink-500/10 text-pink-500',
+            lime: 'bg-lime-500/10 text-lime-600', cyan: 'bg-cyan-500/10 text-cyan-500',
+            slate: 'bg-slate-500/10 text-slate-500',
+        };
+        return map[color] || map.slate;
+    };
+
     return (
         <div className="h-screen flex flex-col bg-background-light dark:bg-background-dark font-display selection:bg-primary/10 selection:text-primary overflow-hidden">
-            <Toaster position="top-center" toastOptions={{
-                duration: 3000,
-                style: {
-                    borderRadius: '1.25rem',
-                    background: 'rgba(16, 185, 129, 0.9)',
-                    backdropFilter: 'blur(10px)',
-                    color: '#fff',
-                    fontSize: '0.875rem',
-                    fontWeight: 'bold',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '12px 24px',
-                },
-                success: {
-                    iconTheme: {
-                        primary: '#fff',
-                        secondary: '#10b981',
+            <Toaster 
+                position="top-right" 
+                toastOptions={{
+                    duration: 4000,
+                    className: 'glass-toast',
+                    style: {
+                        borderRadius: '1.25rem',
+                        padding: '12px 20px',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        border: '1px solid rgba(0, 0, 0, 0.05)',
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        color: '#1e293b',
                     },
-                },
-            }} />
+                    success: {
+                        iconTheme: {
+                            primary: '#10b981',
+                            secondary: '#fff',
+                        },
+                    },
+                    error: {
+                        iconTheme: {
+                            primary: '#ef4444',
+                            secondary: '#fff',
+                        },
+                    },
+                }}
+            />
             {/* Header */}
-            <header className="sticky top-0 z-[60] bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-colors">
+            <div className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'}`}>
+            <header className="bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 w-full">
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
                     {/* Left Side: Logo */}
-                    <div className="flex-1 flex items-center">
-                        <Link href="/" className="flex items-center gap-3 group">
-                            <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
-                                <span className="material-symbols-outlined text-lg">analytics</span>
+                    <div className="flex-1 min-w-0 flex items-center">
+                        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
+                            <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
+                                <span className="material-symbols-outlined text-lg font-black">grid_view</span>
                             </div>
-                            <h1 className="text-primary dark:text-slate-100 text-base font-bold leading-none hidden lg:block tracking-tight uppercase italic">Protrack <span className="not-italic text-slate-400">Pro</span></h1>
+                            <h1 className="text-slate-900 dark:text-slate-100 text-sm sm:text-base font-black leading-none tracking-tight uppercase italic flex items-center gap-1.5 truncate">
+                                PROTRACK <span className="not-italic text-blue-600 font-black">PRO</span>
+                            </h1>
                         </Link>
                     </div>
 
                     {/* Center: Navigation */}
                     <nav className="hidden xl:flex items-center justify-center gap-1 flex-none">
-                        {navItems.map((item) => (
+                        {navItems.filter(item => item.name !== 'Profile').map((item) => (
                             <Link 
                                 key={item.name}
                                 href={item.href}
@@ -209,27 +422,39 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                         <div className="hidden md:flex items-center">
                             <button 
                                 onClick={() => setIsSearchOpen(true)}
-                                className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
+                                className="flex items-center gap-2 px-3 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors group"
                             >
-                                <span className="material-symbols-outlined group-hover:scale-110 transition-transform text-2xl">search</span>
+                                <span className="material-symbols-outlined group-hover:scale-110 transition-transform text-xl">search</span>
+                                <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    Ctrl+K
+                                </kbd>
                             </button>
                         </div>
 
                         <div className="flex items-center gap-0.5">
                             <div className="relative" ref={notificationsRef}>
                                 <button 
-                                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                    onClick={() => {
+                                        if (window.innerWidth < 1280) {
+                                            router.visit(route('notifications.index'));
+                                        } else {
+                                            setIsNotificationsOpen(!isNotificationsOpen);
+                                        }
+                                    }}
                                     className={`p-2 rounded-lg transition-all relative group ${
                                         isNotificationsOpen 
                                         ? 'bg-primary/10 text-primary' 
                                         : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
+
                                     <span className={`material-symbols-outlined text-2xl transition-transform ${isNotificationsOpen ? 'scale-110 font-fill' : 'group-hover:scale-110'}`}>
                                         notifications
                                     </span>
-                                    {notifications.some(n => n.unread) && (
-                                        <span className="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark animate-pulse"></span>
+                                    {notifications.filter(n => n.unread).length > 0 && (
+                                        <span className="absolute top-1 right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] font-black text-white animate-pulse">
+                                            {notifications.filter(n => n.unread).length > 99 ? '99+' : notifications.filter(n => n.unread).length}
+                                        </span>
                                     )}
                                 </button>
 
@@ -249,13 +474,19 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                                         <div key={n.id} className={`p-4 flex gap-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group/item ${n.unread ? 'bg-primary/5 dark:bg-primary/5' : ''}`}>
                                                             <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${
                                                                 n.type === 'project' ? 'bg-blue-500/10 text-blue-500' :
+                                                                n.type === 'contract' ? 'bg-amber-500/10 text-amber-500' :
+                                                                n.type === 'merchandiser' ? 'bg-purple-500/10 text-purple-500' :
                                                                 n.type === 'billing' ? 'bg-rose-500/10 text-rose-500' :
-                                                                'bg-emerald-500/10 text-emerald-500'
+                                                                n.type === 'shipping' ? 'bg-emerald-500/10 text-emerald-500' :
+                                                                'bg-slate-500/10 text-slate-500'
                                                             }`}>
                                                                 <span className="material-symbols-outlined text-xl">
                                                                     {n.type === 'project' ? 'business_center' :
+                                                                     n.type === 'contract' ? 'description' :
+                                                                     n.type === 'merchandiser' ? 'storefront' :
                                                                      n.type === 'billing' ? 'payments' :
-                                                                     'description'}
+                                                                     n.type === 'shipping' ? 'local_shipping' :
+                                                                     'notifications'}
                                                                 </span>
                                                             </div>
                                                             <div className="flex flex-col gap-1 min-w-0">
@@ -292,11 +523,12 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                 )}
                             </div>
                             
-                            {/* Master Data Link (Gear Icon) */}
-                            {hasPermission('view_master_data') && (
+                            {/* Master Data Link (Gear Icon) - Only on Desktop */}
+                            {canViewMasterData && (
                                 <Link 
                                     href={route('master.data.index')}
-                                    className={`p-2 rounded-xl transition-all group ${
+
+                                    className={`hidden xl:flex p-2 rounded-xl transition-all group ${
                                         route().current('master.data.*')
                                         ? 'bg-primary text-white shadow-lg shadow-primary/20'
                                         : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400'
@@ -310,9 +542,9 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                             )}
                         </div>
 
-                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block mx-1"></div>
+                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden xl:block mx-1"></div>
 
-                        <div className="relative" ref={profileRef}>
+                        <div className="relative hidden xl:block" ref={profileRef}>
                             <button 
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-2 group outline-none"
@@ -320,7 +552,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                 <div className="size-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/10 group-hover:ring-2 ring-primary/20 transition-all">
                                     <img 
                                         alt="Profile" 
-                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1a2b3c&color=fff`}
+                                        src={user.profile_photo_url}
                                         className="h-full w-full object-cover"
                                     />
                                 </div>
@@ -333,7 +565,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                     <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
                                         <img 
                                             alt="Profile" 
-                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1a2b3c&color=fff`}
+                                            src={user.profile_photo_url}
                                             className="h-full w-full object-cover"
                                         />
                                     </div>
@@ -394,18 +626,19 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                     </div>
                 </div>
 
-                {/* Mobile Menu Toggle */}
+                {/* Mobile Menu Toggle (Legacy - kept for XL transition but hidden on mobile) */}
                 <button 
-                    onClick={() => setShowingNavigationDropdown(!showingNavigationDropdown)}
-                    className="xl:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg absolute right-4 top-1/2 -translate-y-1/2"
+                    onClick={() => setIsBottomSheetOpen(true)}
+                    className="xl:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg absolute right-4 top-1/2 -translate-y-1/2 hidden"
                 >
-                    <span className="material-symbols-outlined">{showingNavigationDropdown ? 'close' : 'menu'}</span>
+                    <span className="material-symbols-outlined">menu_open</span>
                 </button>
             </div>
         </header>
+            </div>
 
-            {/* Mobile Navigation */}
-            {showingNavigationDropdown && (
+            {/* Mobile Navigation Dropdown (Legacy - Disabled in favor of BottomNav) */}
+            {false && showingNavigationDropdown && (
                 <div className="xl:hidden bg-slate-50 dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 p-4 animate-reveal">
                     <nav className="flex flex-col gap-1">
                         {navItems.map((item) => (
@@ -426,7 +659,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                 </div>
             )}
 
-            <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-20 xl:pt-0 pb-24 xl:pb-8">
                 {isLoading ? (
                     <SkeletonContent />
                 ) : (
@@ -439,47 +672,202 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                 )}
             </main>
 
+            {/* Floating Action Button (FAB) - Mobile Only */}
+            {hasPermission('create_projects') && (
+                <div className="xl:hidden fixed bottom-24 right-6 z-[60]">
+                    <Link
+                        href={route('projects.create')}
+                        className="size-16 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-[0_10px_30px_-5px_rgba(37,99,235,0.5)] active:scale-95 transition-all outline-none"
+                    >
+                        <span className="material-symbols-outlined text-[32px] font-black">add</span>
+                    </Link>
+                </div>
+            )}
+
+            {/* Bottom Navigation - Mobile Only */}
+            <BottomNavigation 
+                displayItems={bottomNavDisplayItems}
+                showMenuButton={showMenuButton}
+                profileInMenu={profileInMenu}
+                onMoreClick={() => setIsBottomSheetOpen(true)} 
+            />
+
+            {/* Bottom Sheet Menu - Mobile Only */}
+            <BottomSheet 
+                isOpen={isBottomSheetOpen} 
+                onClose={() => setIsBottomSheetOpen(false)} 
+                hiddenItems={bottomNavHiddenItems}
+                user={user}
+                canViewMasterData={canViewMasterData}
+            />
+
+
+
+
             {/* Global Search Modal */}
             {isSearchOpen && (
-                <div className="fixed inset-0 z-[100] animate-reveal">
+                <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15%]">
                     <div 
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" 
                         onClick={() => setIsSearchOpen(false)}
                     />
-                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 scale-up">
-                        <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
-                            <div className="p-6 flex items-center gap-4">
-                                <span className="material-symbols-outlined text-slate-400 text-2xl">search</span>
+                    <div className="relative w-full max-w-2xl px-4 animate-reveal">
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+                            {/* Search Input */}
+                            <div className="p-5 flex items-center gap-4">
+                                {isSearching ? (
+                                    <span className="material-symbols-outlined text-primary text-2xl animate-spin">progress_activity</span>
+                                ) : (
+                                    <span className="material-symbols-outlined text-slate-400 text-2xl">search</span>
+                                )}
                                 <input 
+                                    ref={searchInputRef}
                                     autoFocus 
-                                    className="flex-1 bg-transparent border-none focus:ring-0 text-xl font-medium p-0 dark:text-white dark:placeholder:text-slate-600" 
-                                    placeholder="Cari proyek, kontrak, atau pengiriman..." 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleSearchKeyDown}
+                                    className="flex-1 bg-transparent border-none focus:ring-0 text-lg font-medium p-0 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600" 
+                                    placeholder="Cari proyek, kontrak, vendor, instansi..." 
                                     type="text"
                                 />
-                                <button 
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors" 
-                                    onClick={() => setIsSearchOpen(false)}
-                                >
-                                    <span className="material-symbols-outlined text-slate-400">close</span>
-                                </button>
-                            </div>
-                            <div className="border-t border-slate-100 dark:border-white/10 p-4 max-h-96 overflow-y-auto">
-                                <div className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pencarian Terakhir</div>
-                                {['Modern Office Hub', 'Logistics Upgrade', 'Retail Chain Sync'].map((item) => (
+                                <div className="flex items-center gap-2">
+                                    <kbd className="hidden sm:inline-flex items-center px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        ESC
+                                    </kbd>
                                     <button 
-                                        key={item}
-                                        className="w-full flex items-center gap-4 px-4 py-4 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all text-left group"
+                                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors" 
+                                        onClick={() => setIsSearchOpen(false)}
                                     >
-                                        <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">history</span>
-                                        <span className="text-sm font-bold dark:text-slate-300">{item}</span>
+                                        <span className="material-symbols-outlined text-slate-400 text-xl">close</span>
                                     </button>
-                                ))}
+                                </div>
                             </div>
-                            <div className="p-4 bg-slate-50 dark:bg-white/5 flex justify-between items-center text-[10px] font-bold text-slate-400 tracking-wider">
-                                <span>TEKAN ESC UNTUK MENUTUP</span>
-                                <div className="flex gap-4">
-                                    <span>ENTER UNTUK PILIH</span>
-                                    <span>↑↓ UNTUK NAVIGASI</span>
+
+                            {/* Results Area */}
+                            <div ref={resultsContainerRef} className="border-t border-slate-100 dark:border-white/10 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                {searchQuery.length >= 2 ? (
+                                    <>
+                                        {isSearching ? (
+                                            <div className="p-8 flex flex-col items-center justify-center">
+                                                <span className="material-symbols-outlined text-3xl text-primary animate-spin mb-2">progress_activity</span>
+                                                <p className="text-xs font-bold text-slate-400">Mencari...</p>
+                                            </div>
+                                        ) : flatResults.length > 0 ? (
+                                            <div className="py-2">
+                                                {(() => {
+                                                    let currentCategory = '';
+                                                    let globalIdx = -1;
+                                                    return flatResults.map((item, i) => {
+                                                        globalIdx++;
+                                                        const showHeader = item.category !== currentCategory;
+                                                        currentCategory = item.category;
+                                                        const idx = globalIdx;
+                                                        return (
+                                                            <div key={i}>
+                                                                {showHeader && (
+                                                                    <div className="px-6 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                                                        {item.category}
+                                                                    </div>
+                                                                )}
+                                                                <button
+                                                                    data-index={idx}
+                                                                    onClick={() => {
+                                                                        addToHistory({ title: item.title, category: item.category, icon: item.icon, color: item.color, url: item.url });
+                                                                        setIsSearchOpen(false);
+                                                                        router.visit(item.url);
+                                                                    }}
+                                                                    onMouseEnter={() => setSelectedIndex(idx)}
+                                                                    className={`w-full flex items-center gap-4 px-6 py-3 transition-all text-left group ${
+                                                                        selectedIndex === idx 
+                                                                            ? 'bg-primary/10 dark:bg-primary/15' 
+                                                                            : 'hover:bg-slate-50 dark:hover:bg-white/5'
+                                                                    }`}
+                                                                >
+                                                                    <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${getColorClasses(item.color)}`}>
+                                                                        <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="text-sm font-bold text-slate-800 dark:text-white truncate">{item.title}</div>
+                                                                        {item.subtitle && <div className="text-xs text-slate-400 truncate">{item.subtitle}</div>}
+                                                                    </div>
+                                                                    {selectedIndex === idx && (
+                                                                        <span className="material-symbols-outlined text-primary text-lg shrink-0">arrow_forward</span>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    });
+                                                })()}
+                                            </div>
+                                        ) : (
+                                            <div className="p-10 flex flex-col items-center justify-center text-center">
+                                                <div className="size-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                                                    <span className="material-symbols-outlined text-3xl text-slate-400">search_off</span>
+                                                </div>
+                                                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">Tidak Ditemukan</h4>
+                                                <p className="text-xs text-slate-400">Coba kata kunci lain untuk "{searchQuery}"</p>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    /* Search History */
+                                    <div className="py-2">
+                                        {searchHistory.length > 0 ? (
+                                            <>
+                                                <div className="px-6 pt-3 pb-1 flex items-center justify-between">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pencarian Terakhir</span>
+                                                    <button onClick={clearHistory} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors">Hapus Semua</button>
+                                                </div>
+                                                {searchHistory.map((item, i) => (
+                                                    <div
+                                                        key={item.url + i}
+                                                        data-index={i}
+                                                        className={`flex items-center gap-4 px-6 py-3 transition-all group ${
+                                                            selectedIndex === i 
+                                                                ? 'bg-primary/10 dark:bg-primary/15' 
+                                                                : 'hover:bg-slate-50 dark:hover:bg-white/5'
+                                                        }`}
+                                                    >
+                                                        <button
+                                                            className="flex-1 flex items-center gap-4 text-left min-w-0"
+                                                            onClick={() => { setIsSearchOpen(false); router.visit(item.url); }}
+                                                            onMouseEnter={() => setSelectedIndex(i)}
+                                                        >
+                                                            <div className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${getColorClasses(item.color || 'slate')}`}>
+                                                                <span className="material-symbols-outlined text-base">{item.icon || 'history'}</span>
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{item.title}</div>
+                                                                <div className="text-[10px] text-slate-400">{item.category}</div>
+                                                            </div>
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => removeFromHistory(item.url)}
+                                                            className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm text-slate-400">close</span>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </>
+                                        ) : (
+                                            <div className="p-10 flex flex-col items-center justify-center text-center opacity-50">
+                                                <span className="material-symbols-outlined text-3xl mb-2 text-slate-400">manage_search</span>
+                                                <p className="text-xs font-bold text-slate-500">Ketik minimal 2 karakter untuk mulai mencari</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-3 bg-slate-50 dark:bg-white/[0.03] border-t border-slate-100 dark:border-white/10 flex justify-between items-center text-[10px] font-bold text-slate-400 tracking-wider px-6">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[9px]">ESC</kbd> TUTUP</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[9px]">↑↓</kbd> NAVIGASI</span>
+                                    <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[9px]">ENTER</kbd> PILIH</span>
                                 </div>
                             </div>
                         </div>

@@ -1,38 +1,88 @@
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
+import { useRef, useState } from 'react';
 
-export default function UpdateProfileInformation({
-    mustVerifyEmail,
-    status,
-    className = '',
-}) {
+export default function UpdateProfileInformation({ className = '' }) {
     const user = usePage().props.auth.user;
+    const photoInput = useRef();
+    const [photoPreview, setPhotoPreview] = useState(null);
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
-        useForm({
-            name: user.name,
-            email: user.email,
-            employee_id: 'PR7842', // Dummy for now
-            department: 'Operations',
-            position: 'Senior Project Manager',
-            joined_date: '2021-03-12',
-        });
+    const { data, setData, post, errors, processing, recentlySuccessful } = useForm({
+        name: user.name,
+        username: user.username || '',
+        email: user.email || '',
+        profile_photo: null,
+    });
+
+    const selectNewPhoto = () => {
+        photoInput.current.click();
+    };
+
+    const updatePhotoPreview = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setData('profile_photo', file);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setPhotoPreview(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('profile.update'));
+        post(route('profile.update'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setPhotoPreview(null);
+            },
+        });
     };
 
     return (
-        <form onSubmit={submit} className="space-y-10">
+        <form onSubmit={submit} className="space-y-8">
+            {/* Profile Photo */}
+            <div className="flex items-center gap-8">
+                <div className="relative group/avatar cursor-pointer" onClick={selectNewPhoto}>
+                    <div className="size-24 rounded-[1.5rem] overflow-hidden border-4 border-slate-50 dark:border-white/5 shadow-xl">
+                        <img
+                            src={photoPreview || user.profile_photo_url}
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <div className="absolute inset-0 bg-black/40 rounded-[1.5rem] opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                    </div>
+                    <input
+                        type="file"
+                        ref={photoInput}
+                        onChange={updatePhotoPreview}
+                        className="hidden"
+                        accept="image/*"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <button
+                        type="button"
+                        onClick={selectNewPhoto}
+                        className="text-sm font-black text-primary dark:text-blue-400 uppercase tracking-widest hover:underline"
+                    >
+                        Ubah Foto
+                    </button>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">JPG, PNG. Max 2MB</p>
+                    {errors.profile_photo && <InputError message={errors.profile_photo} />}
+                </div>
+            </div>
+
+            {/* Name, Username & Email */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Full Name */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="name">Full Name</label>
+                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="name">Nama Lengkap</label>
                     <TextInput
                         id="name"
                         className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white"
@@ -44,97 +94,41 @@ export default function UpdateProfileInformation({
                     <InputError message={errors.name} />
                 </div>
 
-                {/* Email Address */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="email">Email Address</label>
+                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="username">Username</label>
+                    <TextInput
+                        id="username"
+                        className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white"
+                        value={data.username}
+                        onChange={(e) => setData('username', e.target.value)}
+                        required
+                    />
+                    <InputError message={errors.username} />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="email">Email <span className="text-slate-300 dark:text-slate-600">(Opsional)</span></label>
                     <TextInput
                         id="email"
                         type="email"
                         className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
-                        required
-                        autoComplete="username"
+                        autoComplete="email"
+                        placeholder="contoh@email.com"
                     />
                     <InputError message={errors.email} />
                 </div>
-
-                {/* Employee ID */}
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="employee_id">Employee ID</label>
-                    <TextInput
-                        id="employee_id"
-                        className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white"
-                        value={data.employee_id}
-                        onChange={(e) => setData('employee_id', e.target.value)}
-                        readOnly
-                    />
-                </div>
-
-                {/* Department */}
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="department">Department</label>
-                    <TextInput
-                        id="department"
-                        className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white"
-                        value={data.department}
-                        onChange={(e) => setData('department', e.target.value)}
-                    />
-                </div>
-
-                {/* Position */}
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="position">Position</label>
-                    <TextInput
-                        id="position"
-                        className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white"
-                        value={data.position}
-                        onChange={(e) => setData('position', e.target.value)}
-                    />
-                </div>
-
-                {/* Joined Date */}
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-1" htmlFor="joined_date">Joined Date</label>
-                    <TextInput
-                        id="joined_date"
-                        type="date"
-                        className="w-full !py-4 !px-6 !bg-slate-50 dark:!bg-white/5 !border-slate-100 dark:!border-white/5 !rounded-2xl !text-sm !font-bold focus:!ring-2 focus:!ring-primary/20 outline-none transition-all dark:!text-white dark:[color-scheme:dark]"
-                        value={data.joined_date}
-                        onChange={(e) => setData('joined_date', e.target.value)}
-                    />
-                </div>
             </div>
 
-            {mustVerifyEmail && user.email_verified_at === null && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-2xl border border-amber-100 dark:border-amber-500/20">
-                    <p className="text-sm font-bold text-amber-800 dark:text-amber-400 uppercase tracking-widest leading-relaxed">
-                        Your email address is unverified.
-                        <Link
-                            href={route('verification.send')}
-                            method="post"
-                            as="button"
-                            className="ml-2 underline hover:text-amber-900 transition-colors"
-                        >
-                            Click here to re-send.
-                        </Link>
-                    </p>
-
-                    {status === 'verification-link-sent' && (
-                        <div className="mt-2 text-[11px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                            A new verification link has been sent.
-                        </div>
-                    )}
-                </div>
-            )}
-
             <div className="flex items-center gap-6 pt-4">
-                <PrimaryButton 
-                    className="!px-10 !py-4 !bg-slate-900 dark:!bg-white dark:!text-slate-900 !rounded-2xl !font-black !uppercase !tracking-[0.2em] !text-[10px] shadow-xl hover:!-translate-y-1 transition-all active:scale-95" 
+                <button
+                    type="submit"
+                    className="px-10 py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
                     disabled={processing}
                 >
-                    Save Information
-                </PrimaryButton>
+                    Simpan Perubahan
+                </button>
 
                 <Transition
                     show={recentlySuccessful}
@@ -143,8 +137,9 @@ export default function UpdateProfileInformation({
                     leave="transition ease-in-out"
                     leaveTo="opacity-0"
                 >
-                    <p className="text-[11px] font-black text-emerald-500 uppercase tracking-widest">
-                        Profile Updated Successfully
+                    <p className="text-[11px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        Berhasil Disimpan
                     </p>
                 </Transition>
             </div>

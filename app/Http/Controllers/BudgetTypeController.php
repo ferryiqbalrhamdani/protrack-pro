@@ -81,7 +81,9 @@ class BudgetTypeController extends Controller
 
         $budgetType->update($validated);
 
-        $this->logActivity('telah memperbarui data jenis anggaran', 'Jenis Anggaran', $budgetType->name, 'edit', 'text-amber-500');
+        if ($budgetType->wasChanged()) {
+            $this->logActivity('telah memperbarui data jenis anggaran', 'Jenis Anggaran', $budgetType->name, 'edit', 'text-amber-500');
+        }
 
         return redirect()->back()->with('success', 'Jenis Anggaran berhasil diperbarui.');
     }

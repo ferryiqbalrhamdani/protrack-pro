@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 
 export default function Index({ notifications, activeFilter }) {
+    const { user } = usePage().props.auth;
     const [activeTab, setActiveTab] = useState(activeFilter || 'all');
 
     const notificationList = notifications.data || [];
+
+    // Realtime: listen for new notifications and reload the page data
+    useEffect(() => {
+        if (window.Echo && user) {
+            const channel = window.Echo.private(`App.Models.User.${user.id}`);
+            channel.notification(() => {
+                // Reload current page data without full page refresh
+                router.reload({ only: ['notifications'], preserveScroll: true });
+            });
+
+            return () => {
+                // Cleanup: we don't want to stop the main channel used by the layout,
+                // so we just remove the specific listener.
+            };
+        }
+    }, [user]);
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
@@ -22,6 +39,10 @@ export default function Index({ notifications, activeFilter }) {
 
     const deleteNotification = (id) => {
         router.delete(route('notifications.destroy', id), { preserveScroll: true });
+    };
+
+    const deleteReadNotifications = () => {
+        router.delete(route('notifications.destroyRead'), { preserveScroll: true });
     };
 
     const getTypeStyle = (type) => {
@@ -76,14 +97,24 @@ export default function Index({ notifications, activeFilter }) {
                             </button>
                         </div>
 
-                        <button 
-                            onClick={markAllAsRead}
-                            disabled={notificationList.filter(n => n.unread).length === 0}
-                            className="w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            <span className="material-symbols-outlined text-lg">done_all</span>
-                            Tandai Semua Dibaca
-                        </button>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <button 
+                                onClick={markAllAsRead}
+                                disabled={notificationList.filter(n => n.unread).length === 0}
+                                className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-sm font-bold text-primary dark:text-blue-400 hover:bg-primary/10 dark:hover:bg-blue-400/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-lg">done_all</span>
+                                Tandai Semua Dibaca
+                            </button>
+                            <button 
+                                onClick={deleteReadNotifications}
+                                disabled={notificationList.filter(n => !n.unread).length === 0}
+                                className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-sm font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-400/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-lg">delete_sweep</span>
+                                Hapus Sudah Dibaca
+                            </button>
+                        </div>
                     </div>
 
                     {/* Notification List */}

@@ -80,6 +80,10 @@ class DashboardController extends Controller
             $totalBillingGrowth = 100;
         }
 
+        // Percentage of Completed Projects Value vs Total Billing
+        $completedBilling = Project::where('status', 'Completed')->sum('contract_value');
+        $completedBillingPercentage = $totalBilling > 0 ? round(($completedBilling / $totalBilling) * 100) : 0;
+
         // Due Projects (Ongoing & Pending)
         $dueProjects = Project::whereIn('status', ['Ongoing', 'Pending'])
             ->whereNotNull('due_date')
@@ -152,6 +156,7 @@ class DashboardController extends Controller
             'metrics' => [
                 'totalBilling' => $totalBilling,
                 'totalBillingGrowth' => $totalBillingGrowth,
+                'completedBillingPercentage' => $completedBillingPercentage,
                 'activeProjects' => $activeProjects,
                 'activeGrowth' => $activeGrowth,
                 'ongoingProjects' => $ongoingProjects,

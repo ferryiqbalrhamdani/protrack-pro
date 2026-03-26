@@ -1,188 +1,72 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import SearchableSelect from '@/Components/SearchableSelect';
 import TableSkeleton from '@/Components/TableSkeleton';
-import { router } from '@inertiajs/react';
 import useSessionFilter from '@/Hooks/useSessionFilter';
+import Pagination from '@/Components/Pagination';
 
-const DUMMY_CONTRACTS = Array.from({ length: 50 }, (_, i) => ({
-    id: i + 1,
-    name: [
-        'Modern Office Hub', 'SmartCity Grid V2', 'Metro Bridge Revamp', 'Oceania Logistics Hub',
-        'Digital Banking Sync', 'Green Energy Park', 'Cloud Infrastructure', 'Urban Transit System',
-        'Retail Chain Expansion', 'AgriTech Automation', 'Smart Port Logistics', 'Data Center Build',
-        'Cyber Security Audit', 'Public Health Portal', 'Solar Array Install', 'Water Scarcity Plan'
-    ][i % 16] + ` #${i + 1}`,
-    category: ['CONSTRUCTION', 'TECHNOLOGY', 'GOVERNMENT', 'MARITIME', 'FINANCE', 'ENERGY'][i % 6],
-    up_no: `UP/2024/${String(100 + i).padStart(4, '0')}`,
-    company: ['PT. Bangun Jaya', 'Innova Systems', 'City Dev Group', 'Global Port Svcs', 'Nexus Corp', 'EcoEnergy Ltd'][i % 6],
-    status: ['ONGOING', 'PENDING', 'COMPLETED', 'ONGOING', 'PENDING'][i % 5],
-    progress: [65, 15, 100, 42, 0, 85, 30, 95][i % 8],
-    pic: { 
-        name: ['Sarah Miller', 'David Chen', 'Elena Rodriguez', 'Marcus Webb', 'James Wilson', 'Aria Gupta'][i % 6] 
-    },
-    handle: (i % 3 === 0) ? { 
-        name: ['John Doe', 'Alex Smith', 'Sophia Lee', 'Michael Brown'][i % 4] 
-    } : null,
-    start_date: `2024-0${(i % 9) + 1}-${String((i % 28) + 1).padStart(2, '0')}`,
-    end_date: `2024-1${(i % 3) + 1}-${String((i % 28) + 1).padStart(2, '0')}`,
-}));
+// Removed DUMMY_CONTRACTS as we now use real data from backend
 
-const DUMMY_STATS = {
-    total_active: 42,
-    completion_rate: 85,
-    due_next_30_days: 12,
-    avg_project_time: '4.2 Months',
-};
-
-export default function Index({ contracts: initialContracts, stats: initialStats, queryParams, auth_user }) {
-    const [contracts, setContracts] = useState(initialContracts || DUMMY_CONTRACTS);
-    const [stats, setStats] = useState(initialStats || DUMMY_STATS);
-    const [search, setSearch] = useSessionFilter('Contract_search', queryParams?.search || '');
-    const [statusFilter, setStatusFilter] = useSessionFilter('Contract_status', queryParams?.status || 'Semua Status');
-    const [companyFilter, setCompanyFilter] = useSessionFilter('Contract_company', queryParams?.company || 'Semua Perusahaan');
-    const [myDataFilter, setMyDataFilter] = useSessionFilter('Contract_myData', queryParams?.my_data === 'true');
-    const [currentPage, setCurrentPage] = useSessionFilter('Contract_page', parseInt(queryParams?.page) || 1);
+export default function Index({ contracts, stats, queryParams, auth_user }) {
+    const [search, setSearch] = useState(queryParams?.search || '');
+    const [statusFilter, setStatusFilter] = useState(queryParams?.status || 'Semua Status');
+    const [companyFilter, setCompanyFilter] = useState(queryParams?.company || 'Semua Perusahaan');
+    const [myDataFilter, setMyDataFilter] = useState(queryParams?.my_data === 'true');
     const [showMoreFilters, setShowMoreFilters] = useState(false);
-    const itemsPerPage = 5;
-    const [activeDropdown, setActiveDropdown] = useState(null);
-    const [sortConfig, setSortConfig] = useSessionFilter('Contract_sort', { 
-        key: queryParams?.tableSortColumn || null, 
-        direction: queryParams?.tableSortDirection || 'asc' 
-    });
-    const [isTableLoading, setIsTableLoading] = useState(false);
-    const isInitialMount = useRef(true);
-
-    const handleSort = (key) => {
-        let direction = 'asc';
-        let newKey = key;
-
-        if (sortConfig.key === key) {
-            if (sortConfig.direction === 'asc') {
-                direction = 'desc';
-            } else {
-                newKey = null; // Click 3: Reset
-            }
-        }
-        setSortConfig({ key: newKey, direction });
-    };
+    
+    // Server-side sorting
+    const [sortBy, setSortBy] = useState(queryParams?.tableSortColumn || 'created_at');
+    const [sortDir, setSortDir] = useState(queryParams?.tableSortDirection || 'desc');
 
     const SortIcon = ({ column }) => {
-        const isActive = sortConfig.key === column;
+        const isSorted = sortBy === column;
         return (
-            <span className={`material-symbols-outlined text-[16px] transition-all duration-300 ${
-                isActive 
-                ? 'text-primary dark:text-blue-400 opacity-100 scale-110' 
-                : 'text-slate-400 dark:text-slate-600 opacity-30 group-hover/th:opacity-60'
-            } ${isActive && sortConfig.direction === 'desc' ? 'rotate-180' : ''}`}>
-                {isActive ? 'keyboard_arrow_up' : 'unfold_more'}
+            <span className={`material-symbols-outlined text-sm transition-all ${
+                isSorted ? 'text-primary dark:text-blue-400 scale-110 font-bold' : 'text-slate-300 dark:text-slate-600 group-hover/th:text-slate-400'
+            }`}>
+                {isSorted && sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward'}
             </span>
         );
     };
 
-    // Filter and Sort Logic
-    const filteredAndSortedContracts = useMemo(() => {
-        let result = [...contracts];
+    const [isTableLoading, setIsTableLoading] = useState(false);
+    const isInitialMount = useRef(true);
 
-        // Search Filter
-        if (search) {
-            const lowSearch = search.toLowerCase();
-            result = result.filter(c => 
-                c.name.toLowerCase().includes(lowSearch) ||
-                c.company.toLowerCase().includes(lowSearch) ||
-                c.pic.name.toLowerCase().includes(lowSearch) ||
-                c.up_no.toLowerCase().includes(lowSearch)
-            );
+    const handleSort = (key) => {
+        if (sortBy === key) {
+            setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(key);
+            setSortDir('asc');
         }
+    };
 
-        // My Data Filter (Filter by Auth User Handle)
-        if (myDataFilter && auth_user) {
-            result = result.filter(c => c.handle?.name === auth_user.name);
-        }
-
-        // Status Filter
-        if (statusFilter !== 'Semua Status') {
-            result = result.filter(c => c.status === statusFilter);
-        }
-
-        // Company Filter
-        if (companyFilter !== 'Semua Perusahaan') {
-            result = result.filter(c => c.company === companyFilter);
-        }
-
-        // Column Sorting
-        if (sortConfig.key) {
-            result.sort((a, b) => {
-                let aVal = a[sortConfig.key];
-                let bVal = b[sortConfig.key];
-
-                // Handle nested objects or special types
-                if (sortConfig.key === 'start_date') {
-                    aVal = new Date(aVal);
-                    bVal = new Date(bVal);
-                }
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        return result;
-    }, [contracts, search, statusFilter, companyFilter, myDataFilter, sortConfig]);
-
-    // Pagination Logic
-    const totalItems = filteredAndSortedContracts.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const paginatedContracts = filteredAndSortedContracts.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // Reset to page 1 when filters change (BUT NOT when sorting, and NOT on first mount)
+    // Server-side Filter & Sort Effect
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
             return;
         }
-        setIsTableLoading(true);
-        const timer = setTimeout(() => setIsTableLoading(false), 500);
-        setCurrentPage(1);
-        return () => clearTimeout(timer);
-    }, [search, statusFilter, companyFilter, sortConfig]);
 
-    // URL Persistence Implementation
-    useEffect(() => {
         const timeout = setTimeout(() => {
             const params = {};
             if (search) params.search = search;
             if (statusFilter !== 'Semua Status') params.status = statusFilter;
             if (companyFilter !== 'Semua Perusahaan') params.company = companyFilter;
             if (myDataFilter) params.my_data = 'true';
-            if (sortConfig.key) {
-                params.tableSortColumn = sortConfig.key;
-                params.tableSortDirection = sortConfig.direction;
-            }
-            if (currentPage > 1) params.page = currentPage;
+            if (sortBy) params.tableSortColumn = sortBy;
+            if (sortDir) params.tableSortDirection = sortDir;
 
-            // Only navigate if the new params are actually different from the current URL
-            const url = new URL(window.location.href);
-            const currentParams = Object.fromEntries(url.searchParams.entries());
-            
-            const paramsChanged = JSON.stringify(params) !== JSON.stringify(currentParams);
-            const hasQueryParams = queryParams && Object.keys(queryParams).length > 0;
-            const hasNewParams = Object.keys(params).length > 0;
-
-            if (paramsChanged && (hasNewParams || hasQueryParams)) {
-                router.get(route('contracts'), params, {
-                    preserveState: true,
-                    replace: true
-                });
-            }
+            router.get(route('contracts'), params, {
+                preserveState: true,
+                replace: true,
+                onBefore: () => setIsTableLoading(true),
+                onFinish: () => setIsTableLoading(false),
+            });
         }, 300);
         return () => clearTimeout(timeout);
-    }, [search, statusFilter, companyFilter, myDataFilter, sortConfig, currentPage]);
+    }, [search, statusFilter, companyFilter, myDataFilter, sortBy, sortDir]);
 
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
@@ -190,7 +74,6 @@ export default function Index({ contracts: initialContracts, stats: initialStats
 
     const handleMyDataToggle = () => {
         setMyDataFilter(!myDataFilter);
-        setCurrentPage(1);
     };
 
     const handleStatusChange = (val) => {
@@ -243,18 +126,16 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                             value={statusFilter}
                             onChange={(val) => {
                                 setStatusFilter(val);
-                                setCurrentPage(1);
                             }}
                             placeholder="Semua Status"
                         />
 
                         {/* Company Filter (Matching Projects) */}
                         <SearchableSelect 
-                            options={['Semua Perusahaan', ...Array.from(new Set(contracts.map(c => c.company)))]}
+                            options={['Semua Perusahaan', ...Array.from(new Set((contracts.data || []).map(c => c.company)))]}
                             value={companyFilter}
                             onChange={(val) => {
                                 setCompanyFilter(val);
-                                setCurrentPage(1);
                             }}
                             placeholder="Semua Perusahaan"
                         />
@@ -343,7 +224,6 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                                             <button 
                                                 onClick={() => {
                                                     setMyDataFilter(false);
-                                                    setCurrentPage(1);
                                                     setShowMoreFilters(false);
                                                 }}
                                                 className="w-full py-3 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-200 dark:hover:bg-white/10"
@@ -358,10 +238,9 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                     </div>
                 </div>
 
-                {/* Contracts Table */}
-                <div className="bg-white dark:bg-white/5 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl">
+                <div className="bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden">
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
+                        <table className="hidden md:table w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] rounded-t-[3rem]">
                                     <th 
@@ -401,8 +280,8 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                             </thead>
                              <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                                 {isTableLoading ? (
-                                    <TableSkeleton columns={8} rows={itemsPerPage} />
-                                ) : paginatedContracts.length > 0 ? paginatedContracts.map((contract, index) => (
+                                    <TableSkeleton columns={8} rows={10} />
+                                ) : (contracts.data || []).length > 0 ? (contracts.data || []).map((contract, index) => (
                                     <tr 
                                         key={contract.id} 
                                         className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group animate-slide-up-fade"
@@ -474,12 +353,12 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                                         <td className="px-8 py-6 whitespace-nowrap">
                                             <div className="flex flex-col gap-2">
                                                 <span className="text-sm font-bold text-slate-600 dark:text-slate-300">
-                                                    {new Date(contract.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    {contract.start_date ? new Date(contract.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                                 </span>
                                                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 rounded-lg w-fit">
                                                     <span className="material-symbols-outlined text-[14px] text-amber-500">calendar_month</span>
                                                     <span className="text-xs font-black text-slate-700 dark:text-slate-200">
-                                                        {new Date(contract.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        {contract.end_date ? new Date(contract.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -494,7 +373,6 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                                                     <span className="material-symbols-outlined text-2xl">edit_square</span>
                                                 </Link>
                                                 
-                                                {/* Tooltip Content - Shifted left to avoid edge clipping and increased z-index */}
                                                 <div className="absolute bottom-full mb-2 right-0 px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible group-hover/tooltip:mb-3 transition-all duration-300 shadow-xl z-[100] whitespace-nowrap pointer-events-none">
                                                     Edit Kontrak
                                                     <div className="absolute top-full right-3 border-4 border-transparent border-t-slate-900 dark:border-t-white"></div>
@@ -515,71 +393,104 @@ export default function Index({ contracts: initialContracts, stats: initialStats
                                 )}
                             </tbody>
                         </table>
+
+                        {/* Mobile Card Grid View */}
+                        <div className="md:hidden grid grid-cols-1 gap-4">
+                            {isTableLoading ? (
+                                Array(10).fill(0).map((_, i) => (
+                                    <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
+                                        <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-lg w-3/4 mb-3"></div>
+                                        <div className="h-3 bg-slate-50 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                                        <div className="space-y-2 pt-2">
+                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-full"></div>
+                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-2/3"></div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (contracts.data || []).length > 0 ? (
+                                (contracts.data || []).map((contract, index) => (
+                                    <div 
+                                        key={contract.id} 
+                                        className="bg-white dark:bg-white/5 rounded-[2rem] p-5 border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col gap-4 relative overflow-hidden group animate-slide-up-fade"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        {/* Status Badge - Top Right */}
+                                        <div className="flex justify-between items-start gap-2">
+                                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ring-1 ring-inset ${
+                                                (contract.status === 'COMPLETED' || contract.status === 'Completed') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
+                                                (contract.status === 'ONGOING'   || contract.status === 'Ongoing')   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20' :
+                                                (contract.status === 'PENDING'   || contract.status === 'Pending')   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
+                                                'bg-slate-100 text-slate-500 dark:bg-white/5 ring-slate-200/50'
+                                            }`}>
+                                                {contract.status}
+                                            </div>
+                                            
+                                            <Link 
+                                                href={contract.hashed_id ? route('contracts.edit', contract.hashed_id) : '#'}
+                                                className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">edit_square</span>
+                                            </Link>
+                                        </div>
+
+                                        {/* Contract Info */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">
+                                                {contract.name}
+                                            </h4>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                {contract.no_kontrak || '-'}
+                                            </p>
+                                        </div>
+
+                                        {/* Progress */}
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
+                                                <span className="text-slate-400">Progres</span>
+                                                <span className={contract.progress === 100 ? 'text-emerald-500' : 'text-primary'}>{contract.progress || 0}%</span>
+                                            </div>
+                                            <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full rounded-full transition-all duration-700 ${contract.progress === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+                                                    style={{ width: `${contract.progress || 0}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Metas */}
+                                        <div className="grid grid-cols-1 gap-1.5 pt-1 border-t border-slate-50 dark:border-white/5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">business</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{contract.company}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">person</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{contract.handle?.name || '-'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">calendar_today</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 text-truncate">
+                                                    {contract.end_date ? new Date(contract.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-2 py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                    Tidak ada data ditemukan
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Pagination Footer */}
-                    <div className="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02] rounded-b-[3rem]">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                            Showing <span className="font-black text-slate-900 dark:text-white">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to <span className="font-black text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-black text-slate-900 dark:text-white">{totalItems}</span> contracts
+                    <div className="px-0 md:px-8 py-8 md:py-6 border-t-0 md:border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-transparent md:bg-slate-50/50 dark:md:bg-white/[0.02] md:rounded-b-[3rem]">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                            Showing <span className="font-black text-slate-900 dark:text-white">{contracts.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{contracts.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{contracts.total || 0}</span> contracts
                         </p>
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                className="size-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all disabled:opacity-30" 
-                                disabled={currentPage === 1}
-                            >
-                                <span className="material-symbols-outlined">chevron_left</span>
-                            </button>
-                            
-                            {/* Smart Pagination */}
-                            {(() => {
-                                const pages = [];
-                                if (totalPages <= 7) {
-                                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                                } else {
-                                    if (currentPage <= 4) {
-                                        for (let i = 1; i <= 5; i++) pages.push(i);
-                                        pages.push('...');
-                                        pages.push(totalPages);
-                                    } else if (currentPage >= totalPages - 3) {
-                                        pages.push(1);
-                                        pages.push('...');
-                                        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
-                                    } else {
-                                        pages.push(1);
-                                        pages.push('...');
-                                        pages.push(currentPage - 1);
-                                        pages.push(currentPage);
-                                        pages.push(currentPage + 1);
-                                        pages.push('...');
-                                        pages.push(totalPages);
-                                    }
-                                }
-                                return pages.map((page, i) => (
-                                    page === '...' ? (
-                                        <span key={`dots-${i}`} className="size-10 flex items-center justify-center text-slate-400 font-black">...</span>
-                                    ) : (
-                                        <button 
-                                            key={page} 
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`size-10 rounded-xl text-xs font-black transition-all ${
-                                                page === currentPage ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-110' : 'text-slate-500 hover:text-primary'
-                                            }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    )
-                                ));
-                            })()}
-
-                            <button 
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                className="size-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all disabled:opacity-30"
-                                disabled={currentPage === totalPages || totalPages === 0}
-                            >
-                                <span className="material-symbols-outlined">chevron_right</span>
-                            </button>
-                        </div>
+                        
+                        <Pagination links={contracts.links} />
                     </div>
                 </div>
             </div>

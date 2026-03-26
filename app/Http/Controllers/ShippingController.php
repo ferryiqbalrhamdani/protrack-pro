@@ -67,7 +67,7 @@ class ShippingController extends Controller
             $query->orderBy($dbSortColumn, $sortDirection);
         }
 
-        $projects = $query->paginate(8)->through(function ($project) {
+        $projects = $query->paginate(10)->through(function ($project) {
             $s = $project->shipping;
             $progres = 0;
             if ($s) {
@@ -283,8 +283,8 @@ class ShippingController extends Controller
             $progress = round(($filled / max(1, $total)) * 100);
             if ($shipping->status === 'Completed') $progress = 100;
 
-            if ($progress == 100 || $oldStatus !== $shipping->status) {
-                \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('shipping', $shipping->status, $auth_user, $project->name, $project->id, $progress));
+            if ($shipping->wasChanged() && ($progress == 100 || $oldStatus !== $shipping->status)) {
+                \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('shipping', $shipping->status, $auth_user, $project->name, $project->id, $progress));
             }
             
             return back()->with('success', 'Data pengiriman berhasil disimpan.');

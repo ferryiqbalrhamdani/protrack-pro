@@ -9,6 +9,7 @@ import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TableSkeleton from '@/Components/TableSkeleton';
+import Pagination from '@/Components/Pagination';
 
 export default function Index({ projects, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
@@ -285,9 +286,10 @@ export default function Index({ projects, filters }) {
                 </div>
 
                 {/* Table Section */}
-                <div className="bg-white dark:bg-white/5 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl overflow-hidden">
+                <div className="bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden">
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-separate border-spacing-0">
+                        {/* Desktop Table View */}
+                        <table className="hidden md:table w-full text-left border-separate border-spacing-0">
                             <thead className="sticky top-0 z-10">
                                 <tr className="bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md">
                                     <th 
@@ -499,35 +501,114 @@ export default function Index({ projects, filters }) {
                                     )}
                                 </tbody>
                         </table>
-                    </div>
 
-                    {/* Pagination Section Linked inside Table Container */}
-                                    {projects.links && projects.links.length > 3 && (
-                                        <div className="flex items-center justify-between px-8 py-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-black/10 rounded-b-[3rem]">
-                                            <div className="flex items-center gap-4">
-                                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                                    Showing <span className="text-slate-800 dark:text-white">{projects.from || 0}</span> to <span className="text-slate-800 dark:text-white">{projects.to || 0}</span> of <span className="text-slate-800 dark:text-white">{projects.total || 0}</span> Results
-                                                </p>
+                        {/* Mobile Card Grid View */}
+                        <div className="md:hidden grid grid-cols-1 gap-4">
+                            {isTableLoading ? (
+                                Array(10).fill(0).map((_, i) => (
+                                    <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
+                                        <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-lg w-3/4 mb-3"></div>
+                                        <div className="h-3 bg-slate-50 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                                        <div className="space-y-2">
+                                            <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full w-full"></div>
+                                            <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full w-2/3"></div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (projects.data || []).length > 0 ? (
+                                (projects.data || []).map((project, index) => (
+                                    <div 
+                                        key={project.id} 
+                                        className="bg-white dark:bg-white/5 rounded-[2rem] p-5 border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col gap-4 relative overflow-hidden group animate-slide-up-fade"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        {/* Status Badge - Top Right */}
+                                        <div className="flex justify-between items-start gap-2">
+                                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ring-1 ring-inset ${
+                                                project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
+                                                project.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20' :
+                                                project.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
+                                                'bg-slate-100 text-slate-500 dark:bg-white/5 ring-slate-200/50'
+                                            }`}>
+                                                {project.status}
                                             </div>
                                             
-                                            <div className="flex items-center gap-2">
-                                                {projects.links.map((link, i) => (
-                                                    <Link
-                                                        key={i}
-                                                        href={link.url}
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                        className={`size-10 rounded-xl flex items-center justify-center text-xs font-black transition-all ${
-                                                            link.active 
-                                                            ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110 border-transparent' 
-                                                            : !link.url
-                                                                ? 'bg-transparent text-slate-300 cursor-not-allowed opacity-50'
-                                                                : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
-                                                        }`}
-                                                    />
-                                                ))}
+                                            <button 
+                                                onClick={(e) => {
+                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                    setActiveActionPos({ 
+                                                        top: rect.bottom + window.scrollY, 
+                                                        left: rect.left + window.scrollX - 145
+                                                    });
+                                                    setActiveActionId(activeActionId === project.id ? null : project.id);
+                                                }}
+                                                className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">more_horiz</span>
+                                            </button>
+                                        </div>
+
+                                        {/* Project Info */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">
+                                                {project.name}
+                                            </h4>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                {project.up_no}
+                                            </p>
+                                        </div>
+
+                                        {/* Progress */}
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
+                                                <span className="text-slate-400">Progres</span>
+                                                <span className={project.progress === 100 ? 'text-emerald-500' : 'text-primary'}>{project.progress || 0}%</span>
+                                            </div>
+                                            <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full rounded-full transition-all duration-700 ${project.progress === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+                                                    style={{ width: `${project.progress || 0}%` }}
+                                                />
                                             </div>
                                         </div>
-                                    )}
+
+                                        {/* Metas */}
+                                        <div className="grid grid-cols-1 gap-1.5 pt-1 border-t border-slate-50 dark:border-white/5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">business</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{project.company?.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">payments</span>
+                                                <span className="text-[9px] font-black text-slate-700 dark:text-slate-300">
+                                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(project.contract_value)}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">calendar_today</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                                                    {project.due_date ? new Date(project.due_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-2 py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                    Tidak ada data ditemukan
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                                    {/* Pagination Footer */}
+                                    <div className="px-0 md:px-8 py-8 md:py-6 border-t-0 md:border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-transparent md:bg-slate-50/50 dark:md:bg-white/[0.02] md:rounded-b-[3rem]">
+                                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                                            Showing <span className="font-black text-slate-900 dark:text-white">{projects.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{projects.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{projects.total || 0}</span> items
+                                        </p>
+                                        
+                                        <Pagination links={projects.links} />
+                                    </div>
                 </div>
             </div>
 

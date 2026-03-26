@@ -68,7 +68,7 @@ class MerchandiserController extends Controller
             $query->orderBy($sortColumn, $sortDirection);
         }
 
-        $projects = $query->paginate(8)->through(function ($project) {
+        $projects = $query->paginate(10)->through(function ($project) {
             $m = $project->merchandiser;
             $progres = 0;
             if ($m && $m->contract_ea > 0) {
@@ -357,8 +357,8 @@ class MerchandiserController extends Controller
         
         $merchandiser->refresh();
         $progress = $merchandiser->contract_ea > 0 ? min(100, (int)round(($merchandiser->rec_ea / $merchandiser->contract_ea) * 100)) : 0;
-        if ($progress == 100 || $oldStatus !== $merchandiser->status) {
-            \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('merchandiser', $merchandiser->status, $auth_user, $project->name, $project->id, $progress));
+        if ($merchandiser->wasChanged() && ($progress == 100 || $oldStatus !== $merchandiser->status)) {
+            \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('merchandiser', $merchandiser->status, $auth_user, $project->name, $project->id, $progress));
         }
 
         return back()->with('success', 'Data merchandiser berhasil diperbarui!');

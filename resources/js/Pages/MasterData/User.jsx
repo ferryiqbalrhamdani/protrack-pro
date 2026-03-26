@@ -13,6 +13,8 @@ export default function User({ users = [], roles = [] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingUserId, setEditingUserId] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
 
     const { data, setData, post, put, delete: destroy, processing, errors, reset, clearErrors } = useForm({
         name: '',
@@ -55,7 +57,6 @@ export default function User({ users = [], roles = [] }) {
                     reset();
                 },
                 onError: () => {
-                    toast.error('Terdapat kesalahan input');
                 }
             });
         } else {
@@ -66,19 +67,30 @@ export default function User({ users = [], roles = [] }) {
                     reset();
                 },
                 onError: () => {
-                    toast.error('Terdapat kesalahan input');
                 }
             });
         }
     };
 
-    const handleDelete = (id, username) => {
-        if (username === 'admin') {
+    const handleDelete = (user) => {
+        if (user.username === 'admin') {
             toast.error('User admin tidak dapat dihapus');
             return;
         }
-        if (confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) {
-            destroy(route('master.data.user.destroy', id));
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (userToDelete) {
+            destroy(route('master.data.user.destroy', userToDelete.id), {
+                onSuccess: () => {
+                    setIsDeleteModalOpen(false);
+                    setUserToDelete(null);
+                },
+                onError: () => {
+                }
+            });
         }
     };
 
@@ -210,7 +222,7 @@ export default function User({ users = [], roles = [] }) {
                                                 </div>
                                             </div>
                                             <div className="relative group/tooltip">
-                                                <button onClick={() => handleDelete(user.id, user.username)} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all border border-transparent hover:border-rose-100 dark:hover:border-rose-500/20">
+                                                <button onClick={() => handleDelete(user)} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all border border-transparent hover:border-rose-100 dark:hover:border-rose-500/20">
                                                     <span className="material-symbols-outlined text-[20px]">delete</span>
                                                 </button>
                                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 dark:bg-slate-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all whitespace-nowrap z-10 shadow-xl">
@@ -296,15 +308,14 @@ export default function User({ users = [], roles = [] }) {
                             </div>
 
                             <div className="space-y-2">
-                                <InputLabel htmlFor="email" value="Alamat Email" className="text-[10px] uppercase tracking-widest font-black text-slate-400" />
+                                <InputLabel htmlFor="email" value="Alamat Email (Opsional)" className="text-[10px] uppercase tracking-widest font-black text-slate-400" />
                                 <TextInput
                                     id="email"
                                     type="email"
                                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-purple-500/20"
                                     placeholder="ahmad@example.com"
-                                    value={data.email}
+                                    value={data.email || ''}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    required
                                 />
                                 {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                             </div>
@@ -356,6 +367,45 @@ export default function User({ users = [], roles = [] }) {
                         </PrimaryButton>
                     </div>
                 </form>
+            </Modal>
+            
+            {/* Delete Confirmation Modal */}
+            <Modal show={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} maxWidth="md" premium={true}>
+                <div className="p-8">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="size-14 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 shadow-lg shadow-rose-500/10 animate-bounce">
+                            <span className="material-symbols-outlined text-3xl font-fill">warning</span>
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-800 dark:text-white leading-tight">Hapus Pengguna?</h2>
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">Tindakan ini tidak dapat dibatalkan</p>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-slate-50 dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 mb-8">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed text-center">
+                            Apakah Anda yakin ingin menghapus pengguna <span className="font-black text-slate-800 dark:text-white">"{userToDelete?.name}"</span>? 
+                            <br />Data ini akan terhapus secara permanen dari sistem.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3">
+                        <SecondaryButton 
+                            onClick={() => setIsDeleteModalOpen(false)}
+                            className="rounded-2xl px-6 py-4 font-black text-[10px] uppercase tracking-widest border-none bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-all"
+                        >
+                            Batal
+                        </SecondaryButton>
+                        <button
+                            onClick={confirmDelete}
+                            disabled={processing}
+                            className="flex-1 sm:flex-none px-8 py-4 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-rose-500/20 hover:shadow-rose-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-lg">delete_forever</span>
+                            Hapus Sekarang
+                        </button>
+                    </div>
+                </div>
             </Modal>
 
             <style dangerouslySetInnerHTML={{ __html: `

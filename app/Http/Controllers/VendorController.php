@@ -57,7 +57,9 @@ class VendorController extends Controller
 
         $vendor->update($validated);
 
-        $this->logActivity('telah memperbarui data vendor', 'Vendor', $vendor->name, 'edit', 'text-amber-500');
+        if ($vendor->wasChanged()) {
+            $this->logActivity('telah memperbarui data vendor', 'Vendor', $vendor->name, 'edit', 'text-amber-500');
+        }
 
         return redirect()->back()->with('success', 'Vendor berhasil diperbarui.');
     }

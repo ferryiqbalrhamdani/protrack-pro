@@ -10,7 +10,8 @@ export default function useSessionFilter(key, initialValue) {
     const [storedValue, setStoredValue] = useState(() => {
         try {
             const item = window.sessionStorage.getItem(storageKey);
-            return item ? JSON.parse(item) : initialValue;
+            if (!item || item === 'undefined' || item === 'null') return initialValue;
+            return JSON.parse(item) || initialValue;
         } catch (error) {
             console.error('Error reading sessionStorage', error);
             return initialValue;

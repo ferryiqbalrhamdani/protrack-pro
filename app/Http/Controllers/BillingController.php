@@ -64,7 +64,7 @@ class BillingController extends Controller
             $query->orderBy($dbSortColumn, $sortDirection);
         }
 
-        $projects = $query->paginate(8)->through(function ($project) {
+        $projects = $query->paginate(10)->through(function ($project) {
             $b = $project->billing;
             $items = $b ? $b->items : collect();
             $progres = 0;
@@ -214,8 +214,8 @@ class BillingController extends Controller
             $billing->refresh();
             $itemsCount = $billing->items()->count();
             $progress = $itemsCount > 0 ? min(100, (int)round(($billing->items()->where('completed', true)->count() / $itemsCount) * 100)) : 0;
-            if ($progress == 100 || $oldStatus !== $billing->status) {
-                \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('billing', $billing->status, $auth_user, $project->name, $project->id, $progress));
+            if ($billing->wasChanged() && ($progress == 100 || $oldStatus !== $billing->status)) {
+                \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('billing', $billing->status, $auth_user, $project->name, $project->id, $progress));
             }
 
             return back()->with('success', 'Data penagihan berhasil diperbarui.');

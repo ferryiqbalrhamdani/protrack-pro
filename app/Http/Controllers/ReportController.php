@@ -13,11 +13,26 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $year = $request->query('year', Carbon::now()->year);
+        $year = $request->query('year', 'All');
+        
+        $availableYears = Project::whereNotNull('contract_date')
+            ->pluck('contract_date')
+            ->map(function ($date) {
+                return Carbon::parse($date)->year;
+            })
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->toArray();
+
+        // If no projects have contract_date, default to current year
+        if (empty($availableYears)) {
+            $availableYears = [Carbon::now()->year];
+        }
         
         $query = Project::query();
         if ($year !== 'All') {
-            $query->whereYear('created_at', $year);
+            $query->whereYear('contract_date', $year);
         }
 
         // 1. Monthly Stats (Count)
@@ -167,15 +182,12 @@ class ReportController extends Controller
             $totalNilaiProyek += $p->contract_value;
             
             if (str_starts_with($p->payment_term, 'DP')) {
-                // DP
-                $dpItem = $p->billing?->items->where('type', 'DP')->where('completed', true)->first();
-                if ($dpItem) {
-                    $dpPct = 0.3;
-                    if (preg_match('/DP\s+(\d+)%/', $p->payment_term, $matches)) {
-                        $dpPct = ((float)$matches[1]) / 100;
-                    }
-                    $akumulasiDp += $p->contract_value * $dpPct;
+                // DP: Calculate expected DP value directly from the contract value
+                $dpPct = 0.3; // Default 30% if no percentage is specified
+                if (preg_match('/DP\s+(\d+)%/', $p->payment_term, $matches)) {
+                    $dpPct = ((float)$matches[1]) / 100;
                 }
+                $akumulasiDp += $p->contract_value * $dpPct;
             } elseif ($p->payment_term === 'Termin Berjangka') {
                 // Termin: Accumulate total contract value for all projects with "Termin Berjangka"
                 $tagihanTermin += $p->contract_value;
@@ -203,21 +215,22 @@ class ReportController extends Controller
             'financialStats' => $financialStats,
             'recentActivities' => $recentActivities,
             'activityLogs' => $activityLogs,
+            'availableYears' => $availableYears,
         ]);
     }
 
     public function projectReport(Request $request)
     {
-        $year = $request->query('year', Carbon::now()->year);
+        $year = $request->query('year', 'All');
 
         $query = Project::with(['company', 'contract.handle', 'pic', 'merchandiser', 'billing', 'shipping'])
             ->orderBy('created_at', 'desc');
 
         if ($year !== 'All') {
-            $query->whereYear('created_at', $year);
+            $query->whereYear('contract_date', $year);
         }
 
-        $projects = $query->get()->map(function ($project) {
+        $projects = $query->paginate(10)->through(function ($project) {
             
             // Map color based on status
             $color = 'blue';
@@ -429,7 +442,7 @@ class ReportController extends Controller
                 ],
                 'shipping' => [
                     'userHandle' => $project->shipping->handle->name ?? '-',
-                    'type' => $project->shipping->shipping_type ?? '-',
+                    'type' => ($project->shipping && $project->shipping->shipping_type === 'Lengkap' && empty($project->shipping->shipping_date) && empty($project->shipping->handle_id)) ? '-' : ($project->shipping->shipping_type ?? '-'),
                     'date' => $project->shipping->shipping_date ? Carbon::parse($project->shipping->shipping_date)->format('d M Y') : '-',
                     'baAnnames' => $baAnnames,
                     'baInnames' => $baInnames,

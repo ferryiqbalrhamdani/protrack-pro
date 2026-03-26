@@ -64,7 +64,9 @@ class AgencyController extends Controller
 
         $agency->update($validated);
 
-        $this->logActivity('telah memperbarui data instansi', 'Instansi', $agency->name, 'edit', 'text-amber-500');
+        if ($agency->wasChanged()) {
+            $this->logActivity('telah memperbarui data instansi', 'Instansi', $agency->name, 'edit', 'text-amber-500');
+        }
 
         return redirect()->back()->with('success', 'Instansi berhasil diperbarui.');
     }

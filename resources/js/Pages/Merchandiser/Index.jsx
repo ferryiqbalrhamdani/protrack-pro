@@ -1,22 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, Link } from '@inertiajs/react';
+import { usePage, Head, router, Link } from '@inertiajs/react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import SearchableSelect from '@/Components/SearchableSelect';
 import TableSkeleton from '@/Components/TableSkeleton';
-import { usePage } from '@inertiajs/react';
 import useSessionFilter from '@/Hooks/useSessionFilter';
+import Pagination from '@/Components/Pagination';
 
-// Dummy data reused from Project data with merchandiser fields added
-const DUMMY_MERCHANDISER = [
-    { id: 1, name: 'Modern Office Hub', upNo: 'UP-2023-001', budgetType: 'APBN', pic: 'Alex Rivera', progres: 65, status: 'Ongoing', barangDikontrak: 120, barangDiterima: 78 },
-    { id: 2, name: 'Logistics Upgrade', upNo: 'UP-2023-002', budgetType: 'APBD', pic: 'Sarah Chen', progres: 100, status: 'Completed', barangDikontrak: 85, barangDiterima: 85 },
-    { id: 3, name: 'Retail Chain Sync', upNo: 'UP-2023-003', budgetType: 'Mandiri', pic: 'Michael Scott', progres: 20, status: 'Pending', barangDikontrak: 0, barangDiterima: 0 },
-    { id: 4, name: 'Smart Factory Integration', upNo: 'UP-2024-001', budgetType: 'APBN', pic: 'Jane Doe', progres: 45, status: 'Ongoing', barangDikontrak: 200, barangDiterima: 90 },
-    { id: 5, name: 'Green Energy Park', upNo: 'UP-2024-002', budgetType: 'APBN', pic: 'Alex Rivera', progres: 10, status: 'Ongoing', barangDikontrak: 0, barangDiterima: 0 },
-    { id: 6, name: 'Urban Mall Revamp', upNo: 'UP-2024-003', budgetType: 'APBD', pic: 'Sarah Chen', progres: 0, status: 'Pending', barangDikontrak: 0, barangDiterima: 0 },
-    { id: 7, name: 'Data Center Expansion', upNo: 'UP-2024-004', budgetType: 'Mandiri', pic: 'Michael Scott', progres: 85, status: 'Ongoing', barangDikontrak: 350, barangDiterima: 298 },
-    { id: 8, name: 'Solar Farm Project', upNo: 'UP-2024-005', budgetType: 'APBN', pic: 'Alex Rivera', progres: 100, status: 'Completed', barangDikontrak: 500, barangDiterima: 500 },
-];
+// Removed DUMMY_MERCHANDISER as we now use real data from backend
 
 export default function Index({ projects, summary, queryParams = null }) {
     queryParams = queryParams || {};
@@ -271,10 +261,9 @@ export default function Index({ projects, summary, queryParams = null }) {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="bg-white dark:bg-white/5 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl">
+                <div className="bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden">
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
+                        <table className="hidden md:table w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] rounded-t-[3rem]">
                                     <th
@@ -447,43 +436,110 @@ export default function Index({ projects, summary, queryParams = null }) {
                                  )}
                              </tbody>
                         </table>
+
+                        {/* Mobile Card Grid View */}
+                        <div className="md:hidden grid grid-cols-1 gap-4">
+                            {isTableLoading ? (
+                                Array(10).fill(0).map((_, i) => (
+                                    <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
+                                        <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-lg w-3/4 mb-3"></div>
+                                        <div className="h-3 bg-slate-50 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                                        <div className="space-y-2 pt-2">
+                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-full"></div>
+                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-2/3"></div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : data.length > 0 ? (
+                                data.map((row, index) => {
+                                    const sc = statusConfig[row.status] || statusConfig['Pending'];
+                                    const barangDikontrak = Number(row.barang_dikontrak || 0);
+                                    const barangDiterima = Number(row.barang_diterima || 0);
+                                    const isPIC = auth_user?.name === row.pic;
+                                    const isReviewMode = row.status === 'Pending' || row.status === 'Completed';
+
+                                    return (
+                                        <div 
+                                            key={row.id} 
+                                            className="bg-white dark:bg-white/5 rounded-[2rem] p-5 border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col gap-4 relative overflow-hidden group animate-slide-up-fade"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
+                                            {/* Status Badge - Top Right */}
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
+                                                    {row.status || 'Ongoing'}
+                                                </div>
+                                                
+                                                <Link 
+                                                    href={row.hashed_id ? route('merchandiser.edit', row.hashed_id) : '#'}
+                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">
+                                                        {isPIC && !isReviewMode ? 'edit_square' : 'visibility'}
+                                                    </span>
+                                                </Link>
+                                            </div>
+
+                                            {/* Info */}
+                                            <div className="flex flex-col gap-0.5">
+                                                <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">
+                                                    {row.name || 'Untitled Project'}
+                                                </h4>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                    {row.upNo || '-'}
+                                                </p>
+                                            </div>
+
+                                            {/* Progress */}
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
+                                                    <span className="text-slate-400">Progres</span>
+                                                    <span className={row.progres === 100 ? 'text-emerald-500' : 'text-primary'}>{row.progres || 0}%</span>
+                                                </div>
+                                                <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full rounded-full transition-all duration-700 ${row.progres === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+                                                        style={{ width: `${row.progres || 0}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Metas */}
+                                            <div className="grid grid-cols-1 gap-1.5 pt-1 border-t border-slate-50 dark:border-white/5">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[10px] text-slate-300">payments</span>
+                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{row.budgetType || '-'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[10px] text-slate-300">person</span>
+                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{row.pic || '-'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[10px] text-slate-300">inventory_2</span>
+                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                                                        {barangDiterima} / {barangDikontrak}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="col-span-2 py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                    Tidak ada data ditemukan
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Pagination */}
-                    <div className="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02] rounded-b-[3rem]">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                            Menampilkan <span className="font-black text-slate-900 dark:text-white">{Math.min((pagination.current_page - 1) * pagination.per_page + 1, pagination.total)}</span> — <span className="font-black text-slate-900 dark:text-white">{Math.min(pagination.current_page * pagination.per_page, pagination.total)}</span> dari <span className="font-black text-slate-900 dark:text-white">{pagination.total}</span> data
+                    {/* Pagination Footer */}
+                    <div className="px-0 md:px-8 py-8 md:py-6 border-t-0 md:border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-transparent md:bg-slate-50/50 dark:md:bg-white/[0.02] md:rounded-b-[3rem]">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                            Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
                         </p>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={pagination.current_page === 1}
-                                className="size-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all disabled:opacity-30"
-                            >
-                                <span className="material-symbols-outlined">chevron_left</span>
-                            </button>
-                            {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map(page => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`size-10 rounded-xl text-xs font-black transition-all ${
-                                        page === pagination.current_page
-                                        ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-110'
-                                        : 'text-slate-500 hover:text-primary'
-                                    }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(pagination.last_page, p + 1))}
-                                disabled={pagination.current_page === pagination.last_page || pagination.last_page === 0}
-                                className="size-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all disabled:opacity-30"
-                            >
-                                <span className="material-symbols-outlined">chevron_right</span>
-                            </button>
+                        
+                        <Pagination links={pagination.links} />
                     </div>
-                </div>
             </div>
             </div>
 

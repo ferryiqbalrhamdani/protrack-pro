@@ -20,10 +20,11 @@ class ContractController extends Controller
     public function index(Request $request)
     {
         $contracts = Contract::with(['project.company', 'project.pic', 'handle'])
-            ->get()
-            ->sortByDesc(fn($contract) => $contract->project->created_at)
-            ->values()
-            ->map(function ($contract) {
+            ->join('projects', 'contracts.project_id', '=', 'projects.id')
+            ->orderByDesc('projects.created_at')
+            ->select('contracts.*')
+            ->paginate(10)
+            ->through(function ($contract) {
                 return [
                     'id' => $contract->id,
                     'hashed_id' => Hashid::encode($contract->id),
@@ -207,8 +208,8 @@ class ContractController extends Controller
         
         $contract->refresh();
         $progress = $contract->steps()->count() > 0 ? ($contract->steps()->where('completed', true)->count() / $contract->steps()->count()) * 100 : 0;
-        if ($progress == 100 || $oldStatus !== $contract->status) {
-            \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('contract', $contract->status, $auth_user, $contract->project->name, $contract->project_id, $progress));
+        if ($contract->wasChanged() && ($progress == 100 || $oldStatus !== $contract->status)) {
+            \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('contract', $contract->status, $auth_user, $contract->project->name, $contract->project_id, $progress));
         }
 
         return redirect()->route('contracts')->with('success', 'Perubahan kontrak berhasil disimpan!');

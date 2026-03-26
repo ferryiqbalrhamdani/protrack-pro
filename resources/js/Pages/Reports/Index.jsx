@@ -46,7 +46,8 @@ export default function Index({
     dueProjects = [],
     financialStats = { total_nilai: 0, akumulasi_dp: 0, pembayaran_langsung: 0, tagihan_termin: 0 },
     recentActivities = [],
-    activityLogs = null
+    activityLogs = null,
+    availableYears = []
 }) {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -57,7 +58,7 @@ export default function Index({
     
     const { queryParams } = usePage().props;
     const yearNum = new Date().getFullYear();
-    const [year, setYear] = useState(queryParams?.year || String(yearNum));
+    const [year, setYear] = useState(queryParams?.year || 'All');
 
     // Weather State
     const [weather, setWeather] = useState({
@@ -86,14 +87,16 @@ export default function Index({
     useEffect(() => {
         const timeout = setTimeout(() => {
             const params = { ...queryParams };
-            if (year !== '2024' && year !== 'All') params.year = year;
-            else if (year === 'All') params.year = 'All';
-            else delete params.year;
+            if (year !== 'All') {
+                params.year = year;
+            } else {
+                delete params.year;
+            }
 
             const url = new URL(window.location.href);
-            const currentYear = url.searchParams.get('year') || '2024';
+            const currentYearInUrl = url.searchParams.get('year') || 'All';
             
-            if (year !== currentYear) {
+            if (year !== currentYearInUrl) {
                 router.get(route('reports'), params, {
                     preserveState: true,
                     replace: true
@@ -324,11 +327,7 @@ export default function Index({
 
     const yearOptions = [
         { label: 'Semua Data', value: 'All' },
-        { label: String(yearNum - 2), value: String(yearNum - 2) },
-        { label: String(yearNum - 1), value: String(yearNum - 1) },
-        { label: String(yearNum), value: String(yearNum) },
-        { label: String(yearNum + 1), value: String(yearNum + 1) },
-        { label: String(yearNum + 2), value: String(yearNum + 2) }
+        ...(availableYears?.map(y => ({ label: String(y), value: String(y) })) || [])
     ];
 
     // Due Projects is now provided by props `dueProjects`
@@ -1221,7 +1220,7 @@ export default function Index({
                                                         {row.proj.substring(0,2).toUpperCase()}
                                                     </div>
                                                     <div className="w-full">
-                                                        <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-primary transition-colors">{row.proj}</p>
+                                                        <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{row.proj}</p>
                                                         <p className="text-xs font-bold text-slate-500 mt-0.5">{row.client}</p>
                                                         
                                                         <div className="mt-4 md:hidden flex flex-col gap-2 border-t border-slate-100 dark:border-white/5 pt-3">

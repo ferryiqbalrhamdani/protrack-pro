@@ -166,8 +166,9 @@ class ProjectController extends Controller
 
             $this->logActivity('telah membuat proyek baru', 'Proyek', $project->name, 'business_center', 'text-blue-500');
 
-            $allUsers = User::all();
-            Notification::send($allUsers, new ProjectUpdatedNotification($project, auth()->user(), 'created'));
+            /** @var User $authUser */
+            $authUser = auth()->user();
+            Notification::send($allUsers, new ProjectUpdatedNotification($project, $authUser, 'created'));
 
             return redirect()->route('projects')->with('success', 'Project created successfully!');
         });
@@ -228,6 +229,8 @@ class ProjectController extends Controller
         ]);
 
         return DB::transaction(function () use ($validated, $project) {
+            $oldStatus = $project->status;
+
             $project->update([
                 'status' => $validated['status'],
                 'name' => $validated['name'],
@@ -261,10 +264,17 @@ class ProjectController extends Controller
                 }
             }
 
-            $this->logActivity('telah memperbarui data proyek', 'Proyek', $project->name, 'edit', 'text-amber-500');
+            // Only send notification if something actually changed
+            if ($project->wasChanged()) {
+                $this->logActivity('telah memperbarui data proyek', 'Proyek', $project->name, 'edit', 'text-amber-500');
 
-            $allUsers = User::all();
-            Notification::send($allUsers, new ProjectUpdatedNotification($project, auth()->user(), 'updated'));
+                $statusChanged = $oldStatus !== $project->status;
+                $actionType = $statusChanged ? 'status_changed' : 'updated';
+
+                /** @var User $authUser */
+                $authUser = auth()->user();
+                Notification::send($allUsers, new ProjectUpdatedNotification($project, $authUser, $actionType));
+            }
 
             return redirect()->route('projects')->with('success', 'Project updated successfully!');
         });

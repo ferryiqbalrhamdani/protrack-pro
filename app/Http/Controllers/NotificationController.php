@@ -51,4 +51,10 @@ class NotificationController extends Controller
         $notification->delete();
         return back();
     }
+
+    public function destroyRead(Request $request)
+    {
+        $request->user()->readNotifications()->delete();
+        return back()->with('success', 'Notifikasi yang sudah dibaca berhasil dihapus.');
+    }
 }

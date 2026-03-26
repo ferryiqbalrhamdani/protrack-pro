@@ -404,25 +404,36 @@ export default function ProjectDetail({ project }) {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {project.relations.contract.stages.map((stage) => (
-                                                            <tr key={stage.id} className="border-b border-slate-50 dark:border-white/[0.02] last:border-0 hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
-                                                                <td className="px-8 py-6 text-sm font-black text-slate-400">{stage.id}</td>
-                                                                <td className="px-8 py-6 text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{stage.name}</td>
-                                                                <td className="px-8 py-6">
-                                                                    <div className="flex justify-center">
-                                                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transition-transform ${
-                                                                            stage.completed 
-                                                                            ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-                                                                            : 'bg-slate-100 dark:bg-white/5 text-slate-300 dark:text-slate-600 shadow-none'
-                                                                        }`}>
-                                                                            <span className="material-symbols-outlined text-[20px] font-bold">
-                                                                                {stage.completed ? 'check' : 'close'}
-                                                                            </span>
+                                                        {project.relations.contract.stages && project.relations.contract.stages.length > 0 ? (
+                                                            project.relations.contract.stages.map((stage) => (
+                                                                <tr key={stage.id} className="border-b border-slate-50 dark:border-white/[0.02] last:border-0 hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
+                                                                    <td className="px-8 py-6 text-sm font-black text-slate-400">{stage.id}</td>
+                                                                    <td className="px-8 py-6 text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{stage.name}</td>
+                                                                    <td className="px-8 py-6">
+                                                                        <div className="flex justify-center">
+                                                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transition-transform ${
+                                                                                stage.completed 
+                                                                                ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                                                                                : 'bg-slate-100 dark:bg-white/5 text-slate-300 dark:text-slate-600 shadow-none'
+                                                                            }`}>
+                                                                                <span className="material-symbols-outlined text-[20px] font-bold">
+                                                                                    {stage.completed ? 'check' : 'close'}
+                                                                                </span>
+                                                                            </div>
                                                                         </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        ) : (
+                                                            <tr>
+                                                                <td colSpan="3" className="px-8 py-10 text-center">
+                                                                    <div className="flex flex-col items-center justify-center text-slate-400 gap-2">
+                                                                        <span className="material-symbols-outlined text-3xl opacity-20">draft</span>
+                                                                        <p className="text-[10px] font-black uppercase tracking-widest">Belum Ada Data Tahapan</p>
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                        ))}
+                                                        )}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -640,24 +651,31 @@ export default function ProjectDetail({ project }) {
                                                     <h5 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Data BAST (Berita Acara Serah Terima)</h5>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                    {project.relations.billing.basts.map((bast) => (
-                                                        <div key={bast.id} className="p-6 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-3xl shadow-sm hover:shadow-md transition-shadow group/bast">
-                                                            <div className="flex justify-between items-start mb-4">
-                                                                <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-600 px-2.5 py-1 rounded-lg uppercase tracking-widest">BAST #{bast.id}</span>
-                                                                <span className="material-symbols-outlined text-slate-300 dark:text-slate-600 text-sm group-hover/bast:text-emerald-500 transition-colors">description</span>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                <div className="space-y-0.5">
-                                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nomor BAST</p>
-                                                                    <p className="text-xs font-black text-slate-700 dark:text-slate-200">{bast.no}</p>
+                                                    {project.relations.billing.basts && project.relations.billing.basts.length > 0 ? (
+                                                        project.relations.billing.basts.map((bast) => (
+                                                            <div key={bast.id} className="p-6 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-3xl shadow-sm hover:shadow-md transition-shadow group/bast">
+                                                                <div className="flex justify-between items-start mb-4">
+                                                                    <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-600 px-2.5 py-1 rounded-lg uppercase tracking-widest">BAST #{bast.id}</span>
+                                                                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-600 text-sm group-hover/bast:text-emerald-500 transition-colors">description</span>
                                                                 </div>
-                                                                <div className="space-y-0.5">
-                                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tanggal BAST</p>
-                                                                    <p className="text-xs font-bold text-slate-600 dark:text-slate-400">{bast.date}</p>
+                                                                <div className="space-y-3">
+                                                                    <div className="space-y-0.5">
+                                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nomor BAST</p>
+                                                                        <p className="text-xs font-black text-slate-700 dark:text-slate-200">{bast.no}</p>
+                                                                    </div>
+                                                                    <div className="space-y-0.5">
+                                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tanggal BAST</p>
+                                                                        <p className="text-xs font-bold text-slate-600 dark:text-slate-400">{bast.date}</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="col-span-full p-8 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center text-slate-400 gap-2">
+                                                            <span className="material-symbols-outlined text-3xl opacity-20">verified</span>
+                                                            <p className="text-[10px] font-black uppercase tracking-widest">Belum Ada Data BAST</p>
                                                         </div>
-                                                    ))}
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -673,37 +691,48 @@ export default function ProjectDetail({ project }) {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {project.relations.billing.stages.map((stage) => (
-                                                            <tr key={stage.id} className="border-b border-slate-50 dark:border-white/[0.02] last:border-0 hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
-                                                                <td className="px-8 py-6 text-sm font-black text-slate-400">{stage.id}</td>
-                                                                <td className="px-8 py-6">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="w-2 h-2 rounded-full bg-blue-500/40"></div>
-                                                                        <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{stage.name}</span>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-8 py-6">
-                                                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-100 dark:border-white/10">
-                                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                                                                        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stage.type}</span>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-8 py-6">
-                                                                    <div className="flex justify-center">
-                                                                        <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${
-                                                                            stage.completed 
-                                                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                                                                            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                                                                        }`}>
-                                                                            <span className="material-symbols-outlined text-[14px]">
-                                                                                {stage.completed ? 'check_circle' : 'pending'}
-                                                                            </span>
-                                                                            {stage.completed ? 'Selesai' : 'Tertunda'}
+                                                        {project.relations.billing.stages && project.relations.billing.stages.length > 0 ? (
+                                                            project.relations.billing.stages.map((stage) => (
+                                                                <tr key={stage.id} className="border-b border-slate-50 dark:border-white/[0.02] last:border-0 hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
+                                                                    <td className="px-8 py-6 text-sm font-black text-slate-400">{stage.id}</td>
+                                                                    <td className="px-8 py-6">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-2 h-2 rounded-full bg-blue-500/40"></div>
+                                                                            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{stage.name}</span>
                                                                         </div>
+                                                                    </td>
+                                                                    <td className="px-8 py-6">
+                                                                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-100 dark:border-white/10">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                                                            <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stage.type}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-8 py-6">
+                                                                        <div className="flex justify-center">
+                                                                            <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${
+                                                                                stage.completed 
+                                                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                                                                                : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                                                            }`}>
+                                                                                <span className="material-symbols-outlined text-[14px]">
+                                                                                    {stage.completed ? 'check_circle' : 'pending'}
+                                                                                </span>
+                                                                                {stage.completed ? 'Selesai' : 'Tertunda'}
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        ) : (
+                                                            <tr>
+                                                                <td colSpan="4" className="px-8 py-10 text-center">
+                                                                    <div className="flex flex-col items-center justify-center text-slate-400 gap-2">
+                                                                        <span className="material-symbols-outlined text-3xl opacity-20">receipt_long</span>
+                                                                        <p className="text-[10px] font-black uppercase tracking-widest">Belum Ada Data Penagihan</p>
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                        ))}
+                                                        )}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -779,23 +808,30 @@ export default function ProjectDetail({ project }) {
                                                         <h5 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">BA Anname (Asal)</h5>
                                                     </div>
                                                     <div className="grid grid-cols-1 gap-4">
-                                                        {project.relations.shipping.baAnnames.map((ba) => (
-                                                            <div key={ba.id} className="p-5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl shadow-sm flex items-center justify-between group/ba text-slate-800 dark:text-slate-200">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
-                                                                        <span className="text-[10px] font-black">{ba.id}</span>
+                                                        {project.relations.shipping.baAnnames && project.relations.shipping.baAnnames.length > 0 ? (
+                                                            project.relations.shipping.baAnnames.map((ba) => (
+                                                                <div key={ba.id} className="p-5 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl shadow-sm flex items-center justify-between group/ba text-slate-800 dark:text-slate-200">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                                                            <span className="text-[10px] font-black">{ba.id}</span>
+                                                                        </div>
+                                                                        <div className="space-y-0.5">
+                                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nomor BA</p>
+                                                                            <p className="text-xs font-black">{ba.no}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="space-y-0.5">
-                                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nomor BA</p>
-                                                                        <p className="text-xs font-black">{ba.no}</p>
+                                                                    <div className="text-right space-y-0.5">
+                                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tanggal</p>
+                                                                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{ba.date}</p>
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-right space-y-0.5">
-                                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tanggal</p>
-                                                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{ba.date}</p>
-                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="p-8 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-2xl flex flex-col items-center justify-center text-slate-400 gap-2">
+                                                                <span className="material-symbols-outlined text-3xl opacity-20">assignment</span>
+                                                                <p className="text-[10px] font-black uppercase tracking-widest">Belum Ada Data Anname</p>
                                                             </div>
-                                                        ))}
+                                                        )}
                                                     </div>
                                                 </div>
 

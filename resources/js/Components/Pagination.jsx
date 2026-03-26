@@ -4,10 +4,9 @@ export default function Pagination({ links }) {
     if (!links || links.length <= 3) return null;
 
     return (
-        <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
             {links.map((link, i) => {
                 const label = String(link.label || '');
-                let displayLabel = label;
                 let isIcon = false;
                 let iconName = '';
 
@@ -25,20 +24,24 @@ export default function Pagination({ links }) {
                     iconName = 'chevron_right';
                 }
 
+                const commonClasses = `
+                    size-8 md:size-10 rounded-lg md:rounded-xl flex items-center justify-center 
+                    text-[10px] md:text-xs font-black transition-all duration-300
+                `;
+
                 if (!link.url) {
                     return (
                         <span
                             key={i}
                             className={`
-                                ${isIcon ? 'p-1.5' : 'size-8'} 
-                                rounded-xl flex items-center justify-center font-black text-[10px] transition-all
+                                ${commonClasses}
                                 ${link.active 
-                                    ? 'bg-primary text-white shadow-md shadow-primary/20 scale-110 z-10' 
-                                    : 'text-slate-400 opacity-50'}
+                                    ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 md:scale-110 z-10' 
+                                    : 'bg-transparent text-slate-300 cursor-not-allowed opacity-50'}
                             `}
                         >
                             {isIcon ? (
-                                <span className="material-symbols-outlined text-[16px]">{iconName}</span>
+                                <span className="material-symbols-outlined text-lg md:text-xl">{iconName}</span>
                             ) : (
                                 <span dangerouslySetInnerHTML={{ __html: cleanLabel }} />
                             )}
@@ -53,15 +56,14 @@ export default function Pagination({ links }) {
                         preserveScroll
                         preserveState
                         className={`
-                            ${isIcon ? 'p-1.5' : 'size-8'} 
-                            rounded-xl flex items-center justify-center font-black text-[10px] transition-all
+                            ${commonClasses}
                             ${link.active 
-                                ? 'bg-primary text-white shadow-md shadow-primary/20 scale-110 z-10' 
-                                : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300'}
+                                ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 md:scale-110 z-10' 
+                                : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'}
                         `}
                     >
                         {isIcon ? (
-                            <span className="material-symbols-outlined text-[16px]">{iconName}</span>
+                            <span className="material-symbols-outlined text-lg md:text-xl">{iconName}</span>
                         ) : (
                             <span dangerouslySetInnerHTML={{ __html: cleanLabel }} />
                         )}

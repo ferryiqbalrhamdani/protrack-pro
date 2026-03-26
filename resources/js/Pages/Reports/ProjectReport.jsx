@@ -1,66 +1,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
+import Pagination from '@/Components/Pagination';
 
-export default function ProjectReport({ projects = [], queryParams = {} }) {
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+export default function ProjectReport({ projects, queryParams = null }) {
+    queryParams = queryParams || {};
+    const data = projects.data || [];
+    const pagination = projects;
+    const [isTableLoading, setIsTableLoading] = useState(false);
 
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-
-    const handleSort = (key) => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
-
-    const sortedProjects = useMemo(() => {
-        let sortableItems = [...projects];
-        if (sortConfig.key !== null) {
-            sortableItems.sort((a, b) => {
-                let aValue = a[sortConfig.key];
-                let bValue = b[sortConfig.key];
-
-                // Special handling for percentage/numbers
-                if (sortConfig.key === 'prog') {
-                    aValue = Number(aValue);
-                    bValue = Number(bValue);
-                }
-
-                // Special handling for dates (Tenggat Waktu format e.g., "15 Ags 2024")
-                if (sortConfig.key === 'due' || sortConfig.key === 'date') {
-                    // Simple string comparison might suffice for this mock format if they are consistent,
-                    // but ideally, we parse them to actual Dates. For mock simplicity, we use the string.
-                }
-
-                if (aValue < bValue) {
-                    return sortConfig.direction === 'asc' ? -1 : 1;
-                }
-                if (aValue > bValue) {
-                    return sortConfig.direction === 'asc' ? 1 : -1;
-                }
-                return 0;
-            });
-        }
-        return sortableItems;
-    }, [projects, sortConfig]);
-
-    const totalPages = Math.ceil(sortedProjects.length / itemsPerPage);
-    const paginatedData = sortedProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-    // Reuse SortIcon from other files
-    const SortIcon = ({ column }) => {
-        if (sortConfig.key !== column) {
-            return <span className="material-symbols-outlined text-[14px] text-slate-300 dark:text-slate-600 transition-colors">unfold_more</span>;
-        }
-        return (
-            <span className="material-symbols-outlined text-[14px] text-primary dark:text-blue-400">
-                {sortConfig.direction === 'asc' ? 'arrow_upward' : 'arrow_downward'}
-            </span>
-        );
-    };
+    const [sortConfig, setSortConfig] = useState({ key: queryParams.tableSortColumn || null, direction: queryParams.tableSortDirection || 'asc' });
 
     return (
         <AuthenticatedLayout
@@ -110,54 +59,34 @@ export default function ProjectReport({ projects = [], queryParams = {} }) {
             <div className="relative">
 
                 {/* Table Section */}
-                <div className="bg-white dark:bg-white/5 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl">
+                <div className="bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden">
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
+                        <table className="hidden md:table w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
-                                    <th 
-                                        onClick={() => handleSort('proj')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            Project
-                                            <SortIcon column="proj" />
-                                        </div>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                        Project & Client
                                     </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">No. Kontrak / UP</th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">PIC</th>
-                                    <th 
-                                        onClick={() => handleSort('due')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            Tenggat Waktu
-                                            <SortIcon column="due" />
-                                        </div>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                        No. Kontrak & UP
                                     </th>
-                                    <th 
-                                        onClick={() => handleSort('prog')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            Progress
-                                            <SortIcon column="prog" />
-                                        </div>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                        PIC
                                     </th>
-                                    <th 
-                                        onClick={() => handleSort('status')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center justify-end gap-2">
-                                            Status
-                                            <SortIcon column="status" />
-                                        </div>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                        Tanggal & Tempo
+                                    </th>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                        Progress
+                                    </th>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right">
+                                        Status
                                     </th>
                                     <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {paginatedData.map((row, i) => (
+                                {data.map((row, i) => (
                                     <tr 
                                         key={i} 
                                         className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors animate-slide-up-fade"
@@ -169,7 +98,7 @@ export default function ProjectReport({ projects = [], queryParams = {} }) {
                                                     {row.proj.substring(0,2).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-primary transition-colors">{row.proj}</p>
+                                                    <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{row.proj}</p>
                                                     <p className="text-xs font-bold text-slate-500 mt-0.5">{row.client}</p>
                                                 </div>
                                             </div>
@@ -262,63 +191,78 @@ export default function ProjectReport({ projects = [], queryParams = {} }) {
                                 ))}
                             </tbody>
                         </table>
+
+                        {/* Mobile Card Grid View */}
+                        <div className="md:hidden grid grid-cols-1 gap-4">
+                            {isTableLoading ? (
+                                Array(10).fill(0).map((_, i) => (
+                                    <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
+                                        <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-lg w-3/4 mb-3"></div>
+                                        <div className="h-3 bg-slate-50 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                                        <div className="space-y-2 pt-2">
+                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-full"></div>
+                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-2/3"></div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : data.length > 0 ? (
+                                data.map((row, index) => (
+                                    <div 
+                                        key={row.id} 
+                                        className="bg-white dark:bg-white/5 rounded-[2rem] p-5 border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col gap-4 relative overflow-hidden group animate-slide-up-fade"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        <div className="flex justify-between items-start gap-2">
+                                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ring-1 ring-inset ${
+                                                row.c === 'emerald' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
+                                                row.c === 'amber' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
+                                                row.c === 'rose' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20' :
+                                                'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
+                                            }`}>
+                                                {row.status}
+                                            </div>
+                                            <Link href={route('reports.project.detail', { hashedId: row.hashed_id })} className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 transition-colors">
+                                                <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                                            </Link>
+                                        </div>
+                                        <div className="flex flex-col gap-0.5">
+                                            <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">{row.proj}</h4>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter line-clamp-1">{row.client}</p>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
+                                                <span className="text-slate-400">Progres</span>
+                                                <span className={`font-black ${row.c === 'emerald' ? 'text-emerald-500' : row.c === 'amber' ? 'text-amber-500' : row.c === 'rose' ? 'text-rose-500' : 'text-blue-500'}`}>{row.prog || 0}%</span>
+                                            </div>
+                                            <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full transition-all duration-700 ${row.c === 'emerald' ? 'bg-emerald-500' : row.c === 'amber' ? 'bg-amber-500' : row.c === 'rose' ? 'bg-rose-500' : 'bg-blue-500'}`} style={{ width: `${row.prog || 0}%` }} />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-1.5 pt-1 border-t border-slate-50 dark:border-white/5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">description</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{row.no}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[10px] text-slate-300">person</span>
+                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{row.pic}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-2 py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">Tidak ada data laporan ditemukan</div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Pagination Footer */}
-                    <div className="p-8 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="flex flex-col items-center md:items-start gap-1">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Data Overview</span>
-                            <p className="text-xs font-bold text-slate-500">
-                                Menampilkan <span className="text-slate-800 dark:text-slate-200 font-black">{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, sortedProjects.length)}</span> dari <span className="text-slate-800 dark:text-slate-200 font-black">{sortedProjects.length}</span> project terdaftar
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
-                            <button 
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="size-9 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-white/10 text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-20 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-                            >
-                                <span className="material-symbols-outlined text-xl">chevron_left</span>
-                            </button>
-                            
-                            <div className="flex items-center gap-1 px-2">
-                                {[...Array(totalPages)].map((_, i) => {
-                                    // Show first, last, and current page with neighbors logic
-                                    if (
-                                        i === 0 || 
-                                        i === totalPages - 1 || 
-                                        (i >= currentPage - 2 && i <= currentPage)
-                                    ) {
-                                        return (
-                                            <button
-                                                key={i}
-                                                onClick={() => setCurrentPage(i + 1)}
-                                                className={`size-9 rounded-xl text-xs font-black transition-all ${
-                                                    currentPage === i + 1
-                                                    ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110'
-                                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5'
-                                                }`}
-                                            >
-                                                {i + 1}
-                                            </button>
-                                        );
-                                    }
-                                    if (i === 1 || i === totalPages - 2) {
-                                        return <span key={i} className="px-1 text-slate-300 dark:text-slate-600 font-black">...</span>;
-                                    }
-                                    return null;
-                                })}
-                            </div>
-
-                            <button 
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                                className="size-9 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-white/10 text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-20 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-                            >
-                                <span className="material-symbols-outlined text-xl">chevron_right</span>
-                            </button>
-                        </div>
+                    <div className="px-0 md:px-8 py-8 md:py-6 border-t-0 md:border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-transparent md:bg-slate-50/50 dark:md:bg-white/[0.02] md:rounded-b-[3rem]">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                            Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
+                        </p>
+                        
+                        <Pagination links={pagination.links} />
                     </div>
                 </div>
             </div>

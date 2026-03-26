@@ -14,7 +14,7 @@ export default function ProjectPrint({ project }) {
     const DataItem = ({ label, value }) => (
         <div className="mb-4">
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">{label}</div>
-            <div className="text-sm font-semibold text-gray-900">{value || '-'}</div>
+            <div className="text-sm font-semibold text-gray-900 break-words" style={{ overflowWrap: 'anywhere' }}>{value || '-'}</div>
         </div>
     );
 
@@ -144,7 +144,7 @@ export default function ProjectPrint({ project }) {
                     
                     <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg mt-6">
                         <h2 className="text-xl font-bold text-slate-900 mb-2">{project.name}</h2>
-                        <p className="text-sm text-gray-700 leading-relaxed">{project.description}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed font-medium">{project.description}</p>
                     </div>
                 </div>
 
@@ -164,6 +164,16 @@ export default function ProjectPrint({ project }) {
                         <DataItem label="Status Bebas Pajak" value={project.taxFree} />
                         <DataItem label="Sistem Pembayaran" value={project.paymentTerm} />
                         <DataItem label="Garansi Unit" value={project.warranty} />
+
+                        <DataItem label="Asal Brand" value={project.brandOrigin} />
+                        <div className="mb-4 col-span-2">
+                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sertifikasi Produk</div>
+                            <div className="text-sm font-semibold text-gray-900">
+                                {project.certificates && project.certificates.length > 0 
+                                    ? project.certificates.join(', ') 
+                                    : '-'}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -171,8 +181,10 @@ export default function ProjectPrint({ project }) {
                 <div className="p-8 avoid-break border-b border-gray-100 page-break">
                     <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-6">Kontrak & Finansial</h3>
                     
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 bg-blue-50/50 p-6 rounded-lg border border-blue-100 mb-6">
-                        <DataItem label="Nomor Kontrak" value={project.contractNo} />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-blue-50/50 p-6 rounded-lg border border-blue-100 mb-6">
+                        <div className="col-span-1 lg:col-span-3">
+                            <DataItem label="Nomor Kontrak" value={project.contractNo} />
+                        </div>
                         <DataItem label="Tanggal Kontrak" value={project.contractDate} />
                         <DataItem label="Tenggat Waktu" value={project.dueDate} />
                         <div>
@@ -254,7 +266,7 @@ export default function ProjectPrint({ project }) {
                 <div className="p-8 pt-4 page-break">
                     <h3 className="section-heading text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-8">Detail Relasi Modul</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8">
                         {/* Kontrak Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
@@ -306,19 +318,27 @@ export default function ProjectPrint({ project }) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {project.relations.contract.stages.map((stage) => (
-                                                    <tr key={stage.id}>
-                                                        <td className="py-1.5 px-2 border border-gray-200 text-center text-gray-500">{stage.id}</td>
-                                                        <td className="py-1.5 px-2 border border-gray-200 font-semibold">{stage.name}</td>
-                                                        <td className="py-1.5 px-2 border border-gray-200 text-center">
-                                                            {stage.completed ? (
-                                                                <span className="text-emerald-600 font-black text-[10px]">✓</span>
-                                                            ) : (
-                                                                <span className="text-gray-300 font-black text-[10px]">-</span>
-                                                            )}
+                                                {project.relations.contract.stages && project.relations.contract.stages.length > 0 ? (
+                                                    project.relations.contract.stages.map((stage) => (
+                                                        <tr key={stage.id}>
+                                                            <td className="py-1.5 px-2 border border-gray-200 text-center text-gray-500">{stage.id}</td>
+                                                            <td className="py-1.5 px-2 border border-gray-200 font-semibold">{stage.name}</td>
+                                                            <td className="py-1.5 px-2 border border-gray-200 text-center">
+                                                                {stage.completed ? (
+                                                                    <span className="text-emerald-600 font-black text-[10px]">✓</span>
+                                                                ) : (
+                                                                    <span className="text-gray-300 font-black text-[10px]">-</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="3" className="py-4 px-2 border border-gray-200 text-center text-gray-400 italic text-xs">
+                                                            Belum Ada Data Tahapan
                                                         </td>
                                                     </tr>
-                                                ))}
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -340,6 +360,12 @@ export default function ProjectPrint({ project }) {
                             </div>
                         </div>
 
+                    </div>
+                </div>
+
+                {/* Modul Merchandiser */}
+                <div className="p-8 pt-4 page-break">
+                    <div className="grid grid-cols-1 gap-8">
                         {/* Merchandiser Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
@@ -422,10 +448,10 @@ export default function ProjectPrint({ project }) {
                     </div>
                 </div>
 
-                {/* Halaman 4: Billing + Shipping */}
+                {/* Modul Penagihan */}
                 <div className="p-8 pt-4 page-break">
-                    <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-8">Detail Relasi Modul (Lanjutan)</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8">
+                        {/* Billing Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
                                 <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex justify-between">
@@ -436,23 +462,31 @@ export default function ProjectPrint({ project }) {
                             <div className="p-6">
                                 <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Data BAST</div>
                                 <div className="text-xs space-y-2 mb-4">
-                                    {project.relations.billing.basts.map(bast => (
-                                        <div key={bast.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                                            <span className="font-semibold">{bast.no}</span>
-                                            <span className="text-gray-500">{bast.date}</span>
-                                        </div>
-                                    ))}
+                                    {project.relations.billing.basts && project.relations.billing.basts.length > 0 ? (
+                                        project.relations.billing.basts.map(bast => (
+                                            <div key={bast.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                                                <span className="font-semibold">{bast.no}</span>
+                                                <span className="text-gray-500">{bast.date}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="bg-gray-50 p-3 rounded text-center text-gray-400 italic text-[10px]">Belum Ada Data BAST</div>
+                                    )}
                                 </div>
                                 <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Status Penagihan</div>
                                 <div className="text-xs space-y-2">
-                                     {project.relations.billing.stages.map(stage => (
-                                         <div key={stage.id} className="flex flex-wrap justify-between items-center border-b border-gray-100 pb-1">
-                                             <span className="font-medium">{stage.name}</span>
-                                             <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${stage.completed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                                 {stage.completed ? 'Selesai' : 'Tertunda'}
-                                             </span>
-                                         </div>
-                                     ))}
+                                     {project.relations.billing.stages && project.relations.billing.stages.length > 0 ? (
+                                         project.relations.billing.stages.map(stage => (
+                                             <div key={stage.id} className="flex flex-wrap justify-between items-center border-b border-gray-100 pb-1">
+                                                 <span className="font-medium">{stage.name}</span>
+                                                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${stage.completed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                     {stage.completed ? 'Selesai' : 'Tertunda'}
+                                                 </span>
+                                             </div>
+                                         ))
+                                     ) : (
+                                         <div className="text-center text-gray-400 italic text-[10px] py-2">Belum Ada Data Penagihan</div>
+                                     )}
                                 </div>
 
                                 <div className="mt-4 pt-4 border-t border-slate-100">
@@ -473,6 +507,12 @@ export default function ProjectPrint({ project }) {
                             </div>
                         </div>
 
+                    </div>
+                </div>
+
+                {/* Modul Pengiriman */}
+                <div className="p-8 pt-4 page-break">
+                    <div className="grid grid-cols-1 gap-8">
                         {/* Shipping Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
@@ -497,17 +537,25 @@ export default function ProjectPrint({ project }) {
                                     <div>
                                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">BA Anname</div>
                                         <div className="text-[11px] space-y-1">
-                                            {project.relations.shipping.baAnnames.map(ba => (
-                                                <div key={ba.id} className="font-medium text-gray-700">{ba.no}</div>
-                                            ))}
+                                            {project.relations.shipping.baAnnames && project.relations.shipping.baAnnames.length > 0 ? (
+                                                project.relations.shipping.baAnnames.map(ba => (
+                                                    <div key={ba.id} className="font-medium text-gray-700">{ba.no}</div>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-400 italic text-[10px]">Belum Ada Data</span>
+                                            )}
                                         </div>
                                     </div>
                                     <div>
                                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">BA Inname</div>
                                         <div className="text-[11px] space-y-1">
-                                            {project.relations.shipping.baInnames.length > 0 ? project.relations.shipping.baInnames.map(ba => (
-                                                <div key={ba.id} className="font-medium text-gray-700">{ba.no}</div>
-                                            )) : <span className="text-gray-400 italic">Belum ada</span>}
+                                            {project.relations.shipping.baInnames && project.relations.shipping.baInnames.length > 0 ? (
+                                                project.relations.shipping.baInnames.map(ba => (
+                                                    <div key={ba.id} className="font-medium text-gray-700">{ba.no}</div>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-400 italic text-[10px]">Belum Ada Data</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

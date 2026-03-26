@@ -48,7 +48,9 @@ class AuctionTypeController extends Controller
 
         $auctionType->update($validated);
 
-        $this->logActivity('telah memperbarui data jenis lelang', 'Jenis Lelang', $auctionType->name, 'edit', 'text-amber-500');
+        if ($auctionType->wasChanged()) {
+            $this->logActivity('telah memperbarui data jenis lelang', 'Jenis Lelang', $auctionType->name, 'edit', 'text-amber-500');
+        }
 
         return redirect()->back()->with('success', 'Jenis Lelang berhasil diperbarui.');
     }

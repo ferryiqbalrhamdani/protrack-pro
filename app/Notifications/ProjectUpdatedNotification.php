@@ -33,11 +33,24 @@ class ProjectUpdatedNotification extends Notification implements ShouldBroadcast
 
     public function toArray(object $notifiable): array
     {
+        $status = $this->project->status ?? '';
+
+        if ($this->actionType === 'created') {
+            $title = 'Proyek Baru';
+            $message = 'Proyek "' . $this->project->name . '" telah dibuat oleh ' . $this->user->name . ' dengan status "' . $status . '".';
+        } elseif ($this->actionType === 'status_changed') {
+            $title = 'Update Status Proyek';
+            $message = 'Proyek "' . $this->project->name . '" telah diperbarui statusnya menjadi "' . $status . '" oleh ' . $this->user->name . '.';
+        } else {
+            $title = 'Proyek Diperbarui';
+            $message = 'Proyek "' . $this->project->name . '" telah diperbarui oleh ' . $this->user->name . '.';
+        }
+
         return [
             'type' => 'project',
             'action' => $this->actionType,
-            'title' => $this->actionType === 'created' ? 'Proyek Baru' : 'Proyek Diperbarui',
-            'message' => 'Proyek "' . $this->project->name . '" telah ' . ($this->actionType === 'created' ? 'dibuat' : 'diperbarui') . ' oleh ' . $this->user->name . '.',
+            'title' => $title,
+            'message' => $message,
             'project_id' => $this->project->id,
             'user_id' => $this->user->id,
         ];

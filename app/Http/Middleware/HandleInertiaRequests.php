@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'roles' => $user ? $user->getRoleNames() : [],
                 'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
-                'is_admin' => $user ? ($user->username === 'admin' || $user->role === 'Admin') : false,
+                'is_admin' => $user ? ($user->hasRole('Super Admin') || $user->username === 'admin') : false,
                 'notifications' => $user ? $user->unreadNotifications()->take(10)->get()->map(function($n) {
                     return array_merge([
                         'id' => $n->id,
