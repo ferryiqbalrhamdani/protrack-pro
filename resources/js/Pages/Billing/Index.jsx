@@ -415,7 +415,7 @@ export default function Index({ projects, queryParams = null, auth_user }) {
                                                 {/* Project Name & No. UP */}
                                                 <td className="px-6 py-6 whitespace-nowrap">
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">{project.name}</span>
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{project.name}</span>
                                                         <span className="text-[11px] font-bold text-slate-400 mt-1">{project.upNo}</span>
                                                     </div>
                                                 </td>

@@ -259,10 +259,11 @@ class MerchandiserController extends Controller
             'pos.*.invoices.*.ea_count' => 'required|numeric',
             'pos.*.invoices.*.status' => 'required|string',
 
-            // New Files
             'new_files' => 'nullable|array',
             'new_files.*' => 'nullable|file|max:5120',
         ]);
+
+        $oldStatus = $merchandiser->status;
 
         DB::transaction(function () use ($merchandiser, $validated, $request, $auth_user) {
             $updateData = [
@@ -353,6 +354,12 @@ class MerchandiserController extends Controller
         $this->logActivity('telah memperbarui data merchandiser', 'Merchandiser', $project->name, 'description', 'text-indigo-500');
 
         $project->refresh()->updateProgress();
+        
+        $merchandiser->refresh();
+        $progress = $merchandiser->contract_ea > 0 ? min(100, (int)round(($merchandiser->rec_ea / $merchandiser->contract_ea) * 100)) : 0;
+        if ($progress == 100 || $oldStatus !== $merchandiser->status) {
+            \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('merchandiser', $merchandiser->status, $auth_user, $project->name, $project->id, $progress));
+        }
 
         return back()->with('success', 'Data merchandiser berhasil diperbarui!');
     }

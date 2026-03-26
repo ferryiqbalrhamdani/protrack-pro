@@ -155,6 +155,8 @@ class BillingController extends Controller
 
         $billing = $project->billing ?? $project->billing()->create(['status' => 'Ongoing']);
 
+        $oldStatus = $billing->status;
+
         DB::beginTransaction();
         try {
             $updateData = [
@@ -208,6 +210,13 @@ class BillingController extends Controller
             DB::commit();
 
             $billing->project->refresh()->updateProgress();
+
+            $billing->refresh();
+            $itemsCount = $billing->items()->count();
+            $progress = $itemsCount > 0 ? min(100, (int)round(($billing->items()->where('completed', true)->count() / $itemsCount) * 100)) : 0;
+            if ($progress == 100 || $oldStatus !== $billing->status) {
+                \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('billing', $billing->status, $auth_user, $project->name, $project->id, $progress));
+            }
 
             return back()->with('success', 'Data penagihan berhasil diperbarui.');
         } catch (\Exception $e) {

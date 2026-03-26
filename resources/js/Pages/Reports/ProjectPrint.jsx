@@ -29,7 +29,7 @@ export default function ProjectPrint({ project }) {
             */}
             <style dangerouslySetInnerHTML={{__html: `
                 @media print {
-                    @page { margin: 0; size: A4 landscape; }
+                    @page { margin: 1.5cm 1cm; size: A4 landscape; }
                     html, body {
                         margin: 0 !important;
                         padding: 0 !important;
@@ -38,8 +38,9 @@ export default function ProjectPrint({ project }) {
                         print-color-adjust: exact !important;
                     }
                     .no-print { display: none !important; }
-                    .page-break { page-break-before: always; }
-                    .avoid-break { page-break-inside: avoid; }
+                    .page-break { page-break-before: always; break-before: page; padding-top: 1cm !important; }
+                    .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+                    .section-heading { page-break-after: avoid; break-after: avoid; }
                     .watermark {
                         position: fixed !important;
                         top: 50% !important;
@@ -167,7 +168,7 @@ export default function ProjectPrint({ project }) {
                 </div>
 
                 {/* 2. Kontrak & Finansial */}
-                <div className="p-8 avoid-break border-b border-gray-100">
+                <div className="p-8 avoid-break border-b border-gray-100 page-break">
                     <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-6">Kontrak & Finansial</h3>
                     
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 bg-blue-50/50 p-6 rounded-lg border border-blue-100 mb-6">
@@ -249,9 +250,9 @@ export default function ProjectPrint({ project }) {
                     )}
                 </div>
 
-                {/* 3. Detail Modul - Page Break for clean layout */}
-                <div className="p-8 page-break">
-                    <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-8">Detail Relasi Modul</h3>
+                {/* 3. Detail Modul - Halaman 3: Kontrak + Merchandiser */}
+                <div className="p-8 pt-4 page-break">
+                    <h3 className="section-heading text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-8">Detail Relasi Modul</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Kontrak Module Summary */}
@@ -418,8 +419,13 @@ export default function ProjectPrint({ project }) {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Billing Module Summary */}
+                {/* Halaman 4: Billing + Shipping */}
+                <div className="p-8 pt-4 page-break">
+                    <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-100 pb-2 mb-8">Detail Relasi Modul (Lanjutan)</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
                                 <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex justify-between">

@@ -389,7 +389,7 @@ export default function Index({ projects, filters }) {
                                                 {/* Project Name & No. UP */}
                                                 <td className="px-6 py-6 whitespace-nowrap">
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                                                             {project.name.split(' ').slice(0, 4).join(' ')}{project.name.split(' ').length > 4 ? '...' : ''}
                                                         </span>
                                                         <span className="text-[11px] font-bold text-slate-400 mt-1">{project.up_no}</span>

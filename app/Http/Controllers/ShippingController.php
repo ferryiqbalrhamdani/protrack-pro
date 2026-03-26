@@ -187,6 +187,8 @@ class ShippingController extends Controller
 
         $shipping = $project->shipping;
 
+        $oldStatus = $shipping->status;
+
         DB::beginTransaction();
         try {
             $updateData = [
@@ -267,6 +269,23 @@ class ShippingController extends Controller
             DB::commit();
             
             $project->refresh()->updateProgress();
+            
+            $shipping->refresh();
+            $progress = 0;
+            $total = 1; 
+            $filled = 0;
+            if ($shipping->shipping_date) $filled++;
+            foreach ($shipping->documents as $doc) {
+                $total += 2; 
+                if ($doc->doc_no) $filled++;
+                if ($doc->doc_date) $filled++;
+            }
+            $progress = round(($filled / max(1, $total)) * 100);
+            if ($shipping->status === 'Completed') $progress = 100;
+
+            if ($progress == 100 || $oldStatus !== $shipping->status) {
+                \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('shipping', $shipping->status, $auth_user, $project->name, $project->id, $progress));
+            }
             
             return back()->with('success', 'Data pengiriman berhasil disimpan.');
         } catch (\Exception $e) {

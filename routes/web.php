@@ -60,6 +60,13 @@ Route::get('/reports/project/{hashedId}', [ReportController::class, 'projectDeta
 
 Route::get('/reports/project/{hashedId}/print', [ReportController::class, 'projectPrint'])->middleware(['auth', 'verified'])->name('reports.project.print');
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::post('/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::delete('/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+});
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->prefix('master-data')->name('master.data.')->group(function () {

@@ -11,6 +11,8 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system');
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const defaultNotifications = usePage().props.auth.notifications || [];
+    const [notifications, setNotifications] = useState(defaultNotifications);
     const [isLoading, setIsLoading] = useState(false);
     const profileRef = useRef(null);
     const notificationsRef = useRef(null);
@@ -108,11 +110,47 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
         { name: 'Laporan', icon: 'analytics', href: route('reports'), active: route().current('reports*'), permission: 'view_reports' },
     ].filter(item => hasPermission(item.permission));
 
-    const notifications = [
-        { id: 1, title: 'Proyek Baru', message: 'Proyek "Modern Office Hub" telah dibuat.', time: '2 menit yang lalu', type: 'project', unread: true },
-        { id: 2, title: 'Tagihan Jatuh Tempo', message: 'Tagihan untuk PT. Global Corp segera jatuh tempo.', time: '1 jam yang lalu', type: 'billing', unread: true },
-        { id: 3, title: 'Kontrak Disetujui', message: 'Kontrak #KTR-2024-089 telah disetujui oleh Direktur.', time: '5 jam yang lalu', type: 'contract', unread: false },
-    ];
+    useEffect(() => {
+        // Request Browser Notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        if (window.Echo && user) {
+            window.Echo.private(`App.Models.User.${user.id}`)
+                .notification((notification) => {
+                    const newNotif = {
+                        id: notification.id,
+                        ...notification,
+                        unread: true,
+                        time: 'Baru saja'
+                    };
+                    
+                    setNotifications(prev => [newNotif, ...prev]);
+                    toast.success(notification.title + ': ' + notification.message); // Fallback toast
+
+                    // Trigger browser notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification(notification.title, {
+                            body: notification.message,
+                        });
+                    }
+                });
+        }
+
+        return () => {
+            if (window.Echo && user) {
+                window.Echo.leave(`App.Models.User.${user.id}`);
+            }
+        };
+    }, [user]);
+
+    const markAllRead = () => {
+        router.post(route('notifications.markAllRead'), {}, {
+            preserveScroll: true,
+            onSuccess: () => setNotifications(notifications.map(n => ({...n, unread: false})))
+        });
+    }
 
     return (
         <div className="h-screen flex flex-col bg-background-light dark:bg-background-dark font-display selection:bg-primary/10 selection:text-primary overflow-hidden">
@@ -199,7 +237,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                     <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-2xl animate-reveal overflow-hidden z-[100] ring-1 ring-black/5 dark:ring-white/5">
                                         <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/[0.03]">
                                             <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Notifikasi</h3>
-                                            <button className="text-[10px] font-black text-primary hover:text-primary-dark uppercase tracking-widest transition-colors">
+                                            <button onClick={markAllRead} className="text-[10px] font-black text-primary dark:text-blue-400 hover:text-primary-dark dark:hover:text-blue-300 uppercase tracking-widest transition-colors">
                                                 Tandai Semua Dibaca
                                             </button>
                                         </div>
@@ -228,7 +266,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                                                 <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{n.message}</p>
                                                             </div>
                                                             {n.unread && (
-                                                                <div className="size-2 rounded-full bg-primary shrink-0 mt-2"></div>
+                                                                <div className="size-2 rounded-full bg-primary dark:bg-blue-400 shrink-0 mt-2"></div>
                                                             )}
                                                         </div>
                                                     ))}
@@ -242,9 +280,13 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                                         </div>
 
                                         <div className="p-4 bg-slate-50 dark:bg-white/[0.03] border-t border-slate-100 dark:border-white/5 text-center">
-                                            <button className="text-[11px] font-black text-slate-500 hover:text-primary transition-colors uppercase tracking-[0.2em]">
+                                            <Link 
+                                                href={route('notifications.index')} 
+                                                className="text-[11px] font-black text-slate-500 hover:text-primary dark:hover:text-blue-400 transition-colors uppercase tracking-[0.2em]"
+                                                onClick={() => setIsNotificationsOpen(false)}
+                                            >
                                                 Lihat Semua Aktivitas
-                                            </button>
+                                            </Link>
                                         </div>
                                     </div>
                                 )}

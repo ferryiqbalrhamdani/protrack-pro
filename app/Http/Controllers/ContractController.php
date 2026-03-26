@@ -21,6 +21,8 @@ class ContractController extends Controller
     {
         $contracts = Contract::with(['project.company', 'project.pic', 'handle'])
             ->get()
+            ->sortByDesc(fn($contract) => $contract->project->created_at)
+            ->values()
             ->map(function ($contract) {
                 return [
                     'id' => $contract->id,
@@ -152,6 +154,8 @@ class ContractController extends Controller
             'files.*' => 'file|max:5120',
         ]);
 
+        $oldStatus = $contract->status;
+
         DB::transaction(function () use ($contract, $validated, $auth_user, $request) {
             // Assign handle if first time
             if ($contract->handle_id === null) {
@@ -200,6 +204,12 @@ class ContractController extends Controller
         $this->logActivity('telah memperbarui data kontrak', 'Kontrak', $contract->project->name, 'description', 'text-blue-500');
 
         $contract->project->refresh()->updateProgress();
+        
+        $contract->refresh();
+        $progress = $contract->steps()->count() > 0 ? ($contract->steps()->where('completed', true)->count() / $contract->steps()->count()) * 100 : 0;
+        if ($progress == 100 || $oldStatus !== $contract->status) {
+            \Illuminate\Support\Facades\Notification::send(\App\Models\User::all(), new \App\Notifications\ModuleProgressNotification('contract', $contract->status, $auth_user, $contract->project->name, $contract->project_id, $progress));
+        }
 
         return redirect()->route('contracts')->with('success', 'Perubahan kontrak berhasil disimpan!');
     }

@@ -683,7 +683,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                             </div>
                                                             <div className="space-y-1.5">
                                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tanggal</label>
-                                                                <input type="date" value={newInvoice.invoice_date} onChange={e => setNewInvoice(p => ({ ...p, invoice_date: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold text-sm" />
+                                                                <input type="date" value={newInvoice.invoice_date} onChange={e => setNewInvoice(p => ({ ...p, invoice_date: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white dark:[color-scheme:dark] font-bold text-sm" />
                                                             </div>
                                                             <div className="space-y-1.5">
                                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah Item</label>
@@ -696,9 +696,9 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                             <div className="space-y-1.5">
                                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Status</label>
                                                                 <select value={newInvoice.status} onChange={e => setNewInvoice(p => ({ ...p, status: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold text-sm">
-                                                                    <option>Pending</option>
-                                                                    <option>Paid</option>
-                                                                    <option>Overdue</option>
+                                                                    <option className="dark:bg-slate-900">Pending</option>
+                                                                    <option className="dark:bg-slate-900">Paid</option>
+                                                                    <option className="dark:bg-slate-900">Overdue</option>
                                                                 </select>
                                                             </div>
                                                         </div>

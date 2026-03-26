@@ -21,6 +21,9 @@ use App\Models\ProjectInstallment;
 use App\Traits\HandlesActivityLog;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ProjectUpdatedNotification;
+
 class ProjectController extends Controller
 {
     use HandlesActivityLog;
@@ -163,6 +166,9 @@ class ProjectController extends Controller
 
             $this->logActivity('telah membuat proyek baru', 'Proyek', $project->name, 'business_center', 'text-blue-500');
 
+            $allUsers = User::all();
+            Notification::send($allUsers, new ProjectUpdatedNotification($project, auth()->user(), 'created'));
+
             return redirect()->route('projects')->with('success', 'Project created successfully!');
         });
     }
@@ -256,6 +262,9 @@ class ProjectController extends Controller
             }
 
             $this->logActivity('telah memperbarui data proyek', 'Proyek', $project->name, 'edit', 'text-amber-500');
+
+            $allUsers = User::all();
+            Notification::send($allUsers, new ProjectUpdatedNotification($project, auth()->user(), 'updated'));
 
             return redirect()->route('projects')->with('success', 'Project updated successfully!');
         });

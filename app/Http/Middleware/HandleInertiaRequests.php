@@ -37,7 +37,14 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'roles' => $user ? $user->getRoleNames() : [],
                 'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
-                'is_admin' => $user ? $user->username === 'admin' : false,
+                'is_admin' => $user ? ($user->username === 'admin' || $user->role === 'Admin') : false,
+                'notifications' => $user ? $user->unreadNotifications()->take(10)->get()->map(function($n) {
+                    return array_merge([
+                        'id' => $n->id,
+                        'unread' => true,
+                        'time' => $n->created_at->diffForHumans()
+                    ], $n->data);
+                }) : [],
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
