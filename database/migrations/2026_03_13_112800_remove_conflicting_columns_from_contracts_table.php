@@ -11,10 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('contracts', function (Blueprint $table) {
-            $table->dropColumn(['no_kontrak', 'tahun_anggaran', 'steps']);
-        });
+        $columnsToDrop = [];
+        if (Schema::hasColumn('contracts', 'no_kontrak')) $columnsToDrop[] = 'no_kontrak';
+        if (Schema::hasColumn('contracts', 'tahun_anggaran')) $columnsToDrop[] = 'tahun_anggaran';
+        if (Schema::hasColumn('contracts', 'steps')) $columnsToDrop[] = 'steps';
+
+        if (!empty($columnsToDrop)) {
+            Schema::table('contracts', function (Blueprint $table) use ($columnsToDrop) {
+                $table->dropColumn($columnsToDrop);
+            });
+        }
     }
+
 
     /**
      * Reverse the migrations.
@@ -22,9 +30,16 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('contracts', function (Blueprint $table) {
-            $table->string('no_kontrak')->nullable();
-            $table->string('tahun_anggaran')->nullable();
-            $table->text('steps')->nullable();
+            if (!Schema::hasColumn('contracts', 'no_kontrak')) {
+                $table->string('no_kontrak')->nullable();
+            }
+            if (!Schema::hasColumn('contracts', 'tahun_anggaran')) {
+                $table->string('tahun_anggaran')->nullable();
+            }
+            if (!Schema::hasColumn('contracts', 'steps')) {
+                $table->text('steps')->nullable();
+            }
         });
     }
+
 };
