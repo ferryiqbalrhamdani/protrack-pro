@@ -168,6 +168,7 @@ class ProjectController extends Controller
 
             /** @var User $authUser */
             $authUser = auth()->user();
+            $allUsers = User::all();
             Notification::send($allUsers, new ProjectUpdatedNotification($project, $authUser, 'created'));
 
             return redirect()->route('projects')->with('success', 'Project created successfully!');
@@ -273,6 +274,7 @@ class ProjectController extends Controller
 
                 /** @var User $authUser */
                 $authUser = auth()->user();
+                $allUsers = User::all();
                 Notification::send($allUsers, new ProjectUpdatedNotification($project, $authUser, $actionType));
             }
 
