@@ -176,9 +176,13 @@ export default function Edit({ contract, auth_user, canEdit }) {
 
     return (
         <AuthenticatedLayout
+            backUrl={route('contracts')}
+            backLabel={canEdit ? "Edit Kontrak" : "Pratinjau Kontrak"}
+            isReviewMode={!canEdit}
             stickySlot={
                 <>
                     {/* Read-only Alert for non-authorized users or specific project statuses */}
+                    <div className="hidden xl:block">
                     {!canEdit && (
                         <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
                             contract.project_status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
@@ -259,6 +263,7 @@ export default function Edit({ contract, auth_user, canEdit }) {
                             </div>
                         </div>
                     </div>
+                </div>
                 </>
             }
         >

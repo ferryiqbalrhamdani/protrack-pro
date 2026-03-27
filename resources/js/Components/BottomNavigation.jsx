@@ -1,9 +1,9 @@
 import { Link } from '@inertiajs/react';
 
-export default function BottomNavigation({ displayItems, showMenuButton, profileInMenu, onMoreClick }) {
+export default function BottomNavigation({ displayItems, showMenuButton, profileInMenu, isMoreActive, onMoreClick }) {
 
     return (
-        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-[70] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 px-6 pb-safe-offset-2 pt-3 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
+        <div className="xl:hidden fixed bottom-6 left-4 right-4 z-[70] bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-4 py-3 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5">
             <div className="flex items-center justify-between gap-2 w-full max-w-md mx-auto">
                 {displayItems?.filter(Boolean).map((item, index) => {
                     const isLastItem = index === (displayItems?.length || 0) - 1;
@@ -16,10 +16,18 @@ export default function BottomNavigation({ displayItems, showMenuButton, profile
                             {showMenuBeforeProfile && (
                                 <button
                                     onClick={onMoreClick}
-                                    className="flex flex-col items-center gap-1.5 px-3 py-1 group transition-all text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 shrink-0"
+                                    className={`flex flex-col items-center gap-1.5 px-3 py-1 group transition-all shrink-0 ${
+                                        isMoreActive 
+                                        ? 'text-primary dark:text-blue-400' 
+                                        : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+                                    }`}
                                 >
-                                    <div className="size-10 rounded-2xl flex items-center justify-center transition-all group-hover:bg-slate-50 dark:group-hover:bg-white/5">
-                                        <span className="material-symbols-outlined text-[24px]">menu_open</span>
+                                    <div className={`size-10 rounded-2xl flex items-center justify-center transition-all ${
+                                        isMoreActive 
+                                        ? 'bg-primary/10 scale-110 shadow-sm' 
+                                        : 'group-hover:bg-slate-50 dark:group-hover:bg-white/5'
+                                    }`}>
+                                        <span className={`material-symbols-outlined text-[24px] ${isMoreActive ? 'font-fill' : ''}`}>menu_open</span>
                                     </div>
                                     <span className="text-[10px] font-black uppercase tracking-widest">Menu</span>
                                 </button>
@@ -51,10 +59,18 @@ export default function BottomNavigation({ displayItems, showMenuButton, profile
                 {showMenuButton && profileInMenu && (
                     <button
                         onClick={onMoreClick}
-                        className="flex flex-col items-center gap-1.5 px-3 py-1 group transition-all text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 shrink-0 flex-1"
+                        className={`flex flex-col items-center gap-1.5 px-3 py-1 group transition-all shrink-0 flex-1 ${
+                            isMoreActive 
+                            ? 'text-primary dark:text-blue-400' 
+                            : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+                        }`}
                     >
-                        <div className="size-10 rounded-2xl flex items-center justify-center transition-all group-hover:bg-slate-50 dark:group-hover:bg-white/5">
-                            <span className="material-symbols-outlined text-[24px]">menu_open</span>
+                        <div className={`size-10 rounded-2xl flex items-center justify-center transition-all ${
+                            isMoreActive 
+                            ? 'bg-primary/10 scale-110 shadow-sm' 
+                            : 'group-hover:bg-slate-50 dark:group-hover:bg-white/5'
+                        }`}>
+                            <span className={`material-symbols-outlined text-[24px] ${isMoreActive ? 'font-fill' : ''}`}>menu_open</span>
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest">Menu</span>
                     </button>

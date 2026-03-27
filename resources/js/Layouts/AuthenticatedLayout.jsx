@@ -5,13 +5,14 @@ import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavigation from '@/Components/BottomNavigation';
 import BottomSheet from '@/Components/BottomSheet';
+import { useTheme } from '@/Components/ThemeProvider';
 
-export default function AuthenticatedLayout({ header, children, stickySlot }) {
+export default function AuthenticatedLayout({ header, children, stickySlot, backUrl, backLabel, isReviewMode = false }) {
     const { user, permissions, is_admin } = usePage().props.auth;
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
-    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system');
+    const { theme, setTheme } = useTheme();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -87,32 +88,6 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
             unregisterCancel();
         };
     }, []);
-
-    useEffect(() => {
-        const root = window.document.documentElement;
-        
-        const applyTheme = (currentTheme) => {
-            root.classList.remove('light', 'dark');
-            
-            if (currentTheme === 'system') {
-                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                root.classList.add(systemTheme);
-            } else {
-                root.classList.add(currentTheme);
-            }
-        };
-
-        applyTheme(theme);
-        localStorage.setItem('theme', theme);
-
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleChange = () => {
-            if (theme === 'system') applyTheme('system');
-        };
-
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, [theme]);
 
     // Close dropdown on click outside
     useEffect(() => {
@@ -210,6 +185,9 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
         bottomNavDisplayItems = [...mainItems, profileItem].filter(Boolean);
         bottomNavHiddenItems = [];
     }
+
+    const isMoreActive = bottomNavHiddenItems.some(item => item?.active) || 
+                        (canViewMasterData && route().current('master.data.*'));
 
 
 
@@ -385,11 +363,38 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
             />
             {/* Header */}
             <div className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'}`}>
-            <header className="bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 w-full">
+            <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full overflow-hidden">
+                {/* Mobile Review Mode Banner */}
+                {isReviewMode && (
+                    <div className="xl:hidden bg-amber-500 py-1.5 px-4 flex items-center justify-center gap-2 relative border-b border-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.2)]">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                        <span className="material-symbols-outlined text-white text-[14px] font-fill animate-pulse">visibility</span>
+                        <span className="text-[9px] font-black text-white uppercase tracking-[0.2em] relative z-10">Mode Peninjauan (Baca Saja)</span>
+                    </div>
+                )}
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
                     {/* Left Side: Logo */}
                     <div className="flex-1 min-w-0 flex items-center">
-                        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
+                        {backUrl ? (
+                            <Link 
+                                href={backUrl} 
+                                className="xl:hidden flex items-center gap-3 overflow-hidden group"
+                            >
+                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 group-hover:-translate-x-1 transition-transform text-2xl font-black">arrow_back</span>
+                                <div className="flex flex-col overflow-hidden">
+                                    <div className="flex items-center gap-1.5 leading-none mb-0.5">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                                            Kembali
+                                        </span>
+                                    </div>
+                                    <h2 className="text-slate-900 dark:text-white font-black text-base uppercase tracking-tight truncate leading-none">
+                                        {backLabel || 'Informasi Detail'}
+                                    </h2>
+                                </div>
+                            </Link>
+                        ) : null}
+
+                        <Link href="/" className={`${backUrl ? 'hidden xl:flex' : 'flex'} items-center gap-2.5 sm:gap-3 group`}>
                             <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
                                 <span className="material-symbols-outlined text-lg font-black">grid_view</span>
                             </div>
@@ -418,7 +423,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                     </nav>
 
                     {/* Right Side Tools */}
-                    <div className="flex-1 flex items-center justify-end gap-2 sm:gap-4">
+                    <div className={`flex-1 flex items-center justify-end gap-2 sm:gap-4 ${backUrl ? 'xl:flex hidden' : 'flex'}`}>
                         <div className="hidden md:flex items-center">
                             <button 
                                 onClick={() => setIsSearchOpen(true)}
@@ -659,7 +664,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                 </div>
             )}
 
-            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-20 xl:pt-0 pb-24 xl:pb-8">
+            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-20 xl:pt-0 pb-32 xl:pb-8">
                 {isLoading ? (
                     <SkeletonContent />
                 ) : (
@@ -673,8 +678,8 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
             </main>
 
             {/* Floating Action Button (FAB) - Mobile Only */}
-            {hasPermission('create_projects') && (
-                <div className="xl:hidden fixed bottom-24 right-6 z-[60]">
+            {hasPermission('view_projects') && (
+                <div className="xl:hidden fixed bottom-32 right-6 z-[60]">
                     <Link
                         href={route('projects.create')}
                         className="size-16 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-[0_10px_30px_-5px_rgba(37,99,235,0.5)] active:scale-95 transition-all outline-none"
@@ -689,6 +694,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                 displayItems={bottomNavDisplayItems}
                 showMenuButton={showMenuButton}
                 profileInMenu={profileInMenu}
+                isMoreActive={isMoreActive}
                 onMoreClick={() => setIsBottomSheetOpen(true)} 
             />
 
@@ -699,6 +705,8 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                 hiddenItems={bottomNavHiddenItems}
                 user={user}
                 canViewMasterData={canViewMasterData}
+                theme={theme}
+                setTheme={setTheme}
             />
 
 
@@ -874,6 +882,15 @@ export default function AuthenticatedLayout({ header, children, stickySlot }) {
                     </div>
                 </div>
             )}
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+                .animate-shimmer {
+                    animation: shimmer 2s infinite linear;
+                }
+            `}} />
         </div>
     );
 }

@@ -94,6 +94,7 @@ class ShippingController extends Controller
                 'hashed_id' => Hashid::encode($project->id),
                 'name' => $project->name,
                 'upNo' => $project->up_no,
+                'no_kontrak' => $project->contract_no,
                 'budgetType' => $project->budgetType?->name,
                 'pic' => $project->pic,
                 'handle' => $s && $s->handle ? $s->handle : null,

@@ -245,9 +245,13 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
 
     return (
         <AuthenticatedLayout
+            backUrl={route('merchandiser')}
+            backLabel={canEdit ? "Edit Merchandiser" : "Pratinjau Merchandiser"}
+            isReviewMode={isReviewMode}
             stickySlot={
                 <>
                     {/* Read-only Alert */}
+                    <div className="hidden xl:block">
                     {!canEdit && (
                         <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
                             project.status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
@@ -327,6 +331,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                             </div>
                         </div>
                     </div>
+                </div>
                 </>
             }
         >

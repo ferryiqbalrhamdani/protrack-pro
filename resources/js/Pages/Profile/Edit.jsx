@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { useTheme } from '@/Components/ThemeProvider';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
@@ -8,6 +9,7 @@ import TextInput from '@/Components/TextInput';
 
 export default function Edit({ sessions = [], status }) {
     const user = usePage().props.auth.user;
+    const { theme, setTheme } = useTheme();
     const [confirmingSessionId, setConfirmingSessionId] = useState(null);
 
     const { data, setData, delete: destroy, processing, errors, reset } = useForm({
@@ -107,6 +109,43 @@ export default function Edit({ sessions = [], status }) {
                                     <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{sessions.length} Sesi Aktif</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Visual Preference Card (Mobile Friendly) */}
+                <div className="bg-white dark:bg-black/40 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden">
+                    <div className="p-8 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="size-10 bg-indigo-500/10 text-indigo-500 rounded-xl flex items-center justify-center">
+                                <span className="material-symbols-outlined">settings_brightness</span>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-tight">Preferensi Visual</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Atur tampilan antarmuka aplikasi</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-6">
+                        <div className="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-white/5 p-2 rounded-3xl">
+                            {[
+                                { id: 'light', icon: 'light_mode', label: 'Terang' },
+                                { id: 'dark', icon: 'dark_mode', label: 'Gelap' },
+                                { id: 'system', icon: 'settings_brightness', label: 'Sistem' },
+                            ].map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => setTheme(t.id)}
+                                    className={`flex flex-col items-center gap-2 py-4 rounded-2xl transition-all ${
+                                        theme === t.id 
+                                            ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-white/10' 
+                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                    }`}
+                                >
+                                    <span className={`material-symbols-outlined text-2xl ${theme === t.id ? 'font-fill' : ''}`}>{t.icon}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{t.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -234,6 +273,57 @@ export default function Edit({ sessions = [], status }) {
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Sesi Aktif</span>
                                     <span className="text-sm font-black text-slate-800 dark:text-white">{sessions.length}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Visual Preference (Theme) Card */}
+                        <div className="bg-white dark:bg-black/40 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden mt-8">
+                            <div className="p-8 border-b border-slate-100 dark:border-white/10">
+                                <div className="flex items-center gap-4">
+                                    <div className="size-10 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-2xl">palette</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-tight">Preferensi Visual</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Sesuaikan tampilan aplikasi sesuai kenyamanan Anda</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-8">
+                                <div className="grid grid-cols-1 gap-4">
+                                    {[
+                                        { id: 'light', icon: 'light_mode', title: 'Terang', desc: 'Tampilan bersih & kontras' },
+                                        { id: 'dark', icon: 'dark_mode', title: 'Gelap', desc: 'Nyaman di mata saat malam' },
+                                        { id: 'system', icon: 'settings_brightness', title: 'Sistem', desc: 'Ikuti tema perangkat' },
+                                    ].map((t) => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setTheme(t.id)}
+                                            className={`p-6 rounded-[2rem] border transition-all text-left group relative overflow-hidden ${
+                                                theme === t.id
+                                                    ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5'
+                                                    : 'bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-6">
+                                                <div className={`size-12 rounded-2xl flex items-center justify-center transition-all ${
+                                                    theme === t.id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-white dark:bg-white/5 text-slate-400 group-hover:scale-110'
+                                                }`}>
+                                                    <span className={`material-symbols-outlined text-2xl ${theme === t.id ? 'font-fill' : ''}`}>{t.icon}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className={`text-sm font-black uppercase tracking-widest leading-none mb-1.5 ${theme === t.id ? 'text-primary dark:text-blue-400' : 'text-slate-700 dark:text-slate-200'}`}>{t.title}</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 truncate tracking-tight">{t.desc}</p>
+                                                </div>
+                                                {theme === t.id && (
+                                                    <div className="size-6 rounded-full bg-primary flex items-center justify-center text-white">
+                                                        <span className="material-symbols-outlined text-sm font-black">check</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>

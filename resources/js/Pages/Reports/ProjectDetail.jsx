@@ -49,8 +49,11 @@ export default function ProjectDetail({ project }) {
 
     return (
         <AuthenticatedLayout
+            backUrl={route('reports.project')}
+            backLabel={`Project ${project.proj}`}
             stickySlot={
-                <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                <div className="hidden xl:block">
+                    <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                             <div className="flex items-center gap-4">
@@ -105,6 +108,7 @@ export default function ProjectDetail({ project }) {
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             }
         >

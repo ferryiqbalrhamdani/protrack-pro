@@ -80,6 +80,7 @@ class MerchandiserController extends Controller
                 'hashed_id' => Hashid::encode($project->id),
                 'name' => $project->name,
                 'upNo' => $project->up_no,
+                'no_kontrak' => $project->contract_no,
                 'budgetType' => $project->budgetType?->name,
                 'pic' => $project->pic?->name,
                 'progres' => $progres,

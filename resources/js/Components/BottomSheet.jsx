@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function BottomSheet({ isOpen, onClose, hiddenItems, user, canViewMasterData }) {
+export default function BottomSheet({ isOpen, onClose, hiddenItems, user, canViewMasterData, theme, setTheme }) {
     if (!isOpen) return null;
 
     return (
@@ -23,7 +23,7 @@ export default function BottomSheet({ isOpen, onClose, hiddenItems, user, canVie
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-[90] bg-white dark:bg-slate-900 rounded-t-[2.5rem] p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.2)] max-h-[80vh] overflow-y-auto custom-scrollbar"
+                        className="fixed bottom-0 left-0 right-0 z-[90] bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-t-[2.5rem] p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.2)] border-t border-white/20 dark:border-white/10 max-h-[80vh] overflow-y-auto custom-scrollbar"
                     >
                         {/* Pull Handle */}
                         <div className="w-12 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full mx-auto mb-8" />
@@ -38,6 +38,28 @@ export default function BottomSheet({ isOpen, onClose, hiddenItems, user, canVie
                                     <h3 className="text-lg font-black text-slate-800 dark:text-white leading-tight">{user.name}</h3>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{user.username}</p>
                                 </div>
+                            </div>
+
+                            {/* Theme Selector Grid */}
+                            <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-white/5 p-1.5 rounded-2xl">
+                                {[
+                                    { id: 'light', icon: 'light_mode', label: 'Terang' },
+                                    { id: 'dark', icon: 'dark_mode', label: 'Gelap' },
+                                    { id: 'system', icon: 'settings_brightness', label: 'Sistem' },
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setTheme(t.id)}
+                                        className={`flex flex-col items-center gap-1 py-3 rounded-[1.25rem] transition-all ${
+                                            theme === t.id 
+                                                ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-white/10' 
+                                                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                        }`}
+                                    >
+                                        <span className={`material-symbols-outlined text-xl ${theme === t.id ? 'font-fill' : ''}`}>{t.icon}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest leading-none">{t.label}</span>
+                                    </button>
+                                ))}
                             </div>
 
                         {/* Menu Grid */}

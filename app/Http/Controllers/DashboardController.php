@@ -116,6 +116,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $project->up_no,
                     'name' => $project->name,
+                    'contract_no' => $project->contract_no,
                     'client' => $project->company?->name,
                     'pic' => $project->pic?->name,
                     'contractDate' => $project->contract_date,

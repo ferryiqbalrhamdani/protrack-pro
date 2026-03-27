@@ -30,6 +30,7 @@ export default function Dashboard({
     const appName = "Protrack Pro";
 
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+    const [isDueProjectsModalOpen, setIsDueProjectsModalOpen] = useState(false);
 
     // Weather State
     const [weather, setWeather] = useState({
@@ -273,45 +274,68 @@ export default function Dashboard({
                 </div>
 
                 {/* Weather & Date Top Widget */}
-                <div className="flex flex-row items-stretch gap-3 sm:gap-4 animate-in fade-in slide-in-from-top-4 duration-1000">
+                <div className="flex flex-col md:flex-row items-stretch gap-4 animate-in fade-in slide-in-from-top-4 duration-1000">
                     {/* Date Block */}
-                    <div className="flex-1 bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-600/10 dark:to-indigo-500/5 border border-blue-500/20 dark:border-white/10 rounded-[2rem] p-5 sm:p-6 flex flex-col justify-between shadow-xl shadow-blue-500/20 dark:shadow-none transition-all duration-500">
-                        <div className="bg-white/20 dark:bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 w-fit mb-4">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white leading-none">{monthShort} {dayNum}</span>
+                    <div className="flex-1 bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 dark:from-indigo-500/10 dark:via-blue-600/10 dark:to-indigo-500/5 border border-indigo-500/20 dark:border-white/10 rounded-[2rem] p-6 flex items-center justify-between shadow-xl shadow-indigo-500/20 dark:shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/30">
+                        <div className="flex items-center gap-5">
+                            <div className="size-14 rounded-2xl bg-white/20 dark:bg-white/10 backdrop-blur-md flex flex-col items-center justify-center text-white border border-white/20 shadow-inner">
+                                <span className="text-[10px] font-black uppercase tracking-tighter leading-none opacity-80">{monthShort}</span>
+                                <span className="text-2xl font-black leading-none mt-0.5">{dayNum}</span>
+                            </div>
+                            <div>
+                                <h4 className="text-xl font-black text-white tracking-tight capitalize">{dayName}</h4>
+                                <p className="text-[10px] font-bold text-indigo-100 dark:text-slate-400 uppercase tracking-[0.2em] mt-0.5 opacity-80">{monthShort} {yearNum} • {appName}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 className="text-2xl font-black text-white tracking-tight capitalize leading-none mb-1">{dayName}</h4>
-                            <p className="text-[9px] font-bold text-blue-100 uppercase tracking-widest opacity-80">{monthShort} {yearNum} • {appName}</p>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2">
-                            <div className="size-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]"></div>
-                            <span className="text-[9px] font-black text-white uppercase tracking-widest">Sistem Online</span>
+                        <div className="hidden sm:flex flex-col items-end">
+                            <span className="text-[10px] font-black text-indigo-200 dark:text-slate-500 uppercase tracking-widest mb-1 opacity-60">Status Operasional</span>
+                            <div className="flex items-center gap-2 bg-emerald-500/30 dark:bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-400/40 dark:border-emerald-500/20 shadow-lg shadow-emerald-900/20">
+                                <div className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
+                                <span className="text-[9px] font-black text-emerald-300 uppercase tracking-[0.1em]">Sistem Online</span>
+                            </div>
                         </div>
                     </div>
 
                     {/* Weather Block */}
-                    <div className="flex flex-row items-center sm:items-stretch sm:flex-col justify-between flex-none w-[140px] sm:w-72 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-5 sm:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none relative">
+                    <div className="flex-none md:w-72 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-6 flex items-center justify-between group hover:border-blue-500/30 transition-all duration-500 shadow-xl shadow-slate-200/50 dark:shadow-none relative allow-tooltip-overflow">
                         {weather.loading && (
                             <div className="absolute inset-0 bg-white/50 dark:bg-[#0b1120]/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-[2rem]">
                                 <span className="material-symbols-outlined animate-spin text-slate-400">sync</span>
                             </div>
                         )}
-                        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-                            <div className="relative size-10 sm:size-12 flex items-center justify-center">
-                                <span className={`material-symbols-outlined text-3xl sm:text-4xl ${weather.icon === 'wb_sunny' ? 'text-amber-400 animate-[spin_12s_linear_infinite]' : 'text-slate-400 dark:text-slate-300'} font-fill`}>
+                        <div className="flex items-center gap-4">
+                            <div className="relative size-12 flex items-center justify-center">
+                                <span className={`material-symbols-outlined text-4xl ${weather.icon === 'wb_sunny' ? 'text-amber-400 animate-[spin_12s_linear_infinite]' : 'text-slate-400 dark:text-slate-300'} font-fill`}>
                                     {weather.icon}
                                 </span>
+                                {weather.customIcon && (
+                                    <span className="material-symbols-outlined absolute -bottom-1 -right-1 text-2xl text-slate-400 dark:text-slate-500">
+                                        {weather.customIcon}
+                                    </span>
+                                )}
                             </div>
-                            <div className="text-center sm:text-left">
-                                <h4 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white leading-none">
+                            <div>
+                                <h4 className="text-2xl font-black text-slate-800 dark:text-white leading-none">
                                     {weather.temp}{weather.temp !== '--' ? '°C' : ''}
                                 </h4>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 hidden sm:block truncate max-w-[120px]">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 truncate max-w-[120px]" title={weather.desc}>
                                     {weather.desc}
                                 </p>
                             </div>
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter text-center sm:hidden leading-none max-w-[60px]">{weather.desc}</p>
+                        <div 
+                            onClick={requestLocation}
+                            className={`size-10 rounded-xl flex items-center justify-center transition-all cursor-pointer premium-tooltip shrink-0 ${
+                                weather.error 
+                                ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white'
+                                : 'bg-slate-50 dark:bg-white/5 text-slate-400 group-hover:bg-blue-500 group-hover:text-white'
+                            }`}
+                            data-tooltip={weather.location}
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                {weather.error ? 'location_off' : 'my_location'}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -325,7 +349,7 @@ export default function Dashboard({
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Total Billing Protrack</p>
                                 <h3 className="text-[32px] sm:text-4xl font-black text-slate-900 dark:text-white leading-none">{formattedMetrics.totalBilling}</h3>
                                 <div className="flex items-center gap-3 mt-4">
-                                    <div className={`flex items-center gap-1 text-[10px] font-black ${billingGrowth.trend === 'down' ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-500 bg-emerald-500/10'} px-2.5 py-1.5 rounded-xl`}>
+                                    <div className={`flex items-center gap-1 text-[10px] font-black ${billingGrowth.trend === 'down' ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-500 bg-emerald-500/10' } px-2.5 py-1.5 rounded-xl`}>
                                         <span className="material-symbols-outlined text-sm font-black">{billingGrowth.trend === 'down' ? 'trending_down' : 'trending_up'}</span>
                                         <span>{billingGrowth.text}</span>
                                     </div>
@@ -370,23 +394,23 @@ export default function Dashboard({
                     ))}
                 </div>
 
-                {/* Main Viz & AI Sidebar */}
+                {/* Main Viz & Due Projects Grid */}
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                     {/* Chart Container */}
-                    <div className="xl:col-span-2 bg-white dark:bg-white/[0.02] p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/20 dark:shadow-none flex flex-col h-full">
+                    <div className="xl:col-span-2 bg-white dark:bg-white/[0.02] p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/20 dark:shadow-none flex flex-col h-[480px]">
                         <div className="flex items-center justify-between mb-10 shrink-0">
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Project Progress Trend</h3>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Trend Progres Project</h3>
                                 <p className="text-xs text-slate-500 font-medium">Monitoring performa pengerjaan proyek setiap bulan</p>
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                     <span className="size-3 rounded-full bg-primary shadow-lg shadow-primary/40"></span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg. Progress (%)</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg. Progres (%)</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex-1 w-full min-h-[250px] relative group mt-4">
+                        <div className="flex-1 w-full relative group mt-4 overflow-hidden">
                             {/* Grid Lines */}
                             <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest pb-10">
                                 {[100, 75, 50, 25, 0].map(val => (
@@ -428,134 +452,256 @@ export default function Dashboard({
                             </div>
                         </div>
                     </div>
-                    {/* Sidebar Container */}
-                    <div className="flex flex-col gap-8">
-                        {/* Recent Activities Widget */}
-                        <div className="bg-white dark:bg-white/[0.02] rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col group/activities">
-                            <div className="p-8 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-                                <div>
-                                    <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Aktivitas Terbaru</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Log Sistem Terkini</p>
-                                </div>
-                                <select 
-                                    className="bg-transparent border-none text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest focus:ring-0 cursor-pointer"
-                                    value={queryParams.timeframe || 'month'}
-                                    onChange={(e) => handleTimeframeChange(e.target.value)}
-                                >
-                                    <option value="day">Sehari</option>
-                                    <option value="week">Seminggu</option>
-                                    <option value="month">Sebulan</option>
-                                    <option value="year">Setahun</option>
-                                </select>
+
+                    {/* Recent Activities Widget (Moved to Sidebar) */}
+                    <div className="bg-white dark:bg-white/[0.02] rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col group/activities">
+                        <div className="p-8 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
+                            <div>
+                                <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Aktivitas Sistem</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Log Sistem Terkini</p>
                             </div>
-                            <div className="p-0 flex flex-col overflow-hidden">
-                                <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-6 space-y-4">
-                                    {recentActivities.length > 0 ? (
-                                        recentActivities.map((activity) => (
-                                            <div key={activity.id} className="flex gap-4 group/item">
-                                                <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover/item:scale-110 transition-transform ${activity.color?.replace('text', 'bg').replace('500', '50')} dark:${activity.color?.replace('text', 'bg').replace('500', '500/10')} ${activity.color}`}>
-                                                    <span className="material-symbols-outlined text-[18px]">{activity.icon}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-0.5 min-w-0">
-                                                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
-                                                        <span className="font-black text-slate-800 dark:text-slate-200">{activity.user?.name}</span> {activity.action} <span className="font-black text-slate-800 dark:text-slate-200">{activity.target_name}</span>
-                                                    </p>
-                                                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{formatTime(activity.created_at)}</span>
-                                                </div>
+                            <select 
+                                className="bg-transparent border-none text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest focus:ring-0 cursor-pointer"
+                                value={queryParams.timeframe || 'month'}
+                                onChange={(e) => handleTimeframeChange(e.target.value)}
+                            >
+                                <option value="day">Sehari</option>
+                                <option value="week">Seminggu</option>
+                                <option value="month">Sebulan</option>
+                                <option value="year">Setahun</option>
+                            </select>
+                        </div>
+                        <div className="p-0 flex flex-col overflow-hidden">
+                            <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-6 space-y-4">
+                                {recentActivities.length > 0 ? (
+                                    recentActivities.map((activity) => (
+                                        <div key={activity.id} className="flex gap-4 group/item">
+                                            <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover/item:scale-110 transition-transform ${activity.color?.replace('text', 'bg').replace('500', '50')} dark:bg-white/5 ${activity.color}`}>
+                                                <span className="material-symbols-outlined text-[18px]">{activity.icon}</span>
                                             </div>
-                                        ))
-                                    ) : (
-                                        <div className="py-10 text-center opacity-30">
-                                            <span className="material-symbols-outlined text-4xl mb-2">history</span>
-                                            <p className="text-[10px] font-black uppercase tracking-widest">Belum ada aktivitas</p>
+                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                                                    <span className="font-black text-slate-800 dark:text-slate-200">{activity.user?.name}</span> {activity.action} <span className="font-black text-slate-800 dark:text-slate-200">{activity.target_name}</span>
+                                                </p>
+                                                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{formatTime(activity.created_at)}</span>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                                <div className="px-6 pb-6">
-                                    <button 
-                                        onClick={() => setIsActivityModalOpen(true)}
-                                        className="w-full py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 text-[10px] font-black text-slate-400 hover:text-primary dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest border border-dashed border-slate-200 dark:border-white/10"
-                                    >
-                                        Lihat Semua Log
-                                    </button>
-                                </div>
+                                    ))
+                                ) : (
+                                    <div className="py-10 text-center opacity-30">
+                                        <span className="material-symbols-outlined text-4xl mb-2">history</span>
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Belum ada aktivitas</p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="px-6 pb-6 mt-auto">
+                                <button 
+                                    onClick={() => setIsActivityModalOpen(true)}
+                                    className="w-full py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 text-[10px] font-black text-slate-400 hover:text-primary dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest border border-dashed border-slate-200 dark:border-white/10"
+                                >
+                                    Lihat Semua Log
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Progress Terkini (Mobile Optimized) */}
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Progress Terkini</h3>
-                        <Link href={route('projects')} className="text-[11px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1">
-                            Semua <span className="material-symbols-outlined text-sm">chevron_right</span>
-                        </Link>
+                {/* Bottom Row: Proyek Jatuh Tempo (Synchronized with Reports) */}
+                <div className="grid grid-cols-1 gap-8">
+                    <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2.5rem] p-8 shadow-xl">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Proyek Jatuh Tempo</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Monitoring Deadline Terdekat</p>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-100 dark:border-white/5">
+                                <span className="size-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Live Monitoring</span>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4 max-h-[420px] overflow-y-auto custom-scrollbar pr-2">
+                             {(() => {
+                                // Match exactly with Reports/Index.jsx helper
+                                const getDueStatus = (dueDateStr) => {
+                                    // Handle both field names (due from controller map, due_date from raw)
+                                    const dateStr = dueDateStr || 'No Date';
+                                    if (dateStr === 'No Date') return { label: 'Unknown', color: 'slate', bg: 'bg-slate-500/10', text: 'text-slate-600', icons: '?', level: 3 };
+
+                                    const today = new Date();
+                                    const dueDate = new Date(dateStr);
+                                    const diffTime = dueDate - today;
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    
+                                    if (diffDays <= 30) return { label: 'Urgent', color: 'rose', bg: 'bg-rose-500/10', text: 'text-rose-600', icons: '!!!', level: 0 };
+                                    if (diffDays <= 60) return { label: 'Near Due', color: 'amber', bg: 'bg-amber-500/10', text: 'text-amber-600', icons: '!!', level: 1 };
+                                    return { label: 'Safe', color: 'emerald', bg: 'bg-emerald-500/10', text: 'text-emerald-600', icons: '!', level: 2 };
+                                };
+
+                                const sortedDueProjects = [...dueProjects]
+                                    .map(p => ({ ...p, statusObj: getDueStatus(p.due || p.due_date) }))
+                                    .sort((a, b) => a.statusObj.level - b.statusObj.level || new Date(a.due || a.due_date) - new Date(b.due || b.due_date));
+
+                                return sortedDueProjects.length > 0 ? (
+                                    sortedDueProjects.map((proj, idx) => {
+                                        const status = proj.statusObj;
+                                        return (
+                                            <div 
+                                                key={proj.id || idx} 
+                                                className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/10 border border-transparent hover:border-slate-100 dark:hover:border-white/5 transition-all group rounded-[2rem]"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`size-10 rounded-xl ${status.bg} flex items-center justify-center ${status.text} shadow-sm transition-transform group-hover:scale-110`}>
+                                                        <div className="flex flex-row -space-x-1 items-center justify-center">
+                                                            {status.icons.split('').map((_, i) => (
+                                                                <span key={i} className="material-symbols-outlined font-black text-[14px]">priority_high</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-slate-700 dark:text-slate-200 line-clamp-1 max-w-[180px] sm:max-w-[350px]">{proj.name}</p>
+                                                        <p className="text-[10px] flex items-center gap-1 font-bold text-slate-400 mt-0.5">
+                                                            <span className="material-symbols-outlined text-[10px] text-slate-400">fingerprint</span>
+                                                            No. UP: {proj.up_no || proj.id || '-'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right flex flex-col items-end">
+                                                    <p className="text-[10px] font-black text-slate-700 dark:text-white mb-1 uppercase tracking-tighter">
+                                                        {proj.due || proj.due_date}
+                                                    </p>
+                                                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${status.bg} ${status.text} text-[8px] font-black uppercase tracking-widest border border-current/30`}>
+                                                        <span className="size-1 rounded-full bg-current"></span>
+                                                        {status.label}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="text-center py-10">
+                                        <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">assignment_turned_in</span>
+                                        <p className="text-xs font-bold text-slate-400">Tidak ada proyek tertunda</p>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        <div className="mt-8 px-2">
+                             <button
+                                onClick={() => setIsDueProjectsModalOpen(true)}
+                                className="w-full py-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-[10px] font-black text-slate-400 hover:text-primary dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-[0.2em] border border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center gap-2"
+                            >
+                                Lihat Semua Project
+                                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Projects Header */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between px-2">
+                        <div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white italic">Recent Projects</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Status Proyek Terbaru</p>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                        {recentProjectsList.slice(0, 5).map((proj) => (
-                            <div key={proj.id} className="bg-white dark:bg-white/[0.02] p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-lg shadow-slate-200/30 dark:shadow-none space-y-5">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-blue-600">
-                                            <span className="material-symbols-outlined text-2xl font-black">router</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-black text-slate-800 dark:text-white line-clamp-1">{proj.name}</h4>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{proj.client} • {proj.pic}</p>
-                                        </div>
+                    {/* Mobile Card Layout (Visible only on mobile/tablet) */}
+                    <div className="lg:hidden space-y-4">
+                        {recentProjectsList.map((proj) => (
+                            <div 
+                                key={proj.id}
+                                className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-6"
+                            >
+                                {/* Header: Name & ID */}
+                                <div className="flex justify-between items-start gap-4">
+                                    <div className="min-w-0">
+                                        <h4 className="font-black text-slate-800 dark:text-white leading-tight truncate">{proj.name}</h4>
+                                        <p className="text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1">UP: {proj.id}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-lg font-black text-blue-600">{proj.progress}%</span>
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">DONE</p>
+                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shrink-0 ${
+                                        proj.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' :
+                                        proj.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
+                                        proj.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
+                                        'bg-slate-100 text-slate-500 ring-1 ring-slate-200/50 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10'
+                                    }`}>
+                                        <span className={`material-symbols-outlined text-[12px] ${proj.status === 'Completed' ? 'font-fill' : ''}`}>
+                                            {proj.status === 'Completed' ? 'check_circle' :
+                                             proj.status === 'Ongoing' ? 'autorenew' :
+                                             proj.status === 'Pending' ? 'schedule' : 'block'}
+                                        </span>
+                                        {proj.status}
                                     </div>
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="w-full h-2.5 bg-slate-50 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
-                                        <div 
-                                            className="h-full bg-blue-600 rounded-full transition-all duration-1000"
-                                            style={{ width: `${proj.progress}%` }}
-                                        />
+
+                                {/* Details: Client & PIC (2 columns) */}
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50 dark:border-white/5">
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-[8px]">Client</p>
+                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{proj.client}</p>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex -space-x-2">
-                                            {[1, 2].map(i => (
-                                                <div key={i} className="size-6 rounded-lg border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 overflow-hidden">
-                                                    <img src={`https://ui-avatars.com/api/?name=U${i}&background=random`} className="size-full" alt="User" />
-                                                </div>
-                                            ))}
-                                            <div className="size-6 rounded-lg border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[8px] font-black text-slate-500">
-                                                +3
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-[8px]">PIC</p>
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-5 rounded-md bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                                <span className="material-symbols-outlined text-[14px]">person</span>
                                             </div>
+                                            <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{proj.pic}</p>
                                         </div>
-                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                            DEADLINE: {new Date(proj.dueDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }).toUpperCase()}
-                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* No. Kontrak (Full width) */}
+                                <div className="pb-4 border-b border-slate-50 dark:border-white/5">
+                                    <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 text-[8px]">Nomor Kontrak</p>
+                                        <p className="text-[11px] font-black text-slate-600 dark:text-slate-200 truncate">{proj.contract_no || '-'}</p>
+                                    </div>
+                                </div>
+
+                                {/* Progress */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                        <span className="text-slate-400">Project Progress</span>
+                                        <span className={proj.progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{proj.progress}%</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner uppercase tracking-widest transition-all duration-1000">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-1000 ${proj.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
+                                            style={{ width: `${proj.progress}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+
+                                {/* Dates */}
+                                <div className="flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01] p-3 rounded-2xl border border-slate-100/50 dark:border-white/5">
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Contract Date</span>
+                                        <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{new Date(proj.contractDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                    </div>
+                                    <div className="w-px h-6 bg-slate-200 dark:bg-white/10"></div>
+                                    <div className="flex flex-col gap-0.5 text-right">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</span>
+                                        <p className="text-[10px] font-black text-rose-500">{new Date(proj.dueDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-                </div>
 
-                {/* Desktop view table */}
-                <div className="hidden lg:block space-y-8">
-                    <div className="bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
-                        <div className="p-8 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white italic">Recent Projects</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Status Proyek Terbaru</p>
-                            </div>
-                        </div>
+                    {/* Desktop Table View */}
+                    <div className="hidden lg:block bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
                                         <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project Detail</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">No. Kontrak</th>
                                         <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Client</th>
                                         <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">PIC</th>
-                                        <th className="px-8 py-5 text-[10px) font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak / J.Tempo</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak / J.Tempo</th>
                                         <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Progress</th>
                                         <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                                     </tr>
@@ -568,7 +714,10 @@ export default function Dashboard({
                                         >
                                             <td className="px-8 py-6">
                                                 <div className="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{proj.name}</div>
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{proj.id}</div>
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {proj.id}</div>
+                                            </td>
+                                            <td className="px-8 py-6 text-sm font-bold text-slate-600 dark:text-white">
+                                                {proj.contract_no || '-'}
                                             </td>
                                             <td className="px-8 py-6">
                                                 <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{proj.client}</span>
@@ -678,6 +827,75 @@ export default function Dashboard({
                     {/* Footer / Pagination */}
                     <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-center">
                         <Pagination links={activityLogs?.links || []} />
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Due Projects Modal */}
+            <Modal 
+                show={isDueProjectsModalOpen} 
+                onClose={() => setIsDueProjectsModalOpen(false)}
+                maxWidth="2xl"
+            >
+                <div className="p-8">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-widest">Semua Proyek Jatuh Tempo</h3>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Monitoring Deadline Terdekat</p>
+                        </div>
+                        <button 
+                            onClick={() => setIsDueProjectsModalOpen(false)}
+                            className="size-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <div className="max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+                        {(() => {
+                            const getDueStatus = (dueDateStr) => {
+                                const dateStr = dueDateStr || 'No Date';
+                                if (dateStr === 'No Date') return { label: 'Unknown', color: 'slate', bg: 'bg-slate-500/10', text: 'text-slate-600', icons: '?', level: 3 };
+                                const today = new Date();
+                                const dueDate = new Date(dateStr);
+                                const diffTime = dueDate - today;
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                if (diffDays <= 30) return { label: 'Urgent', color: 'rose', bg: 'bg-rose-500/10', text: 'text-rose-600', icons: '!!!', level: 0 };
+                                if (diffDays <= 60) return { label: 'Near Due', color: 'amber', bg: 'bg-amber-500/10', text: 'text-amber-600', icons: '!!', level: 1 };
+                                return { label: 'Safe', color: 'emerald', bg: 'bg-emerald-500/10', text: 'text-emerald-600', icons: '!', level: 2 };
+                            };
+
+                            const sortedDueProjectsAll = [...dueProjects]
+                                .map(p => ({ ...p, statusObj: getDueStatus(p.due || p.due_date) }))
+                                .sort((a, b) => a.statusObj.level - b.statusObj.level || new Date(a.due || a.due_date) - new Date(b.due || b.due_date));
+
+                            return sortedDueProjectsAll.map((proj, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-transparent hover:border-slate-100 dark:hover:border-white/10 transition-all">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`size-12 rounded-xl ${proj.statusObj.bg} flex items-center justify-center ${proj.statusObj.text} shadow-sm`}>
+                                            <div className="flex flex-row -space-x-1 items-center justify-center">
+                                                {proj.statusObj.icons.split('').map((_, i) => (
+                                                    <span key={i} className="material-symbols-outlined font-black text-[18px]">priority_high</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">{proj.name}</p>
+                                            <p className="text-xs font-bold text-slate-400 mt-0.5 flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-sm">fingerprint</span>
+                                                No. UP: {proj.up_no || proj.id}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right flex flex-col items-end">
+                                        <p className="text-xs font-black text-slate-700 dark:text-white mb-1.5 uppercase tracking-tighter">{proj.due || proj.due_date}</p>
+                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${proj.statusObj.bg} ${proj.statusObj.text} text-[10px] font-black uppercase tracking-widest border border-current/30`}>
+                                            <span className="size-1.5 rounded-full bg-current animate-pulse"></span>
+                                            {proj.statusObj.label}
+                                        </div>
+                                    </div>
+                                </div>
+                            ));
+                        })()}
                     </div>
                 </div>
             </Modal>

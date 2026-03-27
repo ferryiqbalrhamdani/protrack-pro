@@ -433,14 +433,20 @@ export default function Index({ contracts, stats, queryParams, auth_user }) {
                                             </Link>
                                         </div>
 
-                                        {/* Contract Info */}
-                                        <div className="flex flex-col gap-0.5">
+                                        <div className="flex flex-col gap-1">
                                             <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">
                                                 {contract.name}
                                             </h4>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                                                {contract.no_kontrak || '-'}
-                                            </p>
+                                            <div className="flex flex-col gap-2 mt-1.5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. UP</span>
+                                                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight">{contract.up_no || '-'}</span>
+                                                </div>
+                                                <div className="flex flex-col pt-2 border-t border-slate-50 dark:border-white/5">
+                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. Kontrak</span>
+                                                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight break-all">{contract.no_kontrak || '-'}</span>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         {/* Progress */}

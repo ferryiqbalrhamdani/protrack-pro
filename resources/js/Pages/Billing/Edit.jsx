@@ -151,9 +151,13 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
 
     return (
         <AuthenticatedLayout
+            backUrl={route('billing')}
+            backLabel={canEdit ? "Edit Penagihan" : "Pratinjau Penagihan"}
+            isReviewMode={!canEdit}
             stickySlot={
                 <>
                     {/* Read-only Alert for non-authorized users */}
+                    <div className="hidden xl:block">
                     {!canEdit && (
                         <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
                             project.project_status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
@@ -232,6 +236,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                             </div>
                         </div>
                     </div>
+                </div>
                 </>
             }
         >

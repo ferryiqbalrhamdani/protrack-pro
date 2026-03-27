@@ -242,8 +242,10 @@ export default function Edit({ project, options = {} }) {
 
     return (
         <AuthenticatedLayout
+            backUrl={route('projects')}
+            backLabel="Edit Proyek"
             stickySlot={
-                <div className="sticky top-0 z-40 px-4 sm:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                <div className="hidden xl:block sticky top-0 z-40 px-4 sm:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
                     <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <Link 

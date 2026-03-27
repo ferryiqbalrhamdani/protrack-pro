@@ -548,14 +548,20 @@ export default function Index({ projects, filters }) {
                                             </button>
                                         </div>
 
-                                        {/* Project Info */}
-                                        <div className="flex flex-col gap-0.5">
+                                        <div className="flex flex-col gap-1">
                                             <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">
                                                 {project.name}
                                             </h4>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                                                {project.up_no}
-                                            </p>
+                                            <div className="flex flex-col gap-2 mt-1.5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. UP</span>
+                                                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight">{project.up_no || '-'}</span>
+                                                </div>
+                                                <div className="flex flex-col pt-2 border-t border-slate-50 dark:border-white/5">
+                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. Kontrak</span>
+                                                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight break-all">{project.contract_no || '-'}</span>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         {/* Progress */}

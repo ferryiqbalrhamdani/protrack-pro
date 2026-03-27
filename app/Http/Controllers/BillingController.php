@@ -77,6 +77,7 @@ class BillingController extends Controller
                 'hashed_id' => Hashid::encode($project->id),
                 'name' => $project->name,
                 'upNo' => $project->up_no,
+                'no_kontrak' => $project->contract_no,
                 'budgetType' => $project->budgetType?->name,
                 'pic' => $project->pic,
                 'handle' => $b && $b->handle ? $b->handle : null,
@@ -84,7 +85,7 @@ class BillingController extends Controller
                 'dueDate' => $project->created_at->addMonths(6), // adjust logic accordingly
                 'progres' => $progres,
                 'status' => $b?->status ?? 'Ongoing',
-                'company' => 'Awaiting Data', // Example fallback
+                'company' => $project->company?->name ?? 'Awaiting Data',
             ];
         });
 
