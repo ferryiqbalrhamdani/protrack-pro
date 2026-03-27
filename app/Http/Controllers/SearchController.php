@@ -22,7 +22,7 @@ class SearchController extends Controller
         }
 
         $user = $request->user();
-        $isAdmin = $user->username === 'admin' || $user->role === 'Admin';
+        $isAdmin = $user->username === 'admin' || $user->hasRole('Super Admin');
         $userPermissions = $user->getAllPermissions()->pluck('name')->toArray();
 
         $hasPermission = function ($perm) use ($isAdmin, $userPermissions) {

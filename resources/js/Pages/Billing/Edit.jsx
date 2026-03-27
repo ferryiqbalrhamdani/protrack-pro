@@ -171,7 +171,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-center">
                                 {project.project_status === 'Pending' ? 'Data tidak bisa diubah karena status Project sedang Pending' :
                                  project.project_status === 'Completed' ? 'Mode Pratinjau: Project telah Selesai (Completed). Data tidak dapat diubah.' :
-                                 `Mode Pratinjau: Hanya PIC yang ditunjuk atau Admin yang dapat mengubah data ini.`}
+                                 `Mode Pratinjau: Data ini sedang ditangani oleh user lain atau Anda tidak memiliki akses.`}
                             </p>
                         </div>
                     )}

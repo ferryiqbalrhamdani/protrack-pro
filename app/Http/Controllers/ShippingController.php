@@ -122,9 +122,10 @@ class ShippingController extends Controller
         $auth_user = request()->user();
         
         // Permission logic for Shipping
-        $isPicOrAdmin = $auth_user->id === $project->pic_id || $auth_user->role === 'admin';
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
-        $canEdit = $isPicOrAdmin && $isProjectActive;
+        $isHandler = $shipping->handle_id === null || $shipping->handle_id === $auth_user->id;
+        $canEdit = $auth_user->can('view_shipping') && ($isSuperAdmin || $isHandler) && $isProjectActive;
 
         return Inertia::render('Shipping/Edit', [
             'project' => [
@@ -170,12 +171,19 @@ class ShippingController extends Controller
         $project = Project::with(['shipping'])->findOrFail($id);
         
         $auth_user = $request->user();
-        $isPicOrAdmin = $auth_user->id === $project->pic_id || $auth_user->role === 'admin';
+        $shipping = $project->shipping;
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
-        $canEdit = $isPicOrAdmin && $isProjectActive;
-
-        if (!$canEdit) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk mengubah data ini.');
+        $isHandler = $shipping->handle_id === null || $shipping->handle_id === $auth_user->id;
+        
+        if (!($auth_user->can('view_shipping') && ($isSuperAdmin || $isHandler)) || !$isProjectActive) {
+            $message = 'Anda tidak memiliki akses untuk mengubah data ini.';
+            if (!$isProjectActive) {
+                $message = 'Data tidak bisa diubah karena status Project ' . $project->status . '.';
+            } elseif (!$isHandler) {
+                $message = 'Data ini sudah ditangani oleh user lain.';
+            }
+            return back()->with('error', $message);
         }
 
         $request->validate([
@@ -302,12 +310,18 @@ class ShippingController extends Controller
         $project = $file->shipping->project;
         $auth_user = request()->user();
         
-        $isPicOrAdmin = $auth_user->id === $project->pic_id || $auth_user->role === 'admin';
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
-        $canEdit = $isPicOrAdmin && $isProjectActive;
-
-        if (!$canEdit) {
-            return back()->with('error', 'Anda tidak memiliki akses untuk menghapus file ini.');
+        $isHandler = $file->shipping->handle_id === null || $file->shipping->handle_id === $auth_user->id;
+        
+        if (!($auth_user->can('view_shipping') && ($isSuperAdmin || $isHandler)) || !$isProjectActive) {
+            $message = 'Anda tidak memiliki akses untuk menghapus file ini.';
+            if (!$isProjectActive) {
+                $message = 'Tidak bisa menghapus file karena status Project ' . $project->status . '.';
+            } elseif (!$isHandler) {
+                $message = 'File ini milik data yang sudah ditangani oleh user lain.';
+            }
+            return back()->with('error', $message);
         }
 
         try {

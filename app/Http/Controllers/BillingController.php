@@ -106,9 +106,10 @@ class BillingController extends Controller
         $auth_user = request()->user();
         
         // Permission logic for Billing
-        $isPicOrAdmin = $auth_user->id === $project->pic_id || $auth_user->role === 'admin';
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
-        $canEdit = $isPicOrAdmin && $isProjectActive;
+        $isHandler = $billing->handle_id === null || $billing->handle_id === $auth_user->id;
+        $canEdit = $auth_user->can('view_billing') && ($isSuperAdmin || $isHandler) && $isProjectActive;
 
         return Inertia::render('Billing/Edit', [
             'project' => [
@@ -147,14 +148,21 @@ class BillingController extends Controller
         $project = Project::findOrFail($id);
 
         $auth_user = $request->user();
-        $isPicOrAdmin = $auth_user->id === $project->pic_id || $auth_user->role === 'admin';
-        $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
-        
-        if (!($isPicOrAdmin && $isProjectActive)) {
-            return back()->with('error', 'Data tidak bisa diubah karena status Project ' . $project->status . ' atau Anda tidak berwenang.');
-        }
-
         $billing = $project->billing ?? $project->billing()->create(['status' => 'Ongoing']);
+        
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
+        $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
+        $isHandler = $billing->handle_id === null || $billing->handle_id === $auth_user->id;
+        
+        if (!($auth_user->can('view_billing') && ($isSuperAdmin || $isHandler)) || !$isProjectActive) {
+            $message = 'Anda tidak berwenang mengubah data ini.';
+            if (!$isProjectActive) {
+                $message = 'Data tidak bisa diubah karena status Project ' . $project->status . '.';
+            } elseif (!$isHandler) {
+                $message = 'Data ini sudah ditangani oleh user lain.';
+            }
+            return back()->with('error', $message);
+        }
 
         $oldStatus = $billing->status;
 
@@ -232,11 +240,18 @@ class BillingController extends Controller
         $project = $file->billing->project;
         
         $auth_user = request()->user();
-        $isPicOrAdmin = $auth_user->id === $project->pic_id || $auth_user->role === 'admin';
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
+        $isHandler = $file->billing->handle_id === null || $file->billing->handle_id === $auth_user->id;
         
-        if (!($isPicOrAdmin && $isProjectActive)) {
-            return back()->with('error', 'Tidak bisa menghapus file karena status Project ' . $project->status . ' atau Anda tidak berwenang.');
+        if (!($auth_user->can('view_billing') && ($isSuperAdmin || $isHandler)) || !$isProjectActive) {
+            $message = 'Anda tidak berwenang menghapus file ini.';
+            if (!$isProjectActive) {
+                $message = 'Tidak bisa menghapus file karena status Project ' . $project->status . '.';
+            } elseif (!$isHandler) {
+                $message = 'File ini milik data yang sudah ditangani oleh user lain.';
+            }
+            return back()->with('error', $message);
         }
 
         if (Storage::disk('public')->exists($file->file_path)) {

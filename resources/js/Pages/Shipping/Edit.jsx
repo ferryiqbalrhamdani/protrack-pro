@@ -115,6 +115,7 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!canEdit) return;
         post(route('shipping.update', project.hashed_id));
     };
 
@@ -158,7 +159,7 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                                 {project.project_status === 'Pending' || project.project_status === 'Completed' ? (
                                     <span className="opacity-90">Project ini berstatus {project.project_status}. Data tidak dapat diubah.</span>
                                 ) : (
-                                    <span className="opacity-90">Hanya PIC ({project.pic?.name}) atau Admin yang dapat mengubah data ini.</span>
+                                    <span className="opacity-90">Data ini sedang ditangani oleh user lain atau Anda tidak memiliki akses.</span>
                                 )}
                             </div>
                         </div>

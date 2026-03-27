@@ -75,9 +75,10 @@ class ContractController extends Controller
         $auth_user = $request->user();
         
         // Permission logic
-        $isHandle = $contract->handle_id === null || $contract->handle_id === $auth_user->id;
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($contract->project->status, ['Pending', 'Completed']);
-        $canEdit = $isHandle && $isProjectActive;
+        $isHandler = $contract->handle_id === null || $contract->handle_id === $auth_user->id;
+        $canEdit = $auth_user->can('view_contracts') && ($isSuperAdmin || $isHandler) && $isProjectActive;
 
         $contractData = [
             'id' => $contract->id,
@@ -134,10 +135,16 @@ class ContractController extends Controller
         $auth_user = $request->user();
 
         // Re-verify permission
-        $isHandle = $contract->handle_id === null || $contract->handle_id === $auth_user->id;
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
         $isProjectActive = !in_array($contract->project->status, ['Pending', 'Completed']);
-        if (!($isHandle && $isProjectActive)) {
-            return back()->with('error', 'Data tidak bisa diubah karena status Project ' . $contract->project->status . ' atau Anda tidak berwenang.');
+        $isHandler = $contract->handle_id === null || $contract->handle_id === $auth_user->id;
+
+        if (!($auth_user->can('view_contracts') && ($isSuperAdmin || $isHandler)) || !$isProjectActive) {
+            $message = 'Anda tidak berwenang mengubah data ini.';
+            if (!$isProjectActive) {
+                $message = 'Data tidak bisa diubah karena status Project ' . $contract->project->status . '.';
+            }
+            return back()->with('error', $message);
         }
 
         $validated = $request->validate([
@@ -217,10 +224,19 @@ class ContractController extends Controller
 
     public function destroyAttachment(ContractAttachment $attachment)
     {
+        $auth_user = request()->user();
         // Permission check
         $contract = $attachment->contract;
-        if (in_array($contract->project->status, ['Pending', 'Completed'])) {
-            return back()->with('error', 'Tidak bisa menghapus file saat status Project ' . $contract->project->status . '.');
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
+        $isProjectActive = !in_array($contract->project->status, ['Pending', 'Completed']);
+        $isHandler = $contract->handle_id === null || $contract->handle_id === $auth_user->id;
+
+        if (!($auth_user->can('view_contracts') && ($isSuperAdmin || $isHandler)) || !$isProjectActive) {
+            $message = 'Anda tidak berwenang menghapus file ini.';
+            if (!$isProjectActive) {
+                $message = 'Tidak bisa menghapus file saat status Project ' . $contract->project->status . '.';
+            }
+            return back()->with('error', $message);
         }
 
         try {

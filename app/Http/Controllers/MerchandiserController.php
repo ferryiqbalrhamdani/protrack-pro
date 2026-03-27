@@ -121,14 +121,10 @@ class MerchandiserController extends Controller
 
         $auth_user = $request->user();
         
-        // Otorisasi: PIC-Only Editing
-        $isPic = $project->pic_id === $auth_user->id;
-        $isAdmin = $auth_user->role === 'Admin'; // Assuming role exists
-        
-        // Review Mode: Pending/Completed status
-        $isReviewMode = in_array($project->status, ['Pending', 'Completed']);
-        
-        $canEdit = ($isPic || $isAdmin) && !$isReviewMode;
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
+        $isPic = $auth_user->id === $project->pic_id;
+        $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
+        $canEdit = ($isPic || $isSuperAdmin) && $isProjectActive;
 
         $vendors = Vendor::all(['id', 'name']);
 
@@ -186,7 +182,7 @@ class MerchandiserController extends Controller
             ],
             'vendors' => $vendors,
             'canEdit' => $canEdit,
-            'isReviewMode' => $isReviewMode,
+            'isReviewMode' => !$isProjectActive,
         ]);
     }
 
@@ -197,12 +193,16 @@ class MerchandiserController extends Controller
         $merchandiser = Merchandiser::where('project_id', $project->id)->firstOrFail();
 
         $auth_user = $request->user();
-        if ($project->pic_id !== $auth_user->id && $auth_user->role !== 'Admin') {
-            return back()->with('error', 'Unauthorized');
-        }
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
+        $isPic = $auth_user->id === $project->pic_id;
+        $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
 
-        if (in_array($project->status, ['Pending', 'Completed'])) {
-            return back()->with('error', 'Project is in Review Mode');
+        if (!($isPic || $isSuperAdmin) || !$isProjectActive) {
+            $message = 'Anda tidak berwenang mengubah data ini.';
+            if (!$isProjectActive) {
+                $message = 'Data tidak bisa diubah karena status Project ' . $project->status . '.';
+            }
+            return back()->with('error', $message);
         }
 
         // Pre-process inputs: Convert temporary IDs (new_...) to null
@@ -409,15 +409,18 @@ class MerchandiserController extends Controller
         $file = MerchandiserFile::findOrFail($fileId);
         $project = $file->merchandiser->project;
 
-        // Review Mode Permission Check
-        if (in_array($project->status, ['Pending', 'Completed'])) {
-            return back()->with('error', 'Tidak dapat menghapus file dalam Mode Peninjauan.');
-        }
-        
         // Authorization Check (PIC or Admin)
         $auth_user = $request->user();
-        if ($project->pic_id !== $auth_user->id && $auth_user->role !== 'Admin') {
-            return back()->with('error', 'Hanya PIC atau Admin yang dapat menghapus file ini.');
+        $isSuperAdmin = $auth_user->hasRole('Super Admin') || $auth_user->username === 'admin';
+        $isPic = $auth_user->id === $project->pic_id;
+        $isProjectActive = !in_array($project->status, ['Pending', 'Completed']);
+
+        if (!($isPic || $isSuperAdmin) || !$isProjectActive) {
+            $message = 'Anda tidak berwenang menghapus file ini.';
+            if (!$isProjectActive) {
+                $message = 'Tidak bisa menghapus file saat status Project ' . $project->status . '.';
+            }
+            return back()->with('error', $message);
         }
         
         if (Storage::disk('public')->exists($file->file_path)) {
