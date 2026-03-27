@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Contract extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['project_id', 'status', 'jamlak', 'jamlak_nominal', 'jamuka', 'jamuka_nominal', 'jamwar', 'jamwar_nominal', 'handle_id', 'last_modifier_id'];
 
     public function project()
     {

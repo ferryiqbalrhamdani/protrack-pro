@@ -12,6 +12,11 @@
         background-color: rgb(59 130 246 / 0.4); /* slightly more visible blue for dark mode */
         color: white; /* Ensure text is readable when selected in dark mode */
     }
+
+    /* Prevent auto-zoom on iOS by ensuring inputs have at least 16px font size */
+    input, textarea, select {
+        font-size: 16px !important;
+    }
 }
 
 html {

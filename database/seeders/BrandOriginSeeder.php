@@ -11,30 +11,27 @@ class BrandOriginSeeder extends Seeder
     public function run(): void
     {
         $origins = [
-            [
-                'name' => 'Lokal (Indonesia)',
-                'certifications' => ['TKDN', 'BMP', 'SNI', 'Postel', 'Halal']
-            ],
-            [
-                'name' => 'Luar Negeri / Impor',
-                'certifications' => ['CE', 'FCC', 'UL', 'RoHS', 'ISO 9001', 'ISO 27001']
-            ],
+            ["id" => 1, "name" => "Lokal"],
+            ["id" => 2, "name" => "Import"],
         ];
 
         foreach ($origins as $origin) {
-            $brandOrigin = BrandOrigin::updateOrCreate(['name' => $origin['name']], [
-                'name' => $origin['name']
-            ]);
+            BrandOrigin::updateOrCreate(['id' => $origin['id']], ['name' => $origin['name']]);
+        }
 
-            foreach ($origin['certifications'] as $certName) {
-                Certification::updateOrCreate([
-                    'brand_origin_id' => $brandOrigin->id,
-                    'name' => $certName
-                ], [
-                    'brand_origin_id' => $brandOrigin->id,
-                    'name' => $certName
-                ]);
-            }
+        $certifications = [
+            ["id" => 1, "brand_origin_id" => 1, "name" => "TKDNLITBAG"],
+            ["id" => 2, "brand_origin_id" => 1, "name" => "TKDN"],
+            ["id" => 3, "brand_origin_id" => 1, "name" => "Sertifikat Keaslian Produksi"],
+            ["id" => 4, "brand_origin_id" => 1, "name" => "Sertifikat Keaslian Produk"],
+            ["id" => 5, "brand_origin_id" => 2, "name" => "COC"],
+            ["id" => 6, "brand_origin_id" => 2, "name" => "COO"],
+            ["id" => 7, "brand_origin_id" => 2, "name" => "COM"],
+            ["id" => 8, "brand_origin_id" => 2, "name" => "ARC"],
+        ];
+
+        foreach ($certifications as $cert) {
+            Certification::updateOrCreate(['id' => $cert['id']], $cert);
         }
     }
 }

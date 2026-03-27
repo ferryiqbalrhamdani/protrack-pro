@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProjectInstallment extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['project_id', 'name', 'percentage', 'value'];
 
     public function project()
     {

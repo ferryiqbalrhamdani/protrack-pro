@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MerchandiserPo extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['merchandiser_id', 'vendor_id', 'supplier_name_manual', 'po_number', 'item_count', 'ea_count'];
 
     public function merchandiser()
     {

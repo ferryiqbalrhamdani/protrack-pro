@@ -6,7 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'name', 'up_no', 'auction_type_id', 'agency_id', 'company_id',
+        'budget_type_id', 'pic_id', 'budget_year', 'description',
+        'tax_free', 'tax_doc', 'brand_origin_id', 'payment_term',
+        'warranty', 'contract_no', 'contract_value', 'contract_date',
+        'due_date', 'status', 'progress'
+    ];
 
     public function auctionType()
     {

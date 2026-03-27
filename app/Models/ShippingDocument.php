@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ShippingDocument extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['shipping_id', 'type', 'doc_no', 'doc_date'];
 
     public function shipping()
     {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContractStep extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['contract_id', 'name', 'completed', 'order'];
 
     public function contract()
     {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BillingBast extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['billing_id', 'no_bast', 'tgl_bast'];
 
     public function billing()
     {

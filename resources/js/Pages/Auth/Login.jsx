@@ -70,7 +70,7 @@ export default function Login({ status, canResetPassword }) {
                                     <span className="material-symbols-outlined text-xl">alternate_email</span>
                                 </div>
                                 <input 
-                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.login ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
+                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-4 text-slate-900 text-base placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.login ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
                                     id="login" 
                                     name="login" 
                                     value={data.login}
@@ -101,7 +101,7 @@ export default function Login({ status, canResetPassword }) {
                                     <span className="material-symbols-outlined text-xl">lock</span>
                                 </div>
                                 <input 
-                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.password ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
+                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-12 text-slate-900 text-base placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.password ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
                                     id="password" 
                                     name="password" 
                                     value={data.password}

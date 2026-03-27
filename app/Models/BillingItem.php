@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BillingItem extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['billing_id', 'name', 'type', 'completed'];
 
     protected $casts = [
         'completed' => 'boolean',
