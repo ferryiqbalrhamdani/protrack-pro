@@ -15,6 +15,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PermissionSeeder::class,
+            CompanySeeder::class,
+            AgencySeeder::class,
+            VendorSeeder::class,
+            AuctionTypeSeeder::class,
+            BudgetTypeSeeder::class,
+            BrandOriginSeeder::class,
         ]);
 
         $admin = User::firstOrCreate(

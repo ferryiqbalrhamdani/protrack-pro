@@ -363,7 +363,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot, back
             />
             {/* Header */}
             <div className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'}`}>
-            <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full overflow-hidden">
+            <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full">
                 {/* Mobile Review Mode Banner */}
                 {isReviewMode && (
                     <div className="xl:hidden bg-amber-500 py-1.5 px-4 flex items-center justify-center gap-2 relative border-b border-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.2)]">
