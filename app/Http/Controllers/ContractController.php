@@ -213,11 +213,13 @@ class ContractController extends Controller
 
         $contract->project->refresh()->updateProgress();
         
-        $contract->refresh();
         $progress = $contract->steps()->count() > 0 ? ($contract->steps()->where('completed', true)->count() / $contract->steps()->count()) * 100 : 0;
-        if ($contract->wasChanged() && ($progress == 100 || $oldStatus !== $contract->status)) {
-            \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('contract', $contract->status, $auth_user, $contract->project->name, $contract->project_id, $progress));
-        }
+        
+        // Trigger notification on any update (status, jamlak, steps, or files)
+        $recipients = \App\Models\User::where('id', '!=', auth()->id())->get();
+        \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('contract', $contract->status, $auth_user, $contract->project->name, $contract->project_id, $progress));
+
+        $contract->refresh();
 
         return redirect()->route('contracts')->with('success', 'Perubahan kontrak berhasil disimpan!');
     }
@@ -249,6 +251,13 @@ class ContractController extends Controller
             $attachment->delete();
 
             $this->logActivity('telah menghapus lampiran file kontrak', 'Kontrak', $attachment->file_name, 'delete', 'text-rose-500');
+
+            // Notify on file deletion
+            $progress = $contract->steps()->count() > 0 ? ($contract->steps()->where('completed', true)->count() / $contract->steps()->count()) * 100 : 0;
+            /** @var \App\Models\User $authUser */
+            $authUser = auth()->user();
+            $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+            \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('contract', $contract->status, $authUser, $contract->project->name, $contract->project_id, $progress));
 
             return back()->with('success', 'File berhasil dihapus.');
         } catch (\Exception $e) {

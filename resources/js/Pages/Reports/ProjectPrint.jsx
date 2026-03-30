@@ -270,9 +270,16 @@ export default function ProjectPrint({ project }) {
                         {/* Kontrak Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
-                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex justify-between">
+                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center gap-3">
                                     <span>Modul Kontrak</span>
-                                    <span className="text-blue-600">Handler: {project.relations.contract.userHandle}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                        project.relations.contract.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' :
+                                        project.relations.contract.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                        'bg-amber-100 text-amber-700'
+                                    }`}>
+                                        {project.relations.contract.status}
+                                    </span>
+                                    <span className="text-blue-600 ml-auto">Handler: {project.relations.contract.userHandle}</span>
                                 </h4>
                             </div>
                             <div className="p-6">
@@ -369,9 +376,16 @@ export default function ProjectPrint({ project }) {
                         {/* Merchandiser Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
-                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex justify-between">
+                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center gap-3">
                                     <span>Modul Merchandiser</span>
-                                    <span className="text-amber-600">PIC: {project.relations.merchandiser.userPIC}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                        project.relations.merchandiser.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' :
+                                        project.relations.merchandiser.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                        'bg-amber-100 text-amber-700'
+                                    }`}>
+                                        {project.relations.merchandiser.status}
+                                    </span>
+                                    <span className="text-amber-600 ml-auto">PIC: {project.relations.merchandiser.userPIC}</span>
                                 </h4>
                             </div>
                             <div className="p-6">
@@ -454,9 +468,16 @@ export default function ProjectPrint({ project }) {
                         {/* Billing Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
-                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex justify-between">
+                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center gap-3">
                                     <span>Modul Penagihan</span>
-                                    <span className="text-emerald-600">Handler: {project.relations.billing.userHandle}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                        project.relations.billing.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' :
+                                        project.relations.billing.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                        'bg-amber-100 text-amber-700'
+                                    }`}>
+                                        {project.relations.billing.status}
+                                    </span>
+                                    <span className="text-emerald-600 ml-auto">Handler: {project.relations.billing.userHandle}</span>
                                 </h4>
                             </div>
                             <div className="p-6">
@@ -516,9 +537,16 @@ export default function ProjectPrint({ project }) {
                         {/* Shipping Module Summary */}
                         <div className="border border-slate-200 rounded-xl overflow-hidden avoid-break">
                             <div className="bg-slate-100 px-6 py-4 border-b border-slate-200">
-                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex justify-between">
+                                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center gap-3">
                                     <span>Modul Pengiriman</span>
-                                    <span className="text-purple-600">Handler: {project.relations.shipping.userHandle}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                        project.relations.shipping.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' :
+                                        project.relations.shipping.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                        'bg-amber-100 text-amber-700'
+                                    }`}>
+                                        {project.relations.shipping.status}
+                                    </span>
+                                    <span className="text-purple-600 ml-auto">Handler: {project.relations.shipping.userHandle}</span>
                                 </h4>
                             </div>
                             <div className="p-6">

@@ -296,9 +296,11 @@ class ShippingController extends Controller
             $progress = round(($filled / max(1, $total)) * 100);
             if ($shipping->status === 'Completed') $progress = 100;
 
-            if ($shipping->wasChanged() && ($progress == 100 || $oldStatus !== $shipping->status)) {
-                \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('shipping', $shipping->status, $auth_user, $project->name, $project->id, $progress));
-            }
+            // Trigger notification on any update (status, date, documents, or files)
+            /** @var \App\Models\User $authUser */
+            $authUser = auth()->user();
+            $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+            \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('shipping', $shipping->status, $authUser, $project->name, $project->id, $progress));
             
             return back()->with('success', 'Data pengiriman berhasil disimpan.');
         } catch (\Exception $e) {
@@ -335,6 +337,23 @@ class ShippingController extends Controller
             $file->delete();
             
             $this->logActivity('telah menghapus file pengiriman', 'Shipping', $fileName, 'delete', 'text-rose-500');
+
+            // Notify on file deletion
+            $progress = 0;
+            $total = 1; $filled = 0;
+            if ($file->shipping->shipping_date) $filled++;
+            foreach ($file->shipping->documents as $doc) {
+                $total += 2; 
+                if ($doc->doc_no) $filled++;
+                if ($doc->doc_date) $filled++;
+            }
+            $progress = round(($filled / max(1, $total)) * 100);
+            if ($file->shipping->status === 'Completed') $progress = 100;
+
+            /** @var \App\Models\User $authUser */
+            $authUser = auth()->user();
+            $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+            \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('shipping', $file->shipping->status, $authUser, $project->name, $project->id, $progress));
             
             return back()->with('success', 'File berhasil dihapus.');
         } catch (\Exception $e) {

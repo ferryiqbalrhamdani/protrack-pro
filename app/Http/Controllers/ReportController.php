@@ -398,7 +398,8 @@ class ReportController extends Controller
                     'files' => $project->contract?->attachments?->map(function($f) {
                         return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
                     }) ?? [],
-                    'progress' => $project->contract->progress ?? 0
+                    'progress' => $project->contract->progress ?? 0,
+                    'status' => $project->contract->status ?? 'Pending'
                 ],
                 'merchandiser' => [
                     'userPIC' => $project->pic->name ?? '-',
@@ -429,7 +430,8 @@ class ReportController extends Controller
                     'files' => $project->merchandiser?->files?->map(function($f) {
                         return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
                     }) ?? [],
-                    'progress' => $project->merchandiser->progress ?? 0
+                    'progress' => $project->merchandiser->progress ?? 0,
+                    'status' => $project->merchandiser->status ?? 'Pending'
                 ],
                 'billing' => [
                     'userHandle' => $project->billing->handle->name ?? '-',
@@ -438,7 +440,8 @@ class ReportController extends Controller
                     'files' => $project->billing?->files?->map(function($f) {
                         return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
                     }) ?? [],
-                    'progress' => $project->billing->progress ?? 0
+                    'progress' => $project->billing->progress ?? 0,
+                    'status' => $project->billing->status ?? 'Pending'
                 ],
                 'shipping' => [
                     'userHandle' => $project->shipping->handle->name ?? '-',
@@ -449,7 +452,8 @@ class ReportController extends Controller
                     'files' => $project->shipping?->files?->map(function($f) {
                         return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
                     }) ?? [],
-                    'progress' => $project->shipping->progress ?? 0
+                    'progress' => $project->shipping->progress ?? 0,
+                    'status' => $project->shipping->status ?? 'Pending'
                 ]
             ]
         ];

@@ -356,11 +356,13 @@ class MerchandiserController extends Controller
 
         $project->refresh()->updateProgress();
         
-        $merchandiser->refresh();
         $progress = $merchandiser->contract_ea > 0 ? min(100, (int)round(($merchandiser->rec_ea / $merchandiser->contract_ea) * 100)) : 0;
-        if ($merchandiser->wasChanged() && ($progress == 100 || $oldStatus !== $merchandiser->status)) {
-            \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('merchandiser', $merchandiser->status, $auth_user, $project->name, $project->id, $progress));
-        }
+        
+        // Trigger notification on any update (status, POS, items, or files)
+        $recipients = \App\Models\User::where('id', '!=', auth()->id())->get();
+        \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('merchandiser', $merchandiser->status, $auth_user, $project->name, $project->id, $progress));
+
+        $merchandiser->refresh();
 
         return back()->with('success', 'Data merchandiser berhasil diperbarui!');
     }
@@ -398,6 +400,13 @@ class MerchandiserController extends Controller
 
             $this->logActivity("telah mengunggah {$uploadedCount} lampiran file merchandiser", 'Merchandiser', $project->name, 'text_snippet', 'text-blue-500');
 
+            // Notify on file upload
+            /** @var \App\Models\User $authUser */
+            $authUser = auth()->user();
+            $progress = $merchandiser->contract_ea > 0 ? min(100, (int)round(($merchandiser->rec_ea / $merchandiser->contract_ea) * 100)) : 0;
+            $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+            \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('merchandiser', $merchandiser->status, $authUser, $project->name, $project->id, $progress));
+
             return back()->with('success', "{$uploadedCount} file berhasil diunggah!");
         }
 
@@ -430,6 +439,13 @@ class MerchandiserController extends Controller
         $file->delete();
 
         $this->logActivity('telah menghapus lampiran file merchandiser', 'Merchandiser', $file->file_name, 'delete', 'text-rose-500');
+
+        // Notify on file deletion
+        /** @var \App\Models\User $authUser */
+        $authUser = auth()->user();
+        $progress = $file->merchandiser->contract_ea > 0 ? min(100, (int)round(($file->merchandiser->rec_ea / $file->merchandiser->contract_ea) * 100)) : 0;
+        $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+        \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('merchandiser', $file->merchandiser->status, $authUser, $project->name, $project->id, $progress));
 
         return back()->with('success', 'File berhasil dihapus!');
     }

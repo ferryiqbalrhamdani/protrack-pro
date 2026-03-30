@@ -168,8 +168,8 @@ class ProjectController extends Controller
 
             /** @var User $authUser */
             $authUser = auth()->user();
-            $allUsers = User::all();
-            Notification::send($allUsers, new ProjectUpdatedNotification($project, $authUser, 'created'));
+            $recipients = User::where('id', '!=', $authUser->id)->get();
+            Notification::send($recipients, new ProjectUpdatedNotification($project, $authUser, 'created'));
 
             return redirect()->route('projects')->with('success', 'Project created successfully!');
         });
@@ -274,8 +274,8 @@ class ProjectController extends Controller
 
                 /** @var User $authUser */
                 $authUser = auth()->user();
-                $allUsers = User::all();
-                Notification::send($allUsers, new ProjectUpdatedNotification($project, $authUser, $actionType));
+                $recipients = User::where('id', '!=', $authUser->id)->get();
+                Notification::send($recipients, new ProjectUpdatedNotification($project, $authUser, $actionType));
             }
 
             return redirect()->route('projects')->with('success', 'Project updated successfully!');
@@ -302,6 +302,11 @@ class ProjectController extends Controller
             });
 
             $this->logActivity('telah menghapus proyek', 'Proyek', $project->name, 'delete', 'text-rose-500');
+
+            /** @var User $authUser */
+            $authUser = auth()->user();
+            $recipients = User::where('id', '!=', $authUser->id)->get();
+            Notification::send($recipients, new ProjectUpdatedNotification($project, $authUser, 'deleted'));
 
             return redirect()->route('projects')->with('success', 'Proyek berhasil dihapus.');
         } catch (\Exception $e) {

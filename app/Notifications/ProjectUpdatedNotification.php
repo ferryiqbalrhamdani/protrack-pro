@@ -41,6 +41,9 @@ class ProjectUpdatedNotification extends Notification implements ShouldBroadcast
         } elseif ($this->actionType === 'status_changed') {
             $title = 'Update Status Proyek';
             $message = 'Proyek "' . $this->project->name . '" telah diperbarui statusnya menjadi "' . $status . '" oleh ' . $this->user->name . '.';
+        } elseif ($this->actionType === 'deleted') {
+            $title = 'Proyek Dihapus';
+            $message = 'Proyek "' . $this->project->name . '" telah dihapus oleh ' . $this->user->name . '.';
         } else {
             $title = 'Proyek Diperbarui';
             $message = 'Proyek "' . $this->project->name . '" telah diperbarui oleh ' . $this->user->name . '.';

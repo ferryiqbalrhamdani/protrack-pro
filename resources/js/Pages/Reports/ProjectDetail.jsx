@@ -315,10 +315,17 @@ export default function ProjectDetail({ project }) {
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div className="flex justify-between items-center pr-6">
-                                                <div className="space-y-1">
+                                                <div className="flex items-center gap-3">
                                                     <h4 className="font-black text-slate-800 dark:text-white tracking-tight text-xl">Modul Kontrak</h4>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Handler: {project.relations.contract.userHandle || 'N/A'}</p>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                                                        project.relations.contract.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                        project.relations.contract.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                        'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                    }`}>
+                                                        {project.relations.contract.status}
+                                                    </span>
                                                 </div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Handler: {project.relations.contract.userHandle || 'N/A'}</p>
                                                 <span className="text-[12px] font-black text-blue-500 uppercase tracking-[0.2em] bg-blue-500/10 px-3 py-1 rounded-lg">{project.relations.contract.progress}%</span>
                                             </div>
                                             <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -480,10 +487,17 @@ export default function ProjectDetail({ project }) {
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div className="flex justify-between items-center pr-6">
-                                                <div className="space-y-1">
+                                                <div className="flex items-center gap-3">
                                                     <h4 className="font-black text-slate-800 dark:text-white tracking-tight text-xl">Modul Merchandiser</h4>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PIC: {project.relations.merchandiser.userPIC || 'N/A'}</p>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                                                        project.relations.merchandiser.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                        project.relations.merchandiser.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                        'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                    }`}>
+                                                        {project.relations.merchandiser.status}
+                                                    </span>
                                                 </div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PIC: {project.relations.merchandiser.userPIC || 'N/A'}</p>
                                                 <span className="text-[12px] font-black text-amber-500 uppercase tracking-[0.2em] bg-amber-500/10 px-3 py-1 rounded-lg">{project.relations.merchandiser.progress}%</span>
                                             </div>
                                             <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -512,33 +526,35 @@ export default function ProjectDetail({ project }) {
                                                     <DataPoint label="Nama Bank" value={project.relations.merchandiser.paymentBank} />
                                                     <DataPoint label="Nomor Rekening" value={project.relations.merchandiser.paymentAccount} />
                                                 </div>
-                                                <div className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 space-y-4">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                        <span className="material-symbols-outlined text-sm">contract</span> Barang di Kontrak
-                                                    </p>
-                                                    <div className="flex justify-between items-end">
-                                                        <div>
-                                                            <p className="text-2xl font-black text-slate-800 dark:text-white">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractItems)}</p>
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total Items</p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-2xl font-black text-primary dark:text-blue-400">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractEA)}</p>
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total EA</p>
+                                                <div className="col-span-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                                    <div className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 space-y-4">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-sm">contract</span> Barang di Kontrak
+                                                        </p>
+                                                        <div className="flex justify-between items-end">
+                                                            <div>
+                                                                <p className="text-2xl font-black text-slate-800 dark:text-white">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractItems)}</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total Items</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-2xl font-black text-primary dark:text-blue-400">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractEA)}</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total EA</p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="p-6 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.05] rounded-3xl border border-emerald-500/10 space-y-4">
-                                                    <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                                                        <span className="material-symbols-outlined text-sm">inventory</span> Barang di Terima
-                                                    </p>
-                                                    <div className="flex justify-between items-end">
-                                                        <div>
-                                                            <p className="text-2xl font-black text-slate-800 dark:text-white">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedItems)}</p>
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total Items</p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-500">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedEA)}</p>
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total EA</p>
+                                                    <div className="p-6 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.05] rounded-3xl border border-emerald-500/10 space-y-4">
+                                                        <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-sm">inventory</span> Barang di Terima
+                                                        </p>
+                                                        <div className="flex justify-between items-end">
+                                                            <div>
+                                                                <p className="text-2xl font-black text-slate-800 dark:text-white">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedItems)}</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total Items</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-2xl font-black text-emerald-600 dark:text-emerald-500">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedEA)}</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total EA</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -627,10 +643,17 @@ export default function ProjectDetail({ project }) {
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div className="flex justify-between items-center pr-6">
-                                                <div className="space-y-1">
+                                                <div className="flex items-center gap-3">
                                                     <h4 className="font-black text-slate-800 dark:text-white tracking-tight text-xl">Modul Penagihan</h4>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Handler: {project.relations.billing.userHandle || 'N/A'}</p>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                                                        project.relations.billing.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                        project.relations.billing.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                        'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                    }`}>
+                                                        {project.relations.billing.status}
+                                                    </span>
                                                 </div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Handler: {project.relations.billing.userHandle || 'N/A'}</p>
                                                 <span className="text-[12px] font-black text-emerald-500 uppercase tracking-[0.2em] bg-emerald-500/10 px-3 py-1 rounded-lg">{project.relations.billing.progress}%</span>
                                             </div>
                                             <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -779,10 +802,17 @@ export default function ProjectDetail({ project }) {
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div className="flex justify-between items-center pr-6">
-                                                <div className="space-y-1">
+                                                <div className="flex items-center gap-3">
                                                     <h4 className="font-black text-slate-800 dark:text-white tracking-tight text-xl">Modul Pengiriman</h4>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Handler: {project.relations.shipping.userHandle || 'N/A'}</p>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                                                        project.relations.shipping.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                        project.relations.shipping.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                        'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                    }`}>
+                                                        {project.relations.shipping.status}
+                                                    </span>
                                                 </div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Handler: {project.relations.shipping.userHandle || 'N/A'}</p>
                                                 <span className="text-[12px] font-black text-purple-500 uppercase tracking-[0.2em] bg-purple-500/10 px-3 py-1 rounded-lg">{project.relations.shipping.progress}%</span>
                                             </div>
                                             <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">

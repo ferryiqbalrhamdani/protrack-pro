@@ -223,13 +223,17 @@ class BillingController extends Controller
             DB::commit();
 
             $billing->project->refresh()->updateProgress();
-
-            $billing->refresh();
+            
             $itemsCount = $billing->items()->count();
             $progress = $itemsCount > 0 ? min(100, (int)round(($billing->items()->where('completed', true)->count() / $itemsCount) * 100)) : 0;
-            if ($billing->wasChanged() && ($progress == 100 || $oldStatus !== $billing->status)) {
-                \Illuminate\Support\Facades\Notification::send(\App\Models\User::where('id', '!=', auth()->id())->get(), new \App\Notifications\ModuleProgressNotification('billing', $billing->status, $auth_user, $project->name, $project->id, $progress));
-            }
+            
+            // Trigger notification on any update (status, BAST, items, or files)
+            /** @var \App\Models\User $authUser */
+            $authUser = auth()->user();
+            $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+            \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('billing', $billing->status, $authUser, $project->name, $project->id, $progress));
+
+            $billing->refresh();
 
             return back()->with('success', 'Data penagihan berhasil diperbarui.');
         } catch (\Exception $e) {
@@ -262,8 +266,17 @@ class BillingController extends Controller
             Storage::disk('public')->delete($file->file_path);
         }
         
-        $billing = end($file->billing); // if we need it
         $file->delete();
+
+        $this->logActivity('telah menghapus lampiran file penagihan', 'Billing', $file->file_name, 'delete', 'text-rose-500');
+
+        // Notify on file deletion
+        $itemsCount = $file->billing->items()->count();
+        $progress = $itemsCount > 0 ? min(100, (int)round(($file->billing->items()->where('completed', true)->count() / $itemsCount) * 100)) : 0;
+        /** @var \App\Models\User $authUser */
+        $authUser = auth()->user();
+        $recipients = \App\Models\User::where('id', '!=', $authUser->id)->get();
+        \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\ModuleProgressNotification('billing', $file->billing->status, $authUser, $project->name, $project->id, $progress));
 
         return back()->with('success', 'File berhasil dihapus.');
     }
