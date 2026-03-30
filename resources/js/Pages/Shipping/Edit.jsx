@@ -512,13 +512,21 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                                     </div>
                                 )}
 
-                                {fileErrors.length > 0 && (
+                                {(fileErrors.length > 0 || Object.keys(errors).filter(key => key.startsWith('new_files')).length > 0) && (
                                     <div className="space-y-2">
                                         {fileErrors.map((err, i) => (
                                             <div key={i} className="flex items-center gap-2 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-[10px] font-bold text-rose-500 uppercase tracking-widest animate-reveal">
                                                 <span className="material-symbols-outlined text-sm">error</span>
                                                 {err}
                                             </div>
+                                        ))}
+                                        {Object.keys(errors).map((key, i) => (
+                                            key.startsWith('new_files') && (
+                                                <div key={`backend-${i}`} className="flex items-center gap-2 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-[10px] font-bold text-rose-500 uppercase tracking-widest animate-reveal">
+                                                    <span className="material-symbols-outlined text-sm">error</span>
+                                                    {errors[key]}
+                                                </div>
+                                            )
                                         ))}
                                     </div>
                                 )}

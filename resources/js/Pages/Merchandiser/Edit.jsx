@@ -88,15 +88,32 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
 
-        // Check each file size
-        const totalSize = files.reduce((acc, file) => acc + file.size, 0);
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB per file
+        const TOTAL_MAX_SIZE = 50 * 1024 * 1024; // 50MB total
+        const errors = [];
+        const validFiles = [];
+
+        files.forEach(file => {
+            if (file.size > MAX_SIZE) {
+                errors.push(`${file.name}: Ukuran file melebihi 5MB.`);
+            } else {
+                validFiles.push(file);
+            }
+        });
+
+        if (errors.length > 0) {
+            setFileError(errors.join(' '));
+            return;
+        }
+
+        const totalSize = validFiles.reduce((acc, file) => acc + file.size, 0);
         const currentNewFilesSize = data.new_files.reduce((acc, file) => acc + file.size, 0);
-        if (totalSize + currentNewFilesSize > 50 * 1024 * 1024) { // 50MB total limit
+        if (totalSize + currentNewFilesSize > TOTAL_MAX_SIZE) {
             setFileError('Total ukuran file melebihi kapasitas maksimal 50MB.');
             return;
         }
 
-        setData('new_files', [...data.new_files, ...files]);
+        setData('new_files', [...data.new_files, ...validFiles]);
         if (fileInputRef.current) fileInputRef.current.value = '';
         setFileError('');
     };

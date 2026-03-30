@@ -144,6 +144,10 @@ class BillingController extends Controller
 
     public function update(Request $request, $hashedId)
     {
+        $request->validate([
+            'new_files.*' => 'nullable|file|max:5120',
+        ]);
+
         $id = Hashid::decode($hashedId);
         $project = Project::findOrFail($id);
 

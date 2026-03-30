@@ -503,13 +503,22 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Maksimal 5MB per file</div>
                     </div>
 
-                    {fileErrors.length > 0 && (
+                    {/* Error Alerts */}
+                    {(fileErrors.length > 0 || Object.keys(errors).filter(key => key.startsWith('new_files')).length > 0) && (
                         <div className="space-y-2">
                             {fileErrors.map((err, i) => (
-                                <div key={i} className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 animate-headshake">
-                                    <span className="material-symbols-outlined text-red-500 text-sm">error</span>
-                                    <span className="text-[10px] font-black text-red-500 uppercase tracking-wider">{err}</span>
+                                <div key={i} className="px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 animate-headshake">
+                                    <span className="material-symbols-outlined text-rose-500 text-sm">error</span>
+                                    <span className="text-[10px] font-black text-rose-500 uppercase tracking-wider">{err}</span>
                                 </div>
+                            ))}
+                            {Object.keys(errors).map((key, i) => (
+                                key.startsWith('new_files') && (
+                                    <div key={`backend-${i}`} className="px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 animate-headshake">
+                                        <span className="material-symbols-outlined text-rose-500 text-sm">error</span>
+                                        <span className="text-[10px] font-black text-rose-500 uppercase tracking-wider">{errors[key]}</span>
+                                    </div>
+                                )
                             ))}
                         </div>
                     )}

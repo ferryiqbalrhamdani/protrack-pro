@@ -377,7 +377,7 @@ class MerchandiserController extends Controller
         }
 
         $request->validate([
-            'files.*' => 'required|file|max:10240', // Validate each file in the array
+            'files.*' => 'required|file|max:5120',
         ]);
 
         if ($request->hasFile('files')) {
