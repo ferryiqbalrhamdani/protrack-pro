@@ -7,7 +7,7 @@ import BottomNavigation from '@/Components/BottomNavigation';
 import BottomSheet from '@/Components/BottomSheet';
 import { useTheme } from '@/Components/ThemeProvider';
 
-export default function AuthenticatedLayout({ header, children, stickySlot, backUrl, backLabel, isReviewMode = false }) {
+export default function AuthenticatedLayout({ header, children, stickySlot, bottomStickySlot, backUrl, backLabel, isReviewMode = false }) {
     const { user, permissions, is_admin } = usePage().props.auth;
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -331,7 +331,10 @@ export default function AuthenticatedLayout({ header, children, stickySlot, back
     };
 
     return (
-        <div className="h-screen flex flex-col bg-background-light dark:bg-background-dark font-display selection:bg-primary/10 selection:text-primary overflow-hidden">
+        <div 
+            className="h-screen flex flex-col bg-background-light dark:bg-background-dark font-display selection:bg-primary/10 selection:text-primary overflow-hidden"
+            style={{ '--topbar-offset': isTopbarHidden ? '0px' : '80px' }}
+        >
             <Toaster 
                 position="top-right" 
                 toastOptions={{
@@ -362,8 +365,10 @@ export default function AuthenticatedLayout({ header, children, stickySlot, back
                 }}
             />
             {/* Header */}
-            <div className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'}`}>
-            <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full">
+            <div 
+                className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'}`}
+            >
+            <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full h-20">
                 {/* Mobile Review Mode Banner */}
                 {isReviewMode && (
                     <div className="xl:hidden bg-amber-500 py-1.5 px-4 flex items-center justify-center gap-2 relative border-b border-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.2)]">
@@ -664,7 +669,10 @@ export default function AuthenticatedLayout({ header, children, stickySlot, back
                 </div>
             )}
 
-            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-20 xl:pt-0 pb-32 xl:pb-8">
+            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-0 xl:pt-0 pb-32 xl:pb-8">
+                {/* Mobile Header Placeholder - To prevent content from being hidden under fixed topbar */}
+                <div className="xl:hidden h-20 w-full shrink-0" />
+                
                 {isLoading ? (
                     <SkeletonContent />
                 ) : (
@@ -678,7 +686,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot, back
             </main>
 
             {/* Floating Action Button (FAB) - Mobile Only */}
-            {hasPermission('view_projects') && (
+            {hasPermission('view_projects') && !route().current('projects.create') && !route().current('projects.edit') && (
                 <div className="xl:hidden fixed bottom-32 right-6 z-[60]">
                     <Link
                         href={route('projects.create')}
@@ -689,25 +697,33 @@ export default function AuthenticatedLayout({ header, children, stickySlot, back
                 </div>
             )}
 
-            {/* Bottom Navigation - Mobile Only */}
-            <BottomNavigation 
-                displayItems={bottomNavDisplayItems}
-                showMenuButton={showMenuButton}
-                profileInMenu={profileInMenu}
-                isMoreActive={isMoreActive}
-                onMoreClick={() => setIsBottomSheetOpen(true)} 
-            />
+            {/* Bottom Navigation - Mobile Only (Overrideable via bottomStickySlot) */}
+            {bottomStickySlot ? (
+                <div className="xl:hidden fixed bottom-5 left-4 right-4 z-[70] animate-tab-content">
+                    {bottomStickySlot}
+                </div>
+            ) : (
+                <BottomNavigation 
+                    displayItems={bottomNavDisplayItems}
+                    showMenuButton={showMenuButton}
+                    profileInMenu={profileInMenu}
+                    isMoreActive={isMoreActive}
+                    onMoreClick={() => setIsBottomSheetOpen(true)} 
+                />
+            )}
 
-            {/* Bottom Sheet Menu - Mobile Only */}
-            <BottomSheet 
-                isOpen={isBottomSheetOpen} 
-                onClose={() => setIsBottomSheetOpen(false)} 
-                hiddenItems={bottomNavHiddenItems}
-                user={user}
-                canViewMasterData={canViewMasterData}
-                theme={theme}
-                setTheme={setTheme}
-            />
+            {/* Bottom Sheet Menu - Mobile Only (Hidden if custom bottom navbar provided) */}
+            {!bottomStickySlot && (
+                <BottomSheet 
+                    isOpen={isBottomSheetOpen} 
+                    onClose={() => setIsBottomSheetOpen(false)} 
+                    hiddenItems={bottomNavHiddenItems}
+                    user={user}
+                    canViewMasterData={canViewMasterData}
+                    theme={theme}
+                    setTheme={setTheme}
+                />
+            )}
 
 
 

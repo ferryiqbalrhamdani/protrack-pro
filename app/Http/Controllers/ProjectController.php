@@ -91,6 +91,10 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->has('up_no')) {
+            $request->merge(['up_no' => strtoupper($request->up_no)]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'up_no' => 'required|string|unique:projects,up_no',
@@ -195,6 +199,10 @@ class ProjectController extends Controller
 
     public function update(Request $request, Project $project)
     {
+        if ($request->has('up_no')) {
+            $request->merge(['up_no' => strtoupper($request->up_no)]);
+        }
+        
         $validated = $request->validate([
             'status' => 'required|in:Ongoing,Pending,Completed',
             'name' => 'required|string|max:255',

@@ -355,7 +355,7 @@ export default function Index({ projects, queryParams = null }) {
                                             <SortIcon column="status" />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">Project & No. UP</th>
+                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">Project, No. UP & No. Kontrak</th>
                                     <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">Perusahaan</th>
                                     <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">PIC</th>
                                     <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">Handle</th>
@@ -415,11 +415,15 @@ export default function Index({ projects, queryParams = null }) {
                                                         {project.status}
                                                     </div>
                                                 </td>
-                                                {/* Project Name & No. UP */}
+                                                {/* Project Name & No. UP & No. Kontrak */}
                                                 <td className="px-6 py-6 whitespace-nowrap">
-                                                    <div className="flex flex-col">
+                                                    <div className="flex flex-col gap-1.5">
                                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{project.name}</span>
-                                                        <span className="text-[11px] font-bold text-slate-400 mt-1">{project.upNo}</span>
+                                                        <div className="flex gap-3 items-center">
+                                                            <span className="text-[11px] font-bold text-slate-400"><span className="text-slate-300">UP:</span> {project.upNo}</span>
+                                                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
+                                                            <span className="text-[11px] font-bold text-slate-400"><span className="text-slate-300">KT:</span> {project.no_kontrak || '-'}</span>
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 {/* Company */}

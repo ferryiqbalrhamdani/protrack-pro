@@ -19,11 +19,50 @@ class ContractController extends Controller
 
     public function index(Request $request)
     {
-        $contracts = Contract::with(['project.company', 'project.pic', 'handle'])
+        $query = Contract::with(['project.company', 'project.pic', 'handle'])
             ->join('projects', 'contracts.project_id', '=', 'projects.id')
-            ->orderByDesc('projects.created_at')
-            ->select('contracts.*')
-            ->paginate(10)
+            ->select('contracts.*');
+
+        if ($request->search) {
+            $query->whereHas('project', function ($q) use ($request) {
+                $q->where('name', 'like', "%{$request->search}%")
+                  ->orWhere('up_no', 'like', "%{$request->search}%")
+                  ->orWhere('contract_no', 'like', "%{$request->search}%");
+            });
+        }
+
+        if ($request->status && $request->status !== 'Semua Status') {
+            $query->where('contracts.status', $request->status);
+        }
+
+        if ($request->company && $request->company !== 'Semua Perusahaan') {
+            $query->whereHas('project.company', function ($q) use ($request) {
+                $q->where('name', 'like', "%{$request->company}%");
+            });
+        }
+
+        if ($request->my_data === 'true') {
+            $query->where('contracts.handle_id', $request->user()->id);
+        }
+
+        $sortColumn = $request->tableSortColumn ?? 'created_at';
+        $sortDirection = $request->tableSortDirection ?? 'desc';
+        
+        $columnMap = [
+            'start_date' => 'contract_date',
+        ];
+        
+        $dbSortColumn = $columnMap[$sortColumn] ?? $sortColumn;
+        
+        if ($dbSortColumn === 'progress' || $dbSortColumn === 'status') {
+             $query->orderBy('contracts.' . $dbSortColumn, $sortDirection);
+        } else if ($dbSortColumn === 'created_at') {
+             $query->orderBy('projects.created_at', $sortDirection);
+        } else {
+             $query->orderBy('projects.' . $dbSortColumn, $sortDirection);
+        }
+
+        $contracts = $query->paginate(10)
             ->through(function ($contract) {
                 return [
                     'id' => $contract->id,

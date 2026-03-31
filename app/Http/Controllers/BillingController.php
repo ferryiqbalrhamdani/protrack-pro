@@ -35,7 +35,9 @@ class BillingController extends Controller
         }
 
         if ($request->my_data === 'true') {
-            $query->where('pic_id', $request->user()->id);
+            $query->whereHas('billing', function($q) use ($request) {
+                $q->where('handle_id', $request->user()->id);
+            });
         }
 
         $sortColumn = $request->tableSortColumn ?? 'id';

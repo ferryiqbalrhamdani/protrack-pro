@@ -8,6 +8,14 @@ export default function Create({ options = {} }) {
     const [activeTab, setActiveTab] = useState(1);
     const [isLaunching, setIsLaunching] = useState(false);
     const [contractValueInput, setContractValueInput] = useState('0');
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 1280);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
     
     if (!options) return null;
 
@@ -198,12 +206,62 @@ export default function Create({ options = {} }) {
     // Watch for tax_free change to reset tax_doc
     useEffect(() => {
         if (data.tax_free === 'Tidak' && data.tax_doc !== null) {
-            setData('tax_doc', null);
+        setData('tax_doc', null);
         }
     }, [data.tax_free]);
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout 
+            bottomStickySlot={
+                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-6 py-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5">
+                    <div className={`grid w-full gap-4 relative ${activeTab > 1 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                        {/* Kembali Button - Only rendered when Step > 1 */}
+                        {activeTab > 1 && (
+                            <button 
+                                type="button"
+                                onClick={handlePrev}
+                                className="flex flex-col items-center gap-1.5 group transition-all animate-slide-right place-self-center"
+                            >
+                                <div className="size-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center group-active:scale-90 transition-all text-slate-600 dark:text-slate-400">
+                                    <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+                                </div>
+                                <span className="text-[9px] font-black uppercase tracking-widest leading-none">Kembali</span>
+                            </button>
+                        )}
+
+                        {/* Step Indicator */}
+                        <div className="flex flex-col items-center gap-1.5 place-self-center">
+                            <div className="size-11 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                                <span className="text-base font-black text-primary">0{activeTab}</span>
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/40 leading-none">Langkah</span>
+                        </div>
+
+                        {/* Lanjut / Simpan Button */}
+                        <button 
+                            type="button"
+                            onClick={activeTab < 3 ? handleNext : handleSubmit}
+                            disabled={processing}
+                            className="flex flex-col items-center gap-1.5 group transition-all disabled:opacity-50 place-self-center"
+                        >
+                            <div className={`size-11 rounded-2xl flex items-center justify-center group-active:scale-95 transition-all ${
+                                activeTab === 3 
+                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                                : 'bg-primary text-white shadow-lg shadow-primary/20'
+                            }`}>
+                                <span className="material-symbols-outlined text-[24px]">
+                                    {activeTab === 3 ? 'rocket_launch' : 'arrow_forward'}
+                                </span>
+                            </div>
+                            <span className={`text-[10px] font-black uppercase tracking-widest leading-none ${
+                                activeTab === 3 ? 'text-emerald-500' : 'text-primary'
+                            }`}>
+                                {activeTab === 3 ? 'Simpan' : 'Lanjut'}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            }
             backUrl={route('projects')}
             backLabel="Input Proyek"
             stickySlot={
@@ -223,7 +281,7 @@ export default function Create({ options = {} }) {
                 </div>
             }
         >
-            <div className="min-h-screen pb-20">
+            <div className="min-h-screen pb-32 xl:pb-20">
                 <style>{`
                     @keyframes rocket-launch-center {
                         0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -321,6 +379,34 @@ export default function Create({ options = {} }) {
                 `}</style>
                 <Head title="Input Proyek Baru" />
 
+                {/* Mobile Action Navbar - Top part remains for title & progress */}
+                {isMobile && (
+                    <div 
+                        className="xl:hidden bg-white dark:bg-[#0b1120] backdrop-blur-md border-b border-slate-200 dark:border-white/5 sticky top-0 z-50 px-6 pt-4 pb-3 transition-all duration-300 shadow-sm"
+                    >
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="size-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-primary font-black text-xl">add_circle</span>
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                                <h1 className="text-[13px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate leading-none mb-0.5">Input Proyek Baru</h1>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Simpan & Monitoring Pengadaan</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex gap-1.5 px-0.5">
+                            {[1, 2, 3].map((step) => (
+                                <div 
+                                    key={step}
+                                    className={`h-1.5 flex-1 rounded-full transition-all duration-700 ${
+                                        step <= activeTab ? 'bg-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-100 dark:bg-white/5'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {isLaunching && (
                     <div className="launch-overlay">
                         <span className="material-symbols-outlined full-screen-rocket">rocket_launch</span>
@@ -331,42 +417,41 @@ export default function Create({ options = {} }) {
                     </div>
                 )}
 
-                <div className="max-w-5xl mx-auto space-y-6 pt-6">
+                <div className="max-w-5xl mx-auto space-y-6 pt-0 xl:pt-6 pb-32 xl:pb-0">
+                    <div className="glass-card rounded-none xl:rounded-[2.5rem] shadow-none xl:shadow-2xl overflow-hidden border-0 xl:border">
+                        {/* Tab Bar - Hidden on Mobile */}
+                        <div className="hidden xl:flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] overflow-x-auto no-scrollbar">
+                            {[
+                                { id: 1, label: 'Info Proyek', icon: 'info' },
+                                { id: 2, label: 'Legalitas & Detail', icon: 'gavel' },
+                                { id: 3, label: 'Kontrak & Finansial', icon: 'payments' }
+                            ].map(tab => (
+                                <button 
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => {
+                                        if (tab.id <= activeTab) {
+                                            setActiveTab(tab.id);
+                                        } else {
+                                            handleNext();
+                                        }
+                                    }}
+                                    className={`flex items-center gap-2.5 px-8 py-5 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-b-2 ${
+                                        activeTab === tab.id 
+                                        ? 'border-primary text-primary dark:text-blue-400 bg-primary/5' 
+                                        : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
+                                    }`}
+                                >
+                                    <span className={`material-symbols-outlined text-lg ${activeTab === tab.id ? 'font-fill' : ''}`}>
+                                        {activeTab > tab.id ? 'check_circle' : tab.icon}
+                                    </span>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
 
-                <div className="glass-card rounded-[2.5rem] shadow-2xl overflow-hidden">
-                    {/* Tab Bar */}
-                    <div className="flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] overflow-x-auto no-scrollbar">
-                        {[
-                            { id: 1, label: 'Info Proyek', icon: 'info' },
-                            { id: 2, label: 'Legalitas & Detail', icon: 'gavel' },
-                            { id: 3, label: 'Kontrak & Finansial', icon: 'payments' }
-                        ].map(tab => (
-                            <button 
-                                key={tab.id}
-                                type="button"
-                                onClick={() => {
-                                    if (tab.id <= activeTab) {
-                                        setActiveTab(tab.id);
-                                    } else {
-                                        handleNext();
-                                    }
-                                }}
-                                className={`flex items-center gap-2.5 px-8 py-5 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-b-2 ${
-                                    activeTab === tab.id 
-                                    ? 'border-primary text-primary dark:text-blue-400 bg-primary/5' 
-                                    : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
-                                }`}
-                            >
-                                <span className={`material-symbols-outlined text-lg ${activeTab === tab.id ? 'font-fill' : ''}`}>
-                                    {activeTab > tab.id ? 'check_circle' : tab.icon}
-                                </span>
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Content Area */}
-                    <div className="p-8 sm:p-12">
+                        {/* Content Area */}
+                        <div className="p-6 sm:p-12">
                         {activeTab === 1 && (
                             <div className="space-y-8 animate-tab-content">
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -677,7 +762,7 @@ export default function Create({ options = {} }) {
                                                 onChange={(e) => handleContractValueChange(e.target.value)}
                                                 onBlur={() => setContractValueInput(formatIDR(data.contract_value) || '0')}
                                                 placeholder="0"
-                                                className={`w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-white/5 border ${errors.contract_value ? 'border-red-500' : 'border-slate-200 dark:border-white/10'} rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all dark:text-white font-black text-xl`}
+                                                className={`w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-white/5 border ${errors.contract_value ? 'border-red-500' : 'border-slate-200 dark:border-white/10'} rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all dark:text-white font-black text-lg sm:text-xl`}
                                             />
                                         </div>
                                         {errors.contract_value && <p className="text-[10px] text-red-500 font-bold mt-1 uppercase tracking-wider">{errors.contract_value}</p>}
@@ -710,7 +795,7 @@ export default function Create({ options = {} }) {
                                     </div>
                                 </div>
 
-                                <div className="space-y-8 bg-slate-50/50 dark:bg-white/[0.01] rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 p-8 sm:p-12 relative overflow-hidden">
+                                <div className="space-y-8 bg-slate-50/50 dark:bg-white/[0.01] rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 p-4 sm:p-12 relative overflow-hidden">
                                     <div className="relative z-10">
                                         <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-4">
                                             <div className="size-10 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">
@@ -722,15 +807,15 @@ export default function Create({ options = {} }) {
                                     </div>
 
                                     {data.payment_term === 'DP 20%' && (
-                                        <div className="p-10 bg-gradient-to-br from-primary/5 to-transparent dark:from-blue-400/5 backdrop-blur-sm rounded-[2rem] border-2 border-primary/20 border-dashed animate-tab-content flex flex-col items-center gap-8 relative overflow-hidden group">
+                                        <div className="p-4 sm:p-10 bg-gradient-to-br from-primary/5 to-transparent dark:from-blue-400/5 backdrop-blur-sm rounded-[2rem] border-2 border-primary/20 border-dashed animate-tab-content flex flex-col items-center gap-8 relative overflow-hidden group">
                                             <div className="absolute top-0 right-0 size-64 bg-primary/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
                                             <div className="text-center space-y-2">
                                                 <p className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Down Payment Otomatis</p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto">Sistem akan otomatis mengatur termin penagihan DP sebesar <span className="text-primary dark:text-blue-400 font-bold">20%</span> dari total nilai kontrak.</p>
                                             </div>
-                                            <div className="px-12 py-6 bg-white dark:bg-white/5 rounded-3xl shadow-xl shadow-primary/5 border border-primary/10 group-hover:scale-105 transition-transform duration-500">
+                                            <div className="px-4 sm:px-12 py-6 bg-white dark:bg-white/5 rounded-3xl shadow-xl shadow-primary/5 border border-primary/10 group-hover:scale-105 transition-transform duration-500 w-full sm:w-auto">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Estimasi Nilai DP (20%)</p>
-                                                <p className="text-4xl font-black text-primary dark:text-blue-400 tracking-tighter tabular-nums">Rp {formatIDR(data.contract_value * 0.2)}</p>
+                                                <p className="text-xl sm:text-4xl font-black text-primary dark:text-blue-400 tracking-tighter tabular-nums text-center break-words leading-tight">Rp {formatIDR(data.contract_value * 0.2)}</p>
                                             </div>
                                         </div>
                                     )}
@@ -754,61 +839,73 @@ export default function Create({ options = {} }) {
                                             
                                             <div className="space-y-4">
                                                 {data.installments.map((inst, idx) => (
-                                                    <div key={inst.id} className="grid grid-cols-12 gap-4 items-center p-6 bg-white dark:bg-black/20 rounded-[2rem] border border-slate-200 dark:border-white/10 transition-all hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-black/40 group relative">
-                                                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 size-8 bg-slate-900 text-white rounded-xl flex items-center justify-center text-xs font-black shadow-lg">
+                                                    <div key={inst.id} className="relative transition-all group">
+                                                        {/* Step Number Badge */}
+                                                        <div className="absolute -left-2 top-0 z-10 size-7 bg-slate-900 text-white rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg">
                                                             {idx + 1}
                                                         </div>
-                                                        <div className="col-span-12 md:col-span-5 space-y-2 ml-4">
-                                                            <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Label Penagihan</label>
-                                                            <input 
-                                                                type="text"
-                                                                value={inst.name}
-                                                                onChange={(e) => handleInstallmentChange(inst.id, 'name', e.target.value)}
-                                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-bold dark:text-white outline-none focus:border-primary transition-all"
-                                                            />
-                                                        </div>
-                                                        <div className="col-span-6 md:col-span-2 space-y-2">
-                                                            <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Persen (%)</label>
-                                                            <div className="relative">
-                                                                <input 
-                                                                    type="text"
-                                                                    value={inst.percentage}
-                                                                    onChange={(e) => {
-                                                                        const val = e.target.value.replace(/,/g, '.').replace(/[^\d.]/g, '');
-                                                                        handleInstallmentChange(inst.id, 'percentage', val);
-                                                                    }}
-                                                                    placeholder="0"
-                                                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-black dark:text-white outline-none text-right pr-10 focus:border-primary transition-all"
-                                                                />
-                                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">%</span>
+
+                                                        {/* Card Container */}
+                                                        <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 rounded-[2rem] p-4 sm:p-8 space-y-6 group-hover:border-primary/30 transition-all hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-black/40">
+                                                            
+                                                            {/* Row 1: Name & Delete */}
+                                                            <div className="flex items-start justify-between gap-4">
+                                                                <div className="flex-1 space-y-2">
+                                                                    <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Label Penagihan</label>
+                                                                    <input 
+                                                                        type="text"
+                                                                        value={inst.name}
+                                                                        onChange={(e) => handleInstallmentChange(inst.id, 'name', e.target.value)}
+                                                                        placeholder="Nama Termin (Contoh: Pelunasan)"
+                                                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-primary transition-all shadow-inner placeholder:text-slate-400"
+                                                                    />
+                                                                </div>
+                                                                {data.installments.length > 1 && (
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => setData('installments', data.installments.filter(i => i.id !== inst.id))}
+                                                                        className="size-12 shrink-0 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl transition-all"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-2xl font-fill">delete</span>
+                                                                    </button>
+                                                                )}
                                                             </div>
-                                                        </div>
-                                                        <div className="col-span-6 md:col-span-4 space-y-2">
-                                                            <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Nominal Rupiah</label>
-                                                            <div className="relative">
-                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">Rp</span>
-                                                                <input 
-                                                                    type="text"
-                                                                    value={inst.value === 0 ? '' : formatIDR(inst.value)}
-                                                                    onChange={(e) => {
-                                                                        const cleanValue = e.target.value.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.]/g, '');
-                                                                        handleInstallmentChange(inst.id, 'value', cleanValue);
-                                                                    }}
-                                                                    placeholder="0"
-                                                                    className="w-full pl-10 pr-5 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-black dark:text-white outline-none focus:border-primary transition-all tabular-nums"
-                                                                />
+
+                                                            {/* Row 2: Percent & Nominal */}
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Persen Penagihan</label>
+                                                                    <div className="relative">
+                                                                        <input 
+                                                                            type="text"
+                                                                            value={inst.percentage}
+                                                                            onChange={(e) => {
+                                                                                const val = e.target.value.replace(/,/g, '.').replace(/[^\d.]/g, '');
+                                                                                handleInstallmentChange(inst.id, 'percentage', val);
+                                                                            }}
+                                                                            placeholder="0"
+                                                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-2xl text-base font-black dark:text-white outline-none text-center focus:border-primary transition-all shadow-inner"
+                                                                        />
+                                                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Estimasi Nominal</label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">Rp</span>
+                                                                        <input 
+                                                                            type="text"
+                                                                            value={inst.value === 0 ? '' : formatIDR(inst.value)}
+                                                                            onChange={(e) => {
+                                                                                const cleanValue = e.target.value.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.]/g, '');
+                                                                                handleInstallmentChange(inst.id, 'value', cleanValue);
+                                                                            }}
+                                                                            placeholder="0"
+                                                                            className="w-full pl-10 pr-5 py-4 bg-slate-50 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-black dark:text-white outline-none focus:border-primary transition-all tabular-nums text-right shadow-inner"
+                                                                        />
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="col-span-full md:col-span-1 flex justify-end">
-                                                            {data.installments.length > 1 && (
-                                                                <button 
-                                                                    type="button"
-                                                                    onClick={() => setData('installments', data.installments.filter(i => i.id !== inst.id))}
-                                                                    className="size-11 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl transition-all group/btn"
-                                                                >
-                                                                    <span className="material-symbols-outlined text-2xl group-hover/btn:scale-110">delete</span>
-                                                                </button>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -853,58 +950,44 @@ export default function Create({ options = {} }) {
                             </div>
                         )}
                     </div>
+                </div>
+                    {/* Mobile Wizard Actions - Removed (Moved to top navbar) */}
 
-                    {/* Footer Controls */}
-                    <div className="px-8 py-10 border-t border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 bg-slate-100/30 dark:bg-white/[0.02] backdrop-blur-sm">
-                        <div className="w-full sm:w-auto">
-                            {activeTab > 1 && (
-                                <button 
-                                    type="button"
-                                    onClick={handlePrev}
-                                    className="w-full sm:w-auto px-10 py-5 bg-white dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 transition-all flex items-center justify-center gap-4 active:scale-95"
-                                >
-                                    <span className="material-symbols-outlined text-sm font-bold">arrow_back</span>
-                                    Langkah Sebelumnya
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                            {activeTab < 3 ? (
-                                <button 
-                                    type="button"
-                                    onClick={handleNext}
-                                    className="w-full sm:w-auto px-12 py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-2xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-1 active:translate-y-0 active:scale-95 flex items-center justify-center gap-5 transition-all"
-                                >
-                                    Selanjutnya
-                                    <span className="material-symbols-outlined text-sm font-bold">arrow_forward</span>
-                                </button>
-                            ) : (
-                                <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
-                                    <button 
-                                        type="button"
-                                        onClick={handleSubmit}
-                                        disabled={(data.payment_term === 'Termin Berjangka' && Math.round(totalPercentage) !== 100) || processing}
-                                        className={`w-full sm:w-auto px-14 py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-2xl shadow-primary/40 hover:shadow-primary/50 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none h-full relative overflow-hidden active:translate-y-0`}
-                                    >
-                                        <span className="flex items-center gap-5">
-                                            {processing ? 'Launching...' : 'Submit Project'}
-                                            <span className="material-symbols-outlined text-xl">rocket_launch</span>
-                                        </span>
-                                        {processing && (
-                                            <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
-                                                <div className="size-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            </div>
-                                        )}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                    {/* Desktop Actions */}
+                    <div className="hidden xl:flex justify-end gap-4 px-12 pb-12">
+                        {activeTab > 1 && (
+                            <button 
+                                type="button"
+                                onClick={handlePrev}
+                                className="px-10 py-5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white rounded-3xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center gap-3"
+                            >
+                                <span className="material-symbols-outlined font-bold">arrow_back</span>
+                                Kembali
+                            </button>
+                        )}
+                        
+                        {activeTab < 3 ? (
+                            <button 
+                                type="button"
+                                onClick={handleNext}
+                                className="px-10 py-5 bg-primary text-white rounded-3xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-3"
+                            >
+                                Lanjut Ke Tahap Berikutnya
+                                <span className="material-symbols-outlined font-bold">arrow_forward</span>
+                            </button>
+                        ) : (
+                            <button 
+                                type="submit"
+                                onClick={handleSubmit}
+                                disabled={processing}
+                                className="px-10 py-5 bg-emerald-500 text-white rounded-3xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3"
+                            >
+                                {processing ? 'Sedang Memproses...' : 'Selesaikan & Simpan Proyek'}
+                                <span className="material-symbols-outlined font-bold">rocket_launch</span>
+                            </button>
+                        )}
                     </div>
                 </div>
-            </div>
-            
-            {/* Minimal Mobile Navigation Spacing */}
-            <div className="h-20 sm:hidden"></div>
             </div>
         </AuthenticatedLayout>
     );

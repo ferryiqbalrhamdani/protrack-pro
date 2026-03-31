@@ -129,14 +129,15 @@ export default function Index({ projects, filters }) {
                             Monitoring & Kontrol Pengadaan
                         </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 md:gap-4 w-full md:w-auto">
                         <ExportButton 
+                            className="w-full md:w-auto"
                             onExportExcel={() => console.log('Exporting Projects to Excel...')}
                             onExportPdf={() => console.log('Exporting Projects to PDF...')}
                         />
                         <Link 
                             href={route('projects.create')}
-                            className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all group active:scale-95"
+                            className="hidden md:flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all group active:scale-95"
                         >
                             <span className="material-symbols-outlined text-xl group-hover:rotate-90 transition-transform">add</span>
                             Input Proyek Baru

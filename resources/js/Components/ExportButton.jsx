@@ -18,7 +18,7 @@ export default function ExportButton({ onExportExcel, onExportPdf, className = "
         <div className={`relative ${className}`} ref={dropdownRef}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all group active:scale-95"
+                className="w-full flex justify-center items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all group active:scale-95"
             >
                 <span className="material-symbols-outlined text-[20px]">ios_share</span>
                 Export

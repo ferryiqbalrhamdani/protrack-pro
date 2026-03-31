@@ -279,7 +279,7 @@ export default function Index({ projects, summary, queryParams = null }) {
                                         <div className="flex items-center gap-2">Status <SortIcon column="status" /></div>
                                     </th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
-                                        Project &amp; No. UP
+                                        Project, No. UP &amp; No. Kontrak
                                     </th>
                                     <th
                                         onClick={() => handleSort('budget_type')}
@@ -344,10 +344,14 @@ export default function Index({ projects, summary, queryParams = null }) {
                                                  </span>
                                              </td>
 
-                                             {/* Project & No. UP */}
+                                             {/* Project & No. UP & No. Kontrak */}
                                              <td className="px-8 py-5 whitespace-nowrap">
-                                                 <p className="font-black text-slate-800 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{row.name}</p>
-                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{row.upNo}</p>
+                                                 <p className="font-black text-slate-800 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-blue-400 transition-colors mb-1.5">{row.name}</p>
+                                                 <div className="flex gap-3 items-center">
+                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">UP:</span> {row.upNo}</span>
+                                                     <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
+                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">KT:</span> {row.no_kontrak || '-'}</span>
+                                                 </div>
                                              </td>
 
                                              {/* Jenis Anggaran */}

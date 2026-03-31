@@ -292,47 +292,6 @@ export default function LandingPage({ auth }) {
                         </div>
                     </div>
 
-                    {/* Mobile Navigation Drawer */}
-                    <div className={`lg:hidden fixed inset-0 z-[70] transition-all duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsMenuOpen(false)} />
-                        <div className={`absolute right-0 top-0 bottom-0 w-[280px] bg-white dark:bg-[#0a0a0a] border-l border-slate-200 dark:border-white/10 transition-transform duration-500 transform ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                            <div className="p-8 space-y-8 h-full flex flex-col pt-24">
-                                <div className="space-y-4">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Navigasi</span>
-                                    <div className="flex flex-col gap-4">
-                                        {['Fitur', 'Cara Kerja'].map((item) => (
-                                            <a 
-                                                key={item}
-                                                href={`#${item.toLowerCase().replace(' ', '-')}`}
-                                                onClick={() => setIsMenuOpen(false)}
-                                                className="text-2xl font-black hover:text-indigo-600 transition-colors"
-                                            >
-                                                {item}
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Pengaturan</span>
-                                    <button 
-                                        onClick={toggleDarkMode}
-                                        className="w-full h-14 px-6 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-between font-bold"
-                                    >
-                                        Tampilan {isDark ? 'Gelap' : 'Terang'}
-                                        <span className="material-symbols-outlined">{isDark ? 'dark_mode' : 'light_mode'}</span>
-                                    </button>
-                                </div>
-                                <div className="mt-auto">
-                                    <Link
-                                        href={auth.user ? route('dashboard') : route('login')}
-                                        className="w-full h-14 flex items-center justify-center rounded-2xl bg-indigo-600 text-white font-black shadow-xl shadow-indigo-500/20"
-                                    >
-                                        {auth.user ? 'Ke Dashboard' : 'Member Area'}
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </header>
 
                 <main className="relative overflow-x-hidden">
@@ -1210,6 +1169,48 @@ export default function LandingPage({ auth }) {
                         </div>
                     </div>
                 </footer>
+            </div>
+
+            {/* Mobile Navigation Drawer */}
+            <div className={`lg:hidden fixed inset-0 z-[70] transition-all duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsMenuOpen(false)} />
+                <div className={`absolute right-0 top-0 bottom-0 w-[280px] bg-white dark:bg-[#0a0a0a] border-l border-slate-200 dark:border-white/10 transition-transform duration-500 transform ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <div className="p-8 space-y-8 h-full flex flex-col pt-24">
+                        <div className="space-y-4">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Navigasi</span>
+                            <div className="flex flex-col gap-4">
+                                {['Fitur', 'Cara Kerja'].map((item) => (
+                                    <a 
+                                        key={item}
+                                        href={`#${item.toLowerCase().replace(' ', '-')}`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="text-2xl font-black hover:text-indigo-600 transition-colors"
+                                    >
+                                        {item}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Pengaturan</span>
+                            <button 
+                                onClick={toggleDarkMode}
+                                className="w-full h-14 px-6 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-between font-bold"
+                            >
+                                Tampilan {isDark ? 'Gelap' : 'Terang'}
+                                <span className="material-symbols-outlined">{isDark ? 'dark_mode' : 'light_mode'}</span>
+                            </button>
+                        </div>
+                        <div className="mt-auto">
+                            <Link
+                                href={auth.user ? route('dashboard') : route('login')}
+                                className="w-full h-14 flex items-center justify-center rounded-2xl bg-indigo-600 text-white font-black shadow-xl shadow-indigo-500/20"
+                            >
+                                {auth.user ? 'Ke Dashboard' : 'Member Area'}
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <ModuleModal 
