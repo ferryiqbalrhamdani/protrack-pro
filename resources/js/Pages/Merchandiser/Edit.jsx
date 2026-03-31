@@ -25,7 +25,7 @@ const InputField = ({ label, value, onChange, type = 'text', disabled = false, m
 );
 
 const SectionCard = ({ children, className = '' }) => (
-    <div className={`bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-8 shadow-sm ${className}`}>
+    <div className={`bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-5 md:p-8 shadow-sm ${className}`}>
         {children}
     </div>
 );
@@ -369,7 +369,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                             </div>
                         }
                     />
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-y-8 gap-x-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-y-5 md:gap-y-8 gap-x-12">
                         <div className="lg:col-span-3 space-y-1.5">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Pengadaan</p>
                             <p className="text-sm font-bold text-slate-700 dark:text-white ml-1 leading-relaxed">{project.name}</p>
@@ -411,24 +411,24 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                 {/* ── Tabs ─────────────────────────────────────────────────── */}
                 <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
                     {/* Tab Bar */}
-                    <div className="flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] overflow-x-auto">
+                    <div className="grid grid-cols-3 md:flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] z-10 relative">
                         {tabs.map((tab, i) => (
                             <button
                                 key={i}
                                 onClick={() => setActiveTab(i)}
-                                className={`flex items-center gap-2.5 px-8 py-5 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-b-2 ${
+                                className={`flex flex-col md:flex-row items-center justify-center gap-1.5 md:gap-2.5 py-3 md:py-5 px-1 md:px-8 text-[9px] md:text-[11px] font-black uppercase tracking-widest text-center transition-all border-b-2 ${
                                     activeTab === i
                                     ? 'border-primary text-primary dark:text-blue-400 bg-primary/5'
                                     : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
                                 }`}
                             >
-                                <span className="material-symbols-outlined text-lg">{tab.icon}</span>
-                                {tab.label}
+                                <span className="material-symbols-outlined text-[18px] md:text-lg">{tab.icon}</span>
+                                <span className="leading-tight">{tab.label.replace('Informasi ', '').replace(' (PO/Invoice/dll)', '')}</span>
                             </button>
                         ))}
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-5 md:p-8">
                         {/* ═══════════ TAB 1: Informasi Kontrak ═══════════════ */}
                         {activeTab === 0 && (
                             <div className="space-y-8 animate-reveal">

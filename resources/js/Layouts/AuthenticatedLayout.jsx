@@ -686,7 +686,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot, bott
             </main>
 
             {/* Floating Action Button (FAB) - Mobile Only */}
-            {hasPermission('view_projects') && !route().current('projects.create') && !route().current('projects.edit') && (
+            {hasPermission('view_projects') && !route().current('projects.create') && !route().current('projects.edit') && !bottomStickySlot && (
                 <div className="xl:hidden fixed bottom-32 right-6 z-[60]">
                     <Link
                         href={route('projects.create')}

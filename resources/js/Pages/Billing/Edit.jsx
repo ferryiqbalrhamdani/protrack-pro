@@ -245,7 +245,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
             <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pt-6 pb-12 px-4 sm:px-6 lg:px-8 space-y-10 animate-reveal">
                 
                 {/* Section 1: Project Information */}
-                <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-8 shadow-sm">
+                <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-5 md:p-8 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="size-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -259,7 +259,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-y-8 gap-x-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-y-5 md:gap-y-8 gap-x-12">
                         <div className="lg:col-span-3 space-y-1.5">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Pengadaan</p>
                             <p className="text-sm font-bold text-slate-700 dark:text-white ml-1 leading-relaxed">{project.name}</p>
@@ -291,7 +291,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                 {/* ── Tabs ─────────────────────────────────────────────────── */}
                 <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
                     {/* Tab Bar */}
-                    <div className="flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] overflow-x-auto">
+                    <div className="grid grid-cols-3 md:flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] z-10 relative">
                         {[
                             { id: 'bast', label: 'Informasi BAST', icon: 'assignment_turned_in' },
                             { id: 'billing', label: 'Data Penagihan', icon: 'receipt_long' },
@@ -301,19 +301,19 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                                 key={tab.id}
                                 type="button"
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2.5 px-8 py-5 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-b-2 ${
+                                className={`flex flex-col md:flex-row items-center justify-center gap-1.5 md:gap-2.5 py-3 md:py-5 px-1 md:px-8 text-[9px] md:text-[11px] font-black uppercase tracking-widest text-center transition-all border-b-2 ${
                                     activeTab === tab.id
                                     ? 'border-primary text-primary dark:text-blue-400 bg-primary/5'
                                     : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
                                 }`}
                             >
-                                <span className="material-symbols-outlined text-lg">{tab.icon}</span>
-                                {tab.label}
+                                <span className="material-symbols-outlined text-[18px] md:text-lg">{tab.icon}</span>
+                                <span className="leading-tight">{tab.label.replace(' Penagihan', '')}</span>
                             </button>
                         ))}
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-5 md:p-8">
                         {/* Tab Content */}
                         <div className="animate-reveal relative min-h-[300px]">
                     {/* Section 2: Data BAST */}
