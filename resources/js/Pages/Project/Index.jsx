@@ -1,8 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import useSessionFilter from '@/Hooks/useSessionFilter';
+import useMediaQuery from '@/Hooks/useMediaQuery';
 import SearchableSelect from '@/Components/SearchableSelect';
 import ExportButton from '@/Components/ExportButton';
 import Modal from '@/Components/Modal';
@@ -11,7 +13,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TableSkeleton from '@/Components/TableSkeleton';
 import Pagination from '@/Components/Pagination';
 
-export default function Index({ projects, filters }) {
+export default function Index({ projects, filters, auth }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState(filters?.status || 'All');
     const [companyFilter, setCompanyFilter] = useState(filters?.company || 'All');
@@ -108,11 +110,20 @@ export default function Index({ projects, filters }) {
         // But for now we can extract from data if available or keep dummy if not crucial
         ...(projects.data || []).map(p => ({ label: p.company?.name, value: p.company?.id })).filter((v, i, a) => a.findIndex(t => t.value === v.value) === i)
     ];
+    const auth_user = auth?.user;
+    const isMobile = useMediaQuery('(max-width: 767px)');
     const statuses = [
         { label: 'Semua Status', value: 'All' },
         { label: 'Ongoing', value: 'Ongoing' },
         { label: 'Pending', value: 'Pending' },
         { label: 'Completed', value: 'Completed' }
+    ];
+
+    const statusTabs = [
+        { id: 'All', label: 'Semua Project', icon: 'grid_view', color: 'slate', count: projects.total || 0 },
+        { id: 'Ongoing', label: 'Ongoing', icon: 'sync', color: 'blue' },
+        { id: 'Pending', label: 'Pending', icon: 'pause_circle', color: 'amber' },
+        { id: 'Completed', label: 'Completed', icon: 'verified', color: 'emerald' },
     ];
 
     return (
@@ -171,6 +182,37 @@ export default function Index({ projects, filters }) {
                     </div>
                 </div>
 
+                {/* Status Filter Tabs - Mobile Optimized */}
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-4 mb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                    {statusTabs.map((tab) => {
+                        const isActive = statusFilter === tab.id;
+                        const colors = {
+                            slate: isActive ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-200/50 dark:shadow-none' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-100 dark:border-white/5',
+                            blue: isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 border border-slate-100 dark:border-white/5',
+                            amber: isActive ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 border border-slate-100 dark:border-white/5',
+                            emerald: isActive ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border border-slate-100 dark:border-white/5'
+                        };
+                        
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setStatusFilter(tab.id)}
+                                className={`flex-shrink-0 flex items-center gap-2.5 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 active:scale-95 ${colors[tab.color]}`}
+                            >
+                                <span className={`material-symbols-outlined text-[18px] ${isActive ? 'font-fill' : ''}`}>{tab.icon}</span>
+                                {tab.label}
+                                {isActive && (
+                                    <motion.div 
+                                        layoutId="activeTabProject"
+                                        className="size-1.5 rounded-full bg-white dark:bg-slate-900 ml-1"
+                                        transition={{ type: 'spring', duration: 0.5 }}
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
                 {/* Filters Section */}
                 <div className="relative z-50 bg-slate-50 dark:bg-black/20 backdrop-blur-md rounded-[2.5rem] p-6 mb-8 border border-slate-200 dark:border-white/5 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -219,11 +261,11 @@ export default function Index({ projects, filters }) {
                                 )}
                             </button>
 
-                            {/* Advanced Filter Popover */}
-                            {showMoreFilters && (
-                                <>
+                            {/* Advanced Filter Popover (Desktop) */}
+                            {showMoreFilters && !isMobile && (
+                                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#141720] border border-slate-100 dark:border-white/10 rounded-[2rem] shadow-2xl z-50 animate-reveal">
                                     <div className="fixed inset-0 z-40" onClick={() => setShowMoreFilters(false)} />
-                                    <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#141720] border border-slate-100 dark:border-white/10 rounded-[2rem] shadow-2xl z-50 animate-reveal">
+                                    <div className="relative z-50">
                                         <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-white/5 rounded-t-[2rem]">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -280,7 +322,75 @@ export default function Index({ projects, filters }) {
                                             </button>
                                         </div>
                                     </div>
-                                </>
+                                </div>
+                            )}
+
+                            {/* Advanced Filter Modal (Mobile) */}
+                            {isMobile && (
+                                <Modal show={showMoreFilters} onClose={() => setShowMoreFilters(false)} maxWidth="md" premium={true}>
+                                    <div className="p-8">
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="size-12 rounded-[1.25rem] bg-primary/10 flex items-center justify-center text-primary">
+                                                <span className="material-symbols-outlined text-2xl">tune</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tight">Filter Lanjutan</h3>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Sesuaikan tampilan data</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-8">
+                                            {/* Date Range */}
+                                            <div className="space-y-4">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Range Tanggal Jatuh Tempo</label>
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    <div className="space-y-2">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Dari Tanggal</span>
+                                                        <div className="relative">
+                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400">calendar_month</span>
+                                                            <input 
+                                                                type="date"
+                                                                value={dateRange.start}
+                                                                onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary/20 outline-none dark:[color-scheme:dark]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sampai Tanggal</span>
+                                                        <div className="relative">
+                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-sm">event_busy</span>
+                                                            <input 
+                                                                type="date"
+                                                                value={dateRange.end}
+                                                                onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border border-transparent dark:border-white/5 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary/20 outline-none dark:[color-scheme:dark]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 mt-4 bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 rounded-b-[2rem] flex flex-col gap-3">
+                                        <button 
+                                            onClick={() => setShowMoreFilters(false)}
+                                            className="w-full py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                                        >
+                                            Terapkan Filter
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                setDateRange({ start: '', end: '' });
+                                                setShowMoreFilters(false);
+                                            }}
+                                            className="w-full py-4 bg-white dark:bg-white/5 text-slate-400 dark:text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-100 dark:border-white/5 active:scale-95 transition-all"
+                                        >
+                                            Reset Semua
+                                        </button>
+                                    </div>
+                                </Modal>
                             )}
                         </div>
                     </div>
@@ -658,6 +768,8 @@ export default function Index({ projects, filters }) {
                 .animate-reveal-down {
                     animation: reveal-down 0.2s cubic-bezier(0, 0, 0.2, 1) forwards;
                 }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                 .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 10px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }

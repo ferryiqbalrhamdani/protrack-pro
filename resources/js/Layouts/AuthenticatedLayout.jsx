@@ -7,7 +7,7 @@ import BottomNavigation from '@/Components/BottomNavigation';
 import BottomSheet from '@/Components/BottomSheet';
 import { useTheme } from '@/Components/ThemeProvider';
 
-export default function AuthenticatedLayout({ header, children, stickySlot, bottomStickySlot, backUrl, backLabel, isReviewMode = false }) {
+export default function AuthenticatedLayout({ header, children, stickySlot, bottomStickySlot, backUrl, backLabel, isReviewMode = false, hideTopbarMobile = false }) {
     const { user, permissions, is_admin } = usePage().props.auth;
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -366,7 +366,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot, bott
             />
             {/* Header */}
             <div 
-                className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'}`}
+                className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'} ${hideTopbarMobile ? 'hidden xl:block' : ''}`}
             >
             <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full h-20">
                 {/* Mobile Review Mode Banner */}
@@ -671,7 +671,9 @@ export default function AuthenticatedLayout({ header, children, stickySlot, bott
 
             <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-0 xl:pt-0 pb-32 xl:pb-8">
                 {/* Mobile Header Placeholder - To prevent content from being hidden under fixed topbar */}
-                <div className="xl:hidden h-20 w-full shrink-0" />
+                {!hideTopbarMobile && (
+                    <div className="xl:hidden h-20 w-full shrink-0" />
+                )}
                 
                 {isLoading ? (
                     <SkeletonContent />
@@ -686,7 +688,7 @@ export default function AuthenticatedLayout({ header, children, stickySlot, bott
             </main>
 
             {/* Floating Action Button (FAB) - Mobile Only */}
-            {hasPermission('view_projects') && !route().current('projects.create') && !route().current('projects.edit') && !bottomStickySlot && (
+            {hasPermission('view_projects') && !route().current('projects.create') && !route().current('projects.edit') && !bottomStickySlot && !hideTopbarMobile && (
                 <div className="xl:hidden fixed bottom-32 right-6 z-[60]">
                     <Link
                         href={route('projects.create')}

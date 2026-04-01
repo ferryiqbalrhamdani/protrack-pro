@@ -12,6 +12,7 @@ export default function Modal({
     closeable = true,
     onClose = () => {},
     premium = false,
+    className = '',
 }) {
     const close = () => {
         if (closeable) {
@@ -36,7 +37,7 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-[100] flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
+                className={`fixed inset-0 z-[100] flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0 ${className}`}
                 onClose={close}
             >
                 <TransitionChild
@@ -60,7 +61,7 @@ export default function Modal({
                 >
                     <DialogPanel
                         className={`mb-6 transform overflow-hidden bg-white shadow-2xl transition-all sm:mx-auto sm:w-full dark:bg-slate-900 border border-slate-100 dark:border-white/5 ${
-                            premium ? 'rounded-[2.5rem]' : 'rounded-lg'
+                            premium ? 'rounded-[2.5rem]' : 'rounded-[2rem]'
                         } ${maxWidthClass}`}
                     >
                         {children}

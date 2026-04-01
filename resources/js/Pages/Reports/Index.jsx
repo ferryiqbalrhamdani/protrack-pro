@@ -455,8 +455,8 @@ export default function Index({
                 {/* Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Bar Chart: Project Trends */}
-                    <div className="lg:col-span-2 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2.5rem] p-8">
-                        <div className="flex items-center justify-between mb-8">
+                    <div className="lg:col-span-2 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2.5rem] p-5 md:p-8">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                             <div>
                                 <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Statistik Bulanan</h3>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Jumlah Project {year === 'All' ? 'Keseluruhan' : year}</p>
@@ -469,36 +469,50 @@ export default function Index({
                             </div>
                         </div>
                         
-                        <div className="h-64 flex items-end justify-between gap-4 px-4 bg-slate-50/30 dark:bg-white/[0.01] rounded-3xl">
-                            {monthlyStats.map((d, i) => {
-                                const maxVal = Math.max(...monthlyStats.map(s => s.v), 1);
-                                const heightPercent = (d.v / maxVal) * 100;
-                                return (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end group">
-                                    <div className="relative w-full h-48 flex items-end justify-center">
-                                        {/* Background Slot (Track) - Visible Gray */}
-                                        <div className="absolute inset-x-0 bottom-0 w-6 mx-auto h-full bg-slate-200 dark:bg-white/10 rounded-full" />
-                                        
-                                        {/* The Bar - Using Solid Blue Hex */}
-                                        <motion.div 
-                                            className="relative w-6 bg-[#3b82f6] rounded-full shadow-xl shadow-blue-500/20 flex items-start justify-center pt-2"
-                                            initial={{ height: 0 }}
-                                            animate={{ height: `${heightPercent}%` }}
-                                            transition={{ duration: 1, delay: i * 0.05, ease: 'easeOut' }}
-                                        >
-                                            {/* Reflection highlight */}
-                                            {heightPercent > 10 && <div className="w-1.5 h-[30%] bg-white/30 rounded-full" />}
+                        {/* Chart Container with Horizontal Scroll on Mobile */}
+                        <div className="relative overflow-x-auto no-scrollbar pb-2 touch-pan-x">
+                            <div className="h-64 flex items-end justify-between gap-2 md:gap-4 px-4 bg-slate-50/30 dark:bg-white/[0.01] rounded-3xl min-w-[600px] md:min-w-0">
+                                {monthlyStats.map((d, i) => {
+                                    const maxVal = Math.max(...monthlyStats.map(s => s.v), 1);
+                                    const heightPercent = (d.v / maxVal) * 100;
+                                    return (
+                                    <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end group">
+                                        <div className="relative w-full h-48 flex items-end justify-center">
+                                            {/* Background Slot (Track) - Visible Gray */}
+                                            <div className="absolute inset-x-0 bottom-0 w-6 md:w-8 mx-auto h-full bg-slate-200 dark:bg-white/10 rounded-full" />
                                             
-                                            {/* Hover Value */}
-                                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-white text-[10px] font-black px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
-                                                {d.v}
-                                            </div>
-                                        </motion.div>
+                                            {/* The Bar - Using Solid Blue Hex */}
+                                            <motion.div 
+                                                className="relative w-6 md:w-8 bg-[#3b82f6] rounded-full shadow-xl shadow-blue-500/20 flex items-start justify-center pt-2"
+                                                initial={{ height: 0 }}
+                                                animate={{ height: `${heightPercent}%` }}
+                                                transition={{ duration: 1, delay: i * 0.05, ease: 'easeOut' }}
+                                            >
+                                                {/* Reflection highlight */}
+                                                {heightPercent > 10 && <div className="w-1.5 h-[30%] bg-white/30 rounded-full" />}
+                                                
+                                                {/* Hover Value - Desktop only for touch safety */}
+                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-white text-[10px] font-black px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none hidden md:block">
+                                                    {d.v}
+                                                </div>
+                                                
+                                                {/* Always show value on mobile for accessibility if bar is high enough */}
+                                                <div className="md:hidden absolute -top-8 left-1/2 -translate-x-1/2 text-[9px] font-black text-slate-500">
+                                                    {d.v > 0 && d.v}
+                                                </div>
+                                            </motion.div>
+                                        </div>
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{d.m}</span>
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{d.m}</span>
-                                </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Mobile Scroll Hint */}
+                        <div className="flex md:hidden items-center justify-center gap-2 mt-4 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">
+                            <span className="material-symbols-outlined text-sm animate-[bounce-x_2s_infinite]">keyboard_double_arrow_right</span>
+                            Geser untuk melihat data bulanan
                         </div>
                     </div>
 

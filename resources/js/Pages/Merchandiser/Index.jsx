@@ -3,14 +3,19 @@ import { usePage, Head, router, Link } from '@inertiajs/react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import SearchableSelect from '@/Components/SearchableSelect';
 import TableSkeleton from '@/Components/TableSkeleton';
+import Modal from '@/Components/Modal';
 import useSessionFilter from '@/Hooks/useSessionFilter';
+import useMediaQuery from '@/Hooks/useMediaQuery';
 import Pagination from '@/Components/Pagination';
+
+import { motion } from 'framer-motion';
 
 // Removed DUMMY_MERCHANDISER as we now use real data from backend
 
 export default function Index({ projects, summary, queryParams = null }) {
     queryParams = queryParams || {};
     const { auth } = usePage().props;
+    const isMobile = useMediaQuery('(max-width: 767px)');
     const auth_user = auth?.user;
     
     // Using real data from backend
@@ -138,6 +143,42 @@ export default function Index({ projects, summary, queryParams = null }) {
                     </div>
                 </div>
 
+                {/* Status Tabs - Quick Filter */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 touch-pan-x -mx-4 px-4 md:mx-0 md:px-0">
+                    {[
+                        { id: 'Semua Status', label: 'Semua', icon: 'apps', color: 'slate' },
+                        { id: 'Ongoing', label: 'Ongoing', icon: 'autorenew', color: 'blue' },
+                        { id: 'Pending', label: 'Pending', icon: 'schedule', color: 'amber' },
+                        { id: 'Completed', label: 'Completed', icon: 'check_circle', color: 'emerald' }
+                    ].map((tab) => {
+                        const isActive = statusFilter === tab.id;
+                        const colors = {
+                            slate: isActive ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-200/50 dark:shadow-none' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-100 dark:border-white/5',
+                            blue: isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 border border-slate-100 dark:border-white/5',
+                            amber: isActive ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 border border-slate-100 dark:border-white/5',
+                            emerald: isActive ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white dark:bg-white/5 text-slate-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border border-slate-100 dark:border-white/5'
+                        };
+                        
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => { setStatusFilter(tab.id); setCurrentPage(1); }}
+                                className={`flex-shrink-0 flex items-center gap-2.5 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 active:scale-95 ${colors[tab.color]}`}
+                            >
+                                <span className={`material-symbols-outlined text-[18px] ${isActive ? 'font-fill' : ''}`}>{tab.icon}</span>
+                                {tab.label}
+                                {isActive && (
+                                    <motion.div 
+                                        layoutId="activeTabMerch"
+                                        className="size-1.5 rounded-full bg-white dark:bg-slate-900 ml-1"
+                                        transition={{ type: 'spring', duration: 0.5 }}
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
                 {/* Filters */}
                 <div className="relative z-50 bg-white dark:bg-black/20 backdrop-blur-md rounded-[2.5rem] p-6 border border-slate-100 dark:border-white/5 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -184,10 +225,11 @@ export default function Index({ projects, summary, queryParams = null }) {
                                 )}
                             </button>
 
-                            {showMoreFilters && (
-                                <>
+                            {/* Advanced Filter Popover (Desktop) */}
+                            {showMoreFilters && !isMobile && (
+                                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#141720] border border-slate-100 dark:border-white/10 rounded-[2rem] shadow-2xl z-50 animate-reveal">
                                     <div className="fixed inset-0 z-40" onClick={() => setShowMoreFilters(false)} />
-                                    <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#141720] border border-slate-100 dark:border-white/10 rounded-[2rem] shadow-2xl z-50 animate-reveal">
+                                    <div className="relative z-50">
                                         {/* Header */}
                                         <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-white/5 rounded-t-[2rem]">
                                             <div className="flex items-center justify-between">
@@ -197,18 +239,12 @@ export default function Index({ projects, summary, queryParams = null }) {
                                                     </div>
                                                     <h4 className="text-xs font-black text-slate-700 dark:text-white uppercase tracking-widest">Filter Lanjutan</h4>
                                                 </div>
-                                                <div className="relative group/tooltip">
-                                                    <button
-                                                        onClick={() => setShowMoreFilters(false)}
-                                                        className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all"
-                                                    >
-                                                        <span className="material-symbols-outlined text-lg">close</span>
-                                                    </button>
-                                                    <div className="absolute bottom-full mb-2 right-0 px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible group-hover/tooltip:mb-3 transition-all duration-300 shadow-xl z-[100] whitespace-nowrap pointer-events-none">
-                                                        Tutup Filter
-                                                        <div className="absolute top-full right-3 border-4 border-transparent border-t-slate-900 dark:border-t-white"></div>
-                                                    </div>
-                                                </div>
+                                                <button
+                                                    onClick={() => setShowMoreFilters(false)}
+                                                    className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">close</span>
+                                                </button>
                                             </div>
                                         </div>
 
@@ -236,9 +272,9 @@ export default function Index({ projects, summary, queryParams = null }) {
                                                     </div>
                                                 </div>
                                                 <div className={`relative w-11 h-6 rounded-full transition-all flex-shrink-0 ${
-                                                    myDataFilter ? 'bg-primary' : 'bg-slate-200 dark:bg-white/10'
+                                                    myDataFilter ? 'bg-primary dark:bg-blue-500/50' : 'bg-slate-300 dark:bg-white/20'
                                                 }`}>
-                                                    <div className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${
+                                                    <div className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${
                                                         myDataFilter ? 'left-6' : 'left-1'
                                                     }`} />
                                                 </div>
@@ -255,7 +291,75 @@ export default function Index({ projects, summary, queryParams = null }) {
                                             </button>
                                         </div>
                                     </div>
-                                </>
+                                </div>
+                            )}
+
+                            {/* Advanced Filter Modal (Mobile) */}
+                            {isMobile && (
+                                <Modal show={showMoreFilters} onClose={() => setShowMoreFilters(false)} maxWidth="md" premium={true}>
+                                    <div className="p-8">
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="size-12 rounded-[1.25rem] bg-primary/10 flex items-center justify-center text-primary">
+                                                <span className="material-symbols-outlined text-2xl">tune</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tight">Filter Lanjutan</h3>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Sesuaikan tampilan data</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <button
+                                                onClick={handleMyDataToggle}
+                                                className={`w-full flex items-center justify-between p-5 rounded-[1.5rem] border transition-all ${
+                                                    myDataFilter
+                                                    ? 'bg-primary/5 border-primary/20 dark:bg-blue-500/10 dark:border-blue-500/20'
+                                                    : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 shadow-sm'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-4 text-left">
+                                                    <div className={`size-12 rounded-2xl flex items-center justify-center transition-all ${
+                                                        myDataFilter ? 'bg-primary text-white shadow-lg' : 'bg-slate-200 dark:bg-white/10 text-slate-400'
+                                                    }`}>
+                                                        <span className="material-symbols-outlined text-xl">person_pin</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-sm font-black uppercase tracking-wider ${
+                                                            myDataFilter ? 'text-primary dark:text-blue-400' : 'text-slate-700 dark:text-slate-200'
+                                                        }`}>Data Saya</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 mt-1">Filter berdasarkan handle saya</p>
+                                                    </div>
+                                                </div>
+                                                <div className={`relative w-12 h-7 rounded-full transition-all flex-shrink-0 ${
+                                                    myDataFilter ? 'bg-primary dark:bg-blue-500/50' : 'bg-slate-300 dark:bg-white/20'
+                                                }`}>
+                                                    <div className={`absolute top-1 size-5 rounded-full bg-white shadow-md transition-all ${
+                                                        myDataFilter ? 'left-6' : 'left-1'
+                                                    }`}></div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 mt-4 bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 rounded-b-[2rem] flex flex-col gap-3">
+                                        <button 
+                                            onClick={() => setShowMoreFilters(false)}
+                                            className="w-full py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                                        >
+                                            Terapkan Filter
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                setMyDataFilter(false);
+                                                setCurrentPage(1);
+                                                setShowMoreFilters(false);
+                                            }}
+                                            className="w-full py-4 bg-white dark:bg-white/5 text-slate-400 dark:text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-100 dark:border-white/5 active:scale-95 transition-all"
+                                        >
+                                            Reset Semua
+                                        </button>
+                                    </div>
+                                </Modal>
                             )}
                         </div>
                     </div>
@@ -558,6 +662,8 @@ export default function Index({ projects, summary, queryParams = null }) {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
                 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}} />
         </AuthenticatedLayout>
     );

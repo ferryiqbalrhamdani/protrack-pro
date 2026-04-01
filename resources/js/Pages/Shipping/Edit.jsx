@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SearchableSelect from '@/Components/SearchableSelect';
 
 export default function Edit({ project, shipping, auth_user, canEdit }) {
@@ -140,6 +141,28 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
             backUrl={route('shipping')}
             backLabel={canEdit ? "Edit Pengiriman" : "Pratinjau Pengiriman"}
             isReviewMode={!canEdit}
+            bottomStickySlot={
+                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-4 py-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5 flex gap-3 mx-auto max-w-sm">
+                    <Link 
+                        href={route('shipping')}
+                        className="flex-1 flex flex-col items-center justify-center gap-1.5 size-12 rounded-[1.25rem] bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">close</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest leading-none">Batal</span>
+                    </Link>
+                    {canEdit && (
+                        <button 
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={processing}
+                            className="flex-[2] flex flex-col items-center justify-center gap-1.5 size-12 rounded-[1.25rem] bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">save</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest leading-none">Simpan</span>
+                        </button>
+                    )}
+                </div>
+            }
             stickySlot={
                 <>
                     {/* Read-only Alert for non-authorized users */}
@@ -234,6 +257,36 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
             <Head title={`${canEdit ? 'Edit' : 'Detail'} Pengiriman - ${project.name}`} />
             
             <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pt-6 pb-12 px-4 sm:px-6 lg:px-8 space-y-10 animate-reveal">
+                
+                {/* Mobile Status Switcher */}
+                <div className="xl:hidden bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-2 shadow-sm flex gap-1">
+                    {statusOptions.map((opt) => (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            disabled={!canEdit}
+                            onClick={() => setData('status', opt.id)}
+                            className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-all relative ${
+                                data.status === opt.id
+                                    ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
+                                      opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                      'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-50/50 dark:bg-white/[0.01]'
+                            } disabled:opacity-50`}
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{opt.id}</span>
+                            
+                            {data.status === opt.id && (
+                                <motion.div 
+                                    layoutId="activeStatusEdit"
+                                    className="absolute -bottom-1 size-1 bg-white rounded-full"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
                 
                 {/* Section 1: Project Information */}
                 <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-5 md:p-8 shadow-sm">
@@ -341,7 +394,7 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                             <div className="space-y-12 animate-reveal">
                                 {/* BA Anname Section */}
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                         <div className="flex items-center gap-3">
                                             <div className="size-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
                                                 <span className="material-symbols-outlined text-lg">contract</span>
@@ -352,71 +405,124 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                                             <button
                                                 type="button"
                                                 onClick={() => handleAddBARow('ba_anname')}
-                                                className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20"
+                                                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 md:py-2 bg-amber-500/10 text-amber-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all border border-amber-500/20"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add</span>
                                                 Tambah BA Anname
                                             </button>
                                         )}
                                     </div>
-                                    <div className="overflow-x-auto rounded-3xl border border-slate-100 dark:border-white/5">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-slate-50/50 dark:bg-white/[0.02]">
-                                                <tr className="border-b border-slate-100 dark:border-white/5">
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">No. BA Anname</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal BA</th>
-                                                    {data.shipping_type === 'Bertahap' && <th className="px-6 py-4 text-right w-24 border-b border-slate-100 dark:border-white/5 font-black text-[10px] text-slate-400 uppercase tracking-widest">Aksi</th>}
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                                {data.ba_anname.map((row, idx) => (
-                                                    <tr key={idx} className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
-                                                        <td className="px-6 py-5 text-xs font-black text-slate-400">{idx + 1}</td>
-                                                        <td className="px-6 py-5">
+                                    <div className="space-y-4">
+                                        {/* Mobile Card Layout for BA Anname */}
+                                        <div className="md:hidden space-y-4">
+                                            {data.ba_anname.map((row, idx) => (
+                                                <div key={idx} className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-5 space-y-4 shadow-sm animate-reveal">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200/50 dark:border-white/5">
+                                                                {idx + 1}
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">BA Anname</span>
+                                                        </div>
+                                                        {canEdit && data.shipping_type === 'Bertahap' && (
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => handleRemoveBARow('ba_anname', idx)}
+                                                                className="size-8 rounded-xl bg-rose-500/5 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                                                            >
+                                                                <span className="material-symbols-outlined text-lg">delete</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">No. BA Anname</label>
                                                             <input 
                                                                 type="text"
                                                                 value={row.no}
                                                                 onChange={e => handleBAChange('ba_anname', idx, 'no', e.target.value)}
                                                                 placeholder="Input nomor..."
                                                                 disabled={!canEdit}
-                                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50"
+                                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-2xl text-sm font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50"
                                                             />
-                                                        </td>
-                                                        <td className="px-6 py-5">
+                                                        </div>
+
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Tanggal BA</label>
                                                             <input 
                                                                 type="date"
                                                                 value={row.date}
                                                                 onChange={e => handleBAChange('ba_anname', idx, 'date', e.target.value)}
                                                                 disabled={!canEdit}
-                                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark] disabled:opacity-50"
+                                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-2xl text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark] disabled:opacity-50"
                                                             />
-                                                        </td>
-                                                        {canEdit && data.shipping_type === 'Bertahap' && (
-                                                            <td className="px-6 py-5 text-right">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveBARow('ba_anname', idx)}
-                                                                    className="size-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-all group/btn relative"
-                                                                >
-                                                                    <span className="material-symbols-outlined text-lg">delete</span>
-                                                                    <div className="absolute right-full mr-2 px-3 py-2 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible transition-all whitespace-nowrap z-50 pointer-events-none shadow-xl border border-rose-500/20">
-                                                                        Hapus Baris
-                                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-rose-600"></div>
-                                                                    </div>
-                                                                </button>
-                                                            </td>
-                                                        )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Desktop Table Layout for BA Anname */}
+                                        <div className="hidden md:block overflow-x-auto rounded-3xl border border-slate-100 dark:border-white/5">
+                                            <table className="w-full text-left border-separate border-spacing-0">
+                                                <thead className="bg-slate-50/50 dark:bg-white/[0.02]">
+                                                    <tr className="border-b border-slate-100 dark:border-white/5">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">No. BA Anname</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal BA</th>
+                                                        {data.shipping_type === 'Bertahap' && <th className="px-6 py-4 text-right w-24 border-b border-slate-100 dark:border-white/5 font-black text-[10px] text-slate-400 uppercase tracking-widest">Aksi</th>}
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                                    {data.ba_anname.map((row, idx) => (
+                                                        <tr key={idx} className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
+                                                            <td className="px-6 py-5 text-xs font-black text-slate-400">{idx + 1}</td>
+                                                            <td className="px-6 py-5">
+                                                                <input 
+                                                                    type="text"
+                                                                    value={row.no}
+                                                                    onChange={e => handleBAChange('ba_anname', idx, 'no', e.target.value)}
+                                                                    placeholder="Input nomor..."
+                                                                    disabled={!canEdit}
+                                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50"
+                                                                />
+                                                            </td>
+                                                            <td className="px-6 py-5">
+                                                                <input 
+                                                                    type="date"
+                                                                    value={row.date}
+                                                                    onChange={e => handleBAChange('ba_anname', idx, 'date', e.target.value)}
+                                                                    disabled={!canEdit}
+                                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark] disabled:opacity-50"
+                                                                />
+                                                            </td>
+                                                            {canEdit && data.shipping_type === 'Bertahap' && (
+                                                                <td className="px-6 py-5 text-right">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveBARow('ba_anname', idx)}
+                                                                        className="size-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-all group/btn relative ml-auto"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                                                        <div className="absolute right-full mr-2 px-3 py-2 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible transition-all whitespace-nowrap z-50 pointer-events-none shadow-xl border border-rose-500/20">
+                                                                            Hapus Baris
+                                                                            <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-rose-600"></div>
+                                                                        </div>
+                                                                    </button>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* BA Inname Section */}
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                         <div className="flex items-center gap-3">
                                             <div className="size-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                                                 <span className="material-symbols-outlined text-lg">fact_check</span>
@@ -427,65 +533,118 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                                             <button
                                                 type="button"
                                                 onClick={() => handleAddBARow('ba_inname')}
-                                                className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
+                                                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 md:py-2 bg-emerald-500/10 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add</span>
                                                 Tambah BA Inname
                                             </button>
                                         )}
                                     </div>
-                                    <div className="overflow-x-auto rounded-3xl border border-slate-100 dark:border-white/5">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-slate-50/50 dark:bg-white/[0.02]">
-                                                <tr className="border-b border-slate-100 dark:border-white/5">
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">No. BA Inname</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal BA</th>
-                                                    {data.shipping_type === 'Bertahap' && <th className="px-6 py-4 text-right w-24 border-b border-slate-100 dark:border-white/5 font-black text-[10px] text-slate-400 uppercase tracking-widest">Aksi</th>}
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                                {data.ba_inname.map((row, idx) => (
-                                                    <tr key={idx} className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
-                                                        <td className="px-6 py-5 text-xs font-black text-slate-400">{idx + 1}</td>
-                                                        <td className="px-6 py-5">
+                                    <div className="space-y-4">
+                                        {/* Mobile Card Layout for BA Inname */}
+                                        <div className="md:hidden space-y-4">
+                                            {data.ba_inname.map((row, idx) => (
+                                                <div key={idx} className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-5 space-y-4 shadow-sm animate-reveal">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200/50 dark:border-white/5">
+                                                                {idx + 1}
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">BA Inname</span>
+                                                        </div>
+                                                        {canEdit && data.shipping_type === 'Bertahap' && (
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => handleRemoveBARow('ba_inname', idx)}
+                                                                className="size-8 rounded-xl bg-rose-500/5 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                                                            >
+                                                                <span className="material-symbols-outlined text-lg">delete</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">No. BA Inname</label>
                                                             <input 
                                                                 type="text"
                                                                 value={row.no}
                                                                 onChange={e => handleBAChange('ba_inname', idx, 'no', e.target.value)}
                                                                 placeholder="Input nomor..."
                                                                 disabled={!canEdit}
-                                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50"
+                                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-2xl text-sm font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50"
                                                             />
-                                                        </td>
-                                                        <td className="px-6 py-5">
+                                                        </div>
+
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Tanggal BA</label>
                                                             <input 
                                                                 type="date"
                                                                 value={row.date}
                                                                 onChange={e => handleBAChange('ba_inname', idx, 'date', e.target.value)}
                                                                 disabled={!canEdit}
-                                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark] disabled:opacity-50"
+                                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-2xl text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark] disabled:opacity-50"
                                                             />
-                                                        </td>
-                                                        {canEdit && data.shipping_type === 'Bertahap' && (
-                                                            <td className="px-6 py-5 text-right">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveBARow('ba_inname', idx)}
-                                                                    className="size-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-all group/btn relative"
-                                                                >
-                                                                    <span className="material-symbols-outlined text-lg">delete</span>
-                                                                    <div className="absolute right-full mr-2 px-3 py-2 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible transition-all whitespace-nowrap z-50 pointer-events-none shadow-xl border border-rose-500/20">
-                                                                        Hapus Baris
-                                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-rose-600"></div>
-                                                                    </div>
-                                                                </button>
-                                                            </td>
-                                                        )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Desktop Table Layout for BA Inname */}
+                                        <div className="hidden md:block overflow-x-auto rounded-3xl border border-slate-100 dark:border-white/5">
+                                            <table className="w-full text-left border-separate border-spacing-0">
+                                                <thead className="bg-slate-50/50 dark:bg-white/[0.02]">
+                                                    <tr className="border-b border-slate-100 dark:border-white/5">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">No. BA Inname</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal BA</th>
+                                                        {data.shipping_type === 'Bertahap' && <th className="px-6 py-4 text-right w-24 border-b border-slate-100 dark:border-white/5 font-black text-[10px] text-slate-400 uppercase tracking-widest">Aksi</th>}
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                                    {data.ba_inname.map((row, idx) => (
+                                                        <tr key={idx} className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
+                                                            <td className="px-6 py-5 text-xs font-black text-slate-400">{idx + 1}</td>
+                                                            <td className="px-6 py-5">
+                                                                <input 
+                                                                    type="text"
+                                                                    value={row.no}
+                                                                    onChange={e => handleBAChange('ba_inname', idx, 'no', e.target.value)}
+                                                                    placeholder="Input nomor..."
+                                                                    disabled={!canEdit}
+                                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50"
+                                                                />
+                                                            </td>
+                                                            <td className="px-6 py-5">
+                                                                <input 
+                                                                    type="date"
+                                                                    value={row.date}
+                                                                    onChange={e => handleBAChange('ba_inname', idx, 'date', e.target.value)}
+                                                                    disabled={!canEdit}
+                                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-xl text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark] disabled:opacity-50"
+                                                                />
+                                                            </td>
+                                                            {canEdit && data.shipping_type === 'Bertahap' && (
+                                                                <td className="px-6 py-5 text-right">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveBARow('ba_inname', idx)}
+                                                                        className="size-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-all group/btn relative ml-auto"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                                                        <div className="absolute right-full mr-2 px-3 py-2 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible transition-all whitespace-nowrap z-50 pointer-events-none shadow-xl border border-rose-500/20">
+                                                                            Hapus Baris
+                                                                            <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-rose-600"></div>
+                                                                        </div>
+                                                                    </button>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -536,44 +695,86 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                                     {data.files.map((file, idx) => (
                                         <div key={`existing-${file.id}`} className="flex items-center gap-4 p-4 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/10 rounded-2xl group/file hover:shadow-lg transition-all relative overflow-hidden">
                                             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-50"></div>
-                                            <div className="size-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-                                                <span className="material-symbols-outlined">{getFileIcon(file.type)}</span>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-black text-slate-700 dark:text-white truncate uppercase tracking-widest" title={file.name}>{file.name}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest px-1.5 py-0.5 bg-emerald-500/10 rounded-md">Tersimpan</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase">{formatFileSize(file.size)}</span>
+                                            <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full group/file">
+                                                {/* Left: Icon and Info */}
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    <div className="size-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+                                                        <span className="material-symbols-outlined font-black">{getFileIcon(file.type)}</span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-black text-slate-700 dark:text-white truncate uppercase tracking-widest" title={file.name}>{file.name}</p>
+                                                        <div className="inline-flex items-center gap-2 mt-1.5 px-2 py-1 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-lg">
+                                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest leading-none">Tersimpan</span>
+                                                            <div className="w-px h-2 bg-emerald-500/20"></div>
+                                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">{formatFileSize(file.size)}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-1 opacity-0 group-hover/file:opacity-100 transition-all shrink-0">
-                                                <a 
-                                                    href={file.url} 
-                                                    target="_blank" 
-                                                    rel="noreferrer"
-                                                    className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all"
-                                                    title="Lihat File"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">visibility</span>
-                                                </a>
-                                                <a 
-                                                    href={file.url} 
-                                                    download
-                                                    className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all"
-                                                    title="Download File"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">download</span>
-                                                </a>
-                                                {canEdit && (
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => handleDeleteAttachment(file.id)}
-                                                        className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
-                                                        title="Hapus File"
+                                                
+                                                {/* Mobile Actions - Row below info */}
+                                                <div className="flex lg:hidden items-center justify-between pt-4 border-t border-slate-50 dark:border-white/5 w-full">
+                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Aksi File</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <a 
+                                                            href={file.url} 
+                                                            target="_blank" 
+                                                            rel="noreferrer"
+                                                            className="size-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 active:scale-90 transition-all"
+                                                            title="Lihat File"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">visibility</span>
+                                                        </a>
+                                                        <a 
+                                                            href={file.url} 
+                                                            download
+                                                            className="size-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 active:scale-90 transition-all"
+                                                            title="Download File"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">download</span>
+                                                        </a>
+                                                        {canEdit && (
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => handleDeleteAttachment(file.id)}
+                                                                className="size-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 active:scale-90 transition-all"
+                                                                title="Hapus File"
+                                                            >
+                                                                <span className="material-symbols-outlined text-lg">delete</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Desktop Actions - Natural row flow */}
+                                                <div className="hidden lg:flex items-center gap-1 opacity-0 group-hover/file:opacity-100 transition-all shrink-0">
+                                                    <a 
+                                                        href={file.url} 
+                                                        target="_blank" 
+                                                        rel="noreferrer"
+                                                        className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all"
+                                                        title="Lihat File"
                                                     >
-                                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                                    </button>
-                                                )}
+                                                        <span className="material-symbols-outlined text-lg">visibility</span>
+                                                    </a>
+                                                    <a 
+                                                        href={file.url} 
+                                                        download
+                                                        className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all"
+                                                        title="Download File"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">download</span>
+                                                    </a>
+                                                    {canEdit && (
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => handleDeleteAttachment(file.id)}
+                                                            className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                                                            title="Hapus File"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -582,25 +783,51 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                                     {data.new_files.map((file, idx) => (
                                         <div key={`new-${idx}`} className="flex items-center gap-4 p-4 bg-white dark:bg-white/[0.03] border border-blue-200 dark:border-blue-500/30 rounded-2xl group/file hover:shadow-lg transition-all relative overflow-hidden">
                                             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-                                            <div className="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
-                                                <span className="material-symbols-outlined">{getFileIcon(file.type)}</span>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-black text-slate-700 dark:text-white truncate uppercase tracking-widest" title={file.name}>{file.name}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/10 rounded-md">Baru</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase">{formatFileSize(file.size)}</span>
+                                            <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full group/file">
+                                                {/* Left: Icon and Info */}
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    <div className="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+                                                        <span className="material-symbols-outlined font-black">{getFileIcon(file.type)}</span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-black text-slate-700 dark:text-white truncate uppercase tracking-widest" title={file.name}>{file.name}</p>
+                                                        <div className="inline-flex items-center gap-2 mt-1.5 px-2 py-1 bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 rounded-lg">
+                                                            <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">Baru</span>
+                                                            <div className="w-px h-2 bg-blue-500/20"></div>
+                                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">{formatFileSize(file.size)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Mobile Actions */}
+                                                <div className="flex lg:hidden items-center justify-between pt-4 border-t border-slate-50 dark:border-white/5 w-full">
+                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Aksi File</span>
+                                                    <div className="flex items-center gap-2">
+                                                        {canEdit && (
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => removeNewFile(idx)}
+                                                                className="size-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 active:scale-90 transition-all font-black"
+                                                            >
+                                                                <span className="material-symbols-outlined text-lg">close</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Desktop Actions */}
+                                                <div className="hidden lg:flex items-center gap-1 opacity-0 group-hover/file:opacity-100 transition-all shrink-0">
+                                                    {canEdit && (
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => removeNewFile(idx)}
+                                                            className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">close</span>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
-                                            {canEdit && (
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => removeNewFile(idx)}
-                                                    className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover/file:opacity-100 shrink-0"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">close</span>
-                                                </button>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -610,7 +837,7 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                 </div>
 
                 {/* Submit Footer (Non-Sticky) */}
-                <div className="mt-12 py-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 transition-all">
+                <div className="hidden xl:flex mt-12 py-8 border-t border-slate-200 dark:border-white/5 flex-col md:flex-row items-center justify-between gap-6 transition-all">
                     {/* Left: Last Modified Info */}
                     <div className="flex items-center gap-4">
                         <div className="size-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">

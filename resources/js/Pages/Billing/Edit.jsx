@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SearchableSelect from '@/Components/SearchableSelect';
 import SecondaryButton from '@/Components/SecondaryButton';
 
@@ -154,6 +155,28 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
             backUrl={route('billing')}
             backLabel={canEdit ? "Edit Penagihan" : "Pratinjau Penagihan"}
             isReviewMode={!canEdit}
+            bottomStickySlot={
+                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-4 py-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5 flex gap-3 mx-auto max-w-sm">
+                    <Link 
+                        href={route('billing')}
+                        className="flex-1 flex flex-col items-center justify-center gap-1.5 size-12 rounded-[1.25rem] bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">close</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest leading-none">Batal</span>
+                    </Link>
+                    {canEdit && (
+                        <button 
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={processing}
+                            className="flex-[2] flex flex-col items-center justify-center gap-1.5 size-12 rounded-[1.25rem] bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">save</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest leading-none">Simpan</span>
+                        </button>
+                    )}
+                </div>
+            }
             stickySlot={
                 <>
                     {/* Read-only Alert for non-authorized users */}
@@ -243,6 +266,36 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
             <Head title={`Edit Penagihan - ${project.name}`} />
 
             <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pt-6 pb-12 px-4 sm:px-6 lg:px-8 space-y-10 animate-reveal">
+                
+                {/* Mobile Status Switcher */}
+                <div className="xl:hidden bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-2 shadow-sm flex gap-1">
+                    {statusOptions.map((opt) => (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            disabled={!canEdit}
+                            onClick={() => setData('status', opt.id)}
+                            className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-all relative ${
+                                data.status === opt.id
+                                    ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
+                                      opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                      'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-50/50 dark:bg-white/[0.01]'
+                            } disabled:opacity-50`}
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{opt.id}</span>
+                            
+                            {data.status === opt.id && (
+                                <motion.div 
+                                    layoutId="activeStatusEdit"
+                                    className="absolute -bottom-1 size-1 bg-white rounded-full"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
                 
                 {/* Section 1: Project Information */}
                 <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-5 md:p-8 shadow-sm">
@@ -334,61 +387,113 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                         )}
                     </div>
 
-                    <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
-                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 rounded-tl-[2rem]">No</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">No. BAST</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal BAST</th>
-                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-24 rounded-tr-[2rem]">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                {data.basts.map((bast, index) => (
-                                    <tr key={index} className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
-                                        <td className="px-8 py-5">
-                                            <span className="text-xs font-black text-slate-400">{index + 1}</span>
-                                        </td>
-                                        <td className="px-6 py-5">
+                    <div className="space-y-4">
+                        {/* Mobile BAST Card Layout */}
+                        <div className="md:hidden space-y-4">
+                            {data.basts.map((bast, index) => (
+                                <div key={index} className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-5 space-y-4 shadow-sm animate-reveal">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200/50 dark:border-white/5">
+                                                {index + 1}
+                                            </div>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">BAST</span>
+                                        </div>
+                                        {canEdit && (
+                                            <button 
+                                                type="button"
+                                                disabled={data.basts.length === 1}
+                                                onClick={() => handleRemoveBast(index)}
+                                                className="size-8 rounded-xl bg-rose-500/5 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all disabled:opacity-30"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">No. BAST</label>
                                             <input 
                                                 type="text"
                                                 value={bast.no_bast}
                                                 onChange={e => handleBastChange(index, 'no_bast', e.target.value)}
                                                 placeholder="Input Nomor BAST..."
-                                                className="w-full px-4 py-2.5 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl text-sm font-bold text-slate-700 dark:text-blue-400 placeholder:text-slate-300 dark:placeholder:text-blue-900/40 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-blue-500/10 outline-none transition-all"
+                                                className="w-full px-5 py-4 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-2xl text-sm font-bold text-slate-700 dark:text-blue-400 placeholder:text-slate-300 dark:placeholder:text-blue-900/40 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                                             />
-                                        </td>
-                                        <td className="px-6 py-5">
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Tanggal BAST</label>
                                             <input 
                                                 type="date"
                                                 value={bast.tgl_bast}
                                                 onChange={e => handleBastChange(index, 'tgl_bast', e.target.value)}
-                                                className="px-4 py-2.5 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl text-sm font-bold text-slate-700 dark:text-blue-400 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-blue-500/10 outline-none transition-all cursor-pointer dark:[color-scheme:dark]"
+                                                className="w-full px-5 py-4 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-2xl text-sm font-bold text-slate-700 dark:text-blue-400 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all dark:[color-scheme:dark]"
                                             />
-                                        </td>
-                                        <td className="px-8 py-5 text-right">
-                                            {canEdit && (
-                                                <div className="relative group/tbast inline-block">
-                                                    <button 
-                                                        type="button"
-                                                        disabled={data.basts.length === 1}
-                                                        onClick={() => handleRemoveBast(index)}
-                                                        className="size-8 rounded-lg flex items-center justify-center bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all disabled:opacity-30"
-                                                    >
-                                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                                    </button>
-                                                    <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover/tbast:opacity-100 group-hover/tbast:mb-3 transition-all duration-200 whitespace-nowrap shadow-xl shadow-rose-500/20 z-10">
-                                                        Hapus BAST
-                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-rose-500"></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </td>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop BAST Table Layout */}
+                        <div className="hidden md:block bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                            <table className="w-full text-left border-separate border-spacing-0">
+                                <thead>
+                                    <tr className="bg-slate-50/50 dark:bg-white/[0.01]">
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">No. BAST</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal BAST</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-24">Aksi</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                    {data.basts.map((bast, index) => (
+                                        <tr key={index} className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors">
+                                            <td className="px-8 py-5">
+                                                <span className="text-xs font-black text-slate-400">{index + 1}</span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <input 
+                                                    type="text"
+                                                    value={bast.no_bast}
+                                                    onChange={e => handleBastChange(index, 'no_bast', e.target.value)}
+                                                    placeholder="Input Nomor BAST..."
+                                                    className="w-full px-4 py-2.5 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl text-sm font-bold text-slate-700 dark:text-blue-400 placeholder:text-slate-300 dark:placeholder:text-blue-900/40 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-blue-500/10 outline-none transition-all"
+                                                />
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <input 
+                                                    type="date"
+                                                    value={bast.tgl_bast}
+                                                    onChange={e => handleBastChange(index, 'tgl_bast', e.target.value)}
+                                                    className="px-4 py-2.5 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl text-sm font-bold text-slate-700 dark:text-blue-400 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-blue-500/10 outline-none transition-all cursor-pointer dark:[color-scheme:dark]"
+                                                />
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                {canEdit && (
+                                                    <div className="relative group/tbast inline-block">
+                                                        <button 
+                                                            type="button"
+                                                            disabled={data.basts.length === 1}
+                                                            onClick={() => handleRemoveBast(index)}
+                                                            className="size-8 rounded-lg flex items-center justify-center bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all disabled:opacity-30"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                        <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover/tbast:opacity-100 group-hover/tbast:mb-3 transition-all duration-200 whitespace-nowrap shadow-xl shadow-rose-500/20 z-10">
+                                                            Hapus BAST
+                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-rose-500"></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                         </fieldset>
                     </div>
@@ -411,85 +516,157 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                         )}
                     </div>
 
-                    <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
-                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 rounded-tl-[2rem]">No</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Penagihan</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Jenis Penagihan</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-32">Selesai</th>
-                                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-24 rounded-tr-[2rem]">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                {data.billing_items.map((item, index) => (
-                                    <tr 
-                                        key={index} 
-                                        className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors relative"
-                                        style={{ zIndex: 10 + data.billing_items.length - index }}
-                                    >
-                                        <td className="px-8 py-5">
-                                            <span className="text-xs font-black text-slate-400">{index + 1}</span>
-                                        </td>
-                                        <td className="px-6 py-5">
+                    <div className="space-y-4">
+                        {/* Mobile Billing Card Layout */}
+                        <div className="md:hidden space-y-4">
+                            {data.billing_items.map((item, index) => (
+                                <div key={index} className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-5 space-y-4 shadow-sm animate-reveal" style={{ zIndex: 10 + data.billing_items.length - index }}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200/50 dark:border-white/5">
+                                                {index + 1}
+                                            </div>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Penagihan</span>
+                                        </div>
+                                        {canEdit && (
+                                            <button 
+                                                type="button"
+                                                disabled={data.billing_items.length === 1}
+                                                onClick={() => handleRemoveBillingItem(index)}
+                                                className="size-8 rounded-xl bg-rose-500/5 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all disabled:opacity-30"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Nama Penagihan</label>
                                             <input 
                                                 type="text"
                                                 value={item.name}
                                                 required
                                                 onChange={e => handleBillingItemChange(index, 'name', e.target.value)}
                                                 placeholder="Nama Penagihan..."
-                                                className="w-full px-4 py-2.5 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl text-sm font-bold text-slate-700 dark:text-blue-400 placeholder:text-slate-300 dark:placeholder:text-blue-900/40 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-blue-500/10 outline-none transition-all"
+                                                className="w-full px-5 py-4 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-2xl text-sm font-bold text-slate-700 dark:text-blue-400 placeholder:text-slate-300 dark:placeholder:text-blue-900/40 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                                             />
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="w-full">
-                                                <SearchableSelect 
-                                                    options={typeOptions}
-                                                    value={item.type}
-                                                    onChange={val => handleBillingItemChange(index, 'type', val)}
-                                                    placeholder="Pilih Jenis..."
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
+                                        </div>
+
+                                        <div className="space-y-1.5 relative z-[30]">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Jenis Penagihan</label>
+                                            <SearchableSelect 
+                                                options={typeOptions}
+                                                value={item.type}
+                                                onChange={val => handleBillingItemChange(index, 'type', val)}
+                                                placeholder="Pilih Jenis..."
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-2 border-t border-slate-100/50 dark:border-white/5 px-1">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selesai?</span>
                                             <button 
                                                 type="button"
                                                 disabled={!canEdit}
                                                 onClick={() => handleBillingItemChange(index, 'completed', !item.completed)}
-                                                className={`size-10 mx-auto rounded-xl flex items-center justify-center transition-all ${
+                                                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl transition-all ${
                                                     item.completed 
                                                     ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
                                                     : 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 opacity-80'
-                                                } hover:scale-110 active:scale-95 disabled:opacity-50`}
+                                                } disabled:opacity-50 font-black text-[10px] uppercase tracking-widest`}
                                             >
-                                                <span className="material-symbols-outlined text-xl">
+                                                <span className="material-symbols-outlined text-[18px]">
                                                     {item.completed ? 'check_circle' : 'cancel'}
                                                 </span>
+                                                {item.completed ? 'SELESAI' : 'BELUM'}
                                             </button>
-                                        </td>
-                                        <td className="px-8 py-5 text-right">
-                                            {canEdit && (
-                                                <div className="relative group/tbil inline-block">
-                                                    <button 
-                                                        type="button"
-                                                        disabled={data.billing_items.length === 1}
-                                                        onClick={() => handleRemoveBillingItem(index)}
-                                                        className="size-8 rounded-lg flex items-center justify-center bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all disabled:opacity-30"
-                                                    >
-                                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                                    </button>
-                                                    <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover/tbil:opacity-100 group-hover/tbil:mb-3 transition-all duration-200 whitespace-nowrap shadow-xl shadow-rose-500/20 z-10">
-                                                        Hapus Item
-                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-rose-500"></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </td>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Billing Table Layout */}
+                        <div className="hidden md:block bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                            <table className="w-full text-left border-separate border-spacing-0">
+                                <thead>
+                                    <tr className="bg-slate-50/50 dark:bg-white/[0.01]">
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Penagihan</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Jenis Penagihan</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-32">Selesai</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-24">Aksi</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                    {data.billing_items.map((item, index) => (
+                                        <tr 
+                                            key={index} 
+                                            className="group hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-colors relative"
+                                            style={{ zIndex: 10 + data.billing_items.length - index }}
+                                        >
+                                            <td className="px-8 py-5">
+                                                <span className="text-xs font-black text-slate-400">{index + 1}</span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <input 
+                                                    type="text"
+                                                    value={item.name}
+                                                    required
+                                                    onChange={e => handleBillingItemChange(index, 'name', e.target.value)}
+                                                    placeholder="Nama Penagihan..."
+                                                    className="w-full px-4 py-2.5 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl text-sm font-bold text-slate-700 dark:text-blue-400 placeholder:text-slate-300 dark:placeholder:text-blue-900/40 focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-blue-500/10 outline-none transition-all"
+                                                />
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="w-full">
+                                                    <SearchableSelect 
+                                                        options={typeOptions}
+                                                        value={item.type}
+                                                        onChange={val => handleBillingItemChange(index, 'type', val)}
+                                                        placeholder="Pilih Jenis..."
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <button 
+                                                    type="button"
+                                                    disabled={!canEdit}
+                                                    onClick={() => handleBillingItemChange(index, 'completed', !item.completed)}
+                                                    className={`size-10 mx-auto rounded-xl flex items-center justify-center transition-all ${
+                                                        item.completed 
+                                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                                                        : 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 opacity-80'
+                                                    } hover:scale-110 active:scale-95 disabled:opacity-50`}
+                                                >
+                                                    <span className="material-symbols-outlined text-xl">
+                                                        {item.completed ? 'check_circle' : 'cancel'}
+                                                    </span>
+                                                </button>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                {canEdit && (
+                                                    <div className="relative group/tbil inline-block">
+                                                        <button 
+                                                            type="button"
+                                                            disabled={data.billing_items.length === 1}
+                                                            onClick={() => handleRemoveBillingItem(index)}
+                                                            className="size-8 rounded-lg flex items-center justify-center bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all disabled:opacity-30"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                        <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover/tbil:opacity-100 group-hover/tbil:mb-3 transition-all duration-200 whitespace-nowrap shadow-xl shadow-rose-500/20 z-10">
+                                                            Hapus Item
+                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-rose-500"></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                         </fieldset>
                     </div>
@@ -628,7 +805,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-white/5">
+                <div className="hidden xl:flex items-center justify-between pt-6 border-t border-slate-200 dark:border-white/5">
                     <div className="flex items-center gap-4">
                         <div className="size-10 rounded-full bg-slate-200 dark:bg-white/5 flex items-center justify-center border border-slate-100 dark:border-white/10">
                             <span className="material-symbols-outlined text-slate-400">history</span>

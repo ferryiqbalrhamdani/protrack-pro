@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\ActivityLog;
+use App\Models\Company;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -222,6 +223,11 @@ class ReportController extends Controller
     public function projectReport(Request $request)
     {
         $year = $request->query('year', 'All');
+        $search = $request->query('search');
+        $status = $request->query('status', 'All');
+        $company = $request->query('company', 'All');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
 
         $query = Project::with(['company', 'contract.handle', 'pic', 'merchandiser', 'billing', 'shipping'])
             ->orderBy('created_at', 'desc');
@@ -230,8 +236,33 @@ class ReportController extends Controller
             $query->whereYear('contract_date', $year);
         }
 
-        $projects = $query->paginate(10)->through(function ($project) {
-            
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('contract_no', 'like', "%{$search}%")
+                  ->orWhereHas('company', function ($c) use ($search) {
+                      $c->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($status !== 'All') {
+            $query->where('status', $status);
+        }
+
+        if ($company !== 'All') {
+            $query->where('company_id', $company);
+        }
+
+        if ($startDate) {
+            $query->whereDate('contract_date', '>=', $startDate);
+        }
+        
+        if ($endDate) {
+            $query->whereDate('contract_date', '<=', $endDate);
+        }
+
+        $projects = $query->paginate(10)->withQueryString()->through(function ($project) {
             // Map color based on status
             $color = 'blue';
             if ($project->status === 'Completed') $color = 'emerald';
@@ -253,8 +284,16 @@ class ReportController extends Controller
             ];
         });
 
+        // Get full company list that have projects for the filter dropdown
+        $companies = Company::whereHas('projects')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($c) => ['label' => $c->name, 'value' => (string)$c->id]);
+
         return Inertia::render('Reports/ProjectReport', [
             'projects' => $projects,
+            'companies' => $companies,
             'queryParams' => $request->query(),
         ]);
     }

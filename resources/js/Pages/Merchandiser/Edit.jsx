@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SearchableSelect from '@/Components/SearchableSelect';
 import Modal from '@/Components/Modal';
 
@@ -265,6 +266,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
             backUrl={route('merchandiser')}
             backLabel={canEdit ? "Edit Merchandiser" : "Pratinjau Merchandiser"}
             isReviewMode={isReviewMode}
+            bottomStickySlot={<></>}
             stickySlot={
                 <>
                     {/* Read-only Alert */}
@@ -355,6 +357,36 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
             <Head title={`Edit Merchandiser — ${project.name}`} />
 
             <div className="max-w-7xl mx-auto pt-6 pb-12 space-y-8 animate-reveal">
+                
+                {/* Mobile Status Switcher */}
+                <div className="xl:hidden bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-2 shadow-sm flex gap-1 mx-4">
+                    {statusOptions.map((opt) => (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            disabled={!canEdit}
+                            onClick={() => setData('status', opt.id)}
+                            className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-all relative ${
+                                data.status === opt.id
+                                    ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
+                                      opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                      'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-50/50 dark:bg-white/[0.01]'
+                            } disabled:opacity-50`}
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{opt.id}</span>
+                            
+                            {data.status === opt.id && (
+                                <motion.div 
+                                    layoutId="activeStatusEdit"
+                                    className="absolute -bottom-1 size-1 bg-white rounded-full"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
 
                 {/* ── Informasi Project (read-only, always visible) ─────────── */}
                 <SectionCard>
@@ -411,7 +443,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                 {/* ── Tabs ─────────────────────────────────────────────────── */}
                 <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
                     {/* Tab Bar */}
-                    <div className="grid grid-cols-3 md:flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] z-10 relative">
+                    <div className="grid grid-cols-2 md:flex border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] z-10 relative">
                         {tabs.map((tab, i) => (
                             <button
                                 key={i}
@@ -844,7 +876,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                 </div>
                                                 <h4 className="text-xs font-black text-slate-700 dark:text-white uppercase tracking-widest">{sec.label}</h4>
                                             </div>
-                                            <div className={`grid gap-4 ${sec.hasEtd ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                            <div className={`grid gap-4 ${sec.hasEtd ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2'}`}>
                                                 <InputField
                                                     label="Jumlah Item"
                                                     type="text"
@@ -862,13 +894,15 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                     suffix="ea"
                                                 />
                                                 {sec.hasEtd && (
-                                                    <InputField
-                                                        label="ETD"
-                                                        type="date"
-                                                        value={data[`shipping_${sec.key}_etd`] || ''}
-                                                        onChange={e => setData(`shipping_${sec.key}_etd`, e.target.value)}
-                                                        disabled={!canEdit}
-                                                    />
+                                                    <div className="col-span-2 md:col-span-1">
+                                                        <InputField
+                                                            label="ETD"
+                                                            type="date"
+                                                            value={data[`shipping_${sec.key}_etd`] || ''}
+                                                            onChange={e => setData(`shipping_${sec.key}_etd`, e.target.value)}
+                                                            disabled={!canEdit}
+                                                        />
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

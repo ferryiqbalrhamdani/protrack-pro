@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Edit({ contract, auth_user, canEdit }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -293,6 +294,36 @@ export default function Edit({ contract, auth_user, canEdit }) {
 
             <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pt-6 pb-12 px-4 sm:px-6 lg:px-8 space-y-10 animate-reveal">
                 
+                {/* Mobile Status Switcher */}
+                <div className="xl:hidden bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-2 shadow-sm flex gap-1">
+                    {statusOptions.map((opt) => (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            disabled={!canEdit}
+                            onClick={() => setData('status', opt.id)}
+                            className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-all relative ${
+                                data.status === opt.id
+                                    ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
+                                      opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                      'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-50/50 dark:bg-white/[0.01]'
+                            } disabled:opacity-50`}
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{opt.id}</span>
+                            
+                            {data.status === opt.id && (
+                                <motion.div 
+                                    layoutId="activeStatusEdit"
+                                    className="absolute -bottom-1 size-1 bg-white rounded-full"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
+                
                 {/* Section 1: Project Information */}
                 <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-[2rem] p-5 md:p-8 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
@@ -492,69 +523,130 @@ export default function Edit({ contract, auth_user, canEdit }) {
                                     )}
                                 </div>
 
-                                <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm">
-                                    <table className="w-full text-left border-separate border-spacing-0">
-                                        <thead>
-                                            <tr>
-                                                <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 rounded-tl-[2rem]">No</th>
-                                                <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Tahapan</th>
-                                                <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-32">Status</th>
-                                                <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-24 rounded-tr-[2rem]">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {data.steps.map((step, index) => (
-                                                <tr key={index} className="group">
-                                                    <td className={`px-8 py-5 group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0 rounded-bl-[2rem]' : ''}`}>
-                                                        <span className="text-xs font-black text-slate-400">{index + 1}</span>
-                                                    </td>
-                                                    <td className={`px-6 py-5 group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0' : ''}`}>
+                                <div className="space-y-4">
+                                    {/* Mobile Card Layout */}
+                                    <div className="md:hidden space-y-4">
+                                        {data.steps.map((step, index) => (
+                                            <div key={index} className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-5 space-y-4 shadow-sm group animate-reveal">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="size-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200/50 dark:border-white/5">
+                                                            {index + 1}
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Tahapan</span>
+                                                    </div>
+                                                    {canEdit && (
+                                                        <button 
+                                                            type="button"
+                                                            disabled={data.steps.length === 1}
+                                                            onClick={() => handleRemoveStep(index)}
+                                                            className="size-8 rounded-xl bg-rose-500/5 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all disabled:opacity-30"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Nama Tahapan</label>
                                                         <input 
                                                             type="text"
                                                             value={step.name}
                                                             onChange={e => handleStepChange(index, 'name', e.target.value)}
                                                             placeholder="Nama Tahapan..."
-                                                            className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 disabled:opacity-50"
+                                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-black/20 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white font-bold placeholder:text-slate-300 dark:placeholder:text-slate-600 disabled:opacity-50"
                                                         />
-                                                    </td>
-                                                    <td className={`px-6 py-5 text-center group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0' : ''}`}>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-2 border-t border-slate-100/50 dark:border-white/5 px-1">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selesai?</span>
                                                         <button 
                                                             type="button"
                                                             disabled={!canEdit}
                                                             onClick={() => handleStepChange(index, 'completed', !step.completed)}
-                                                            className={`size-8 mx-auto rounded-xl flex items-center justify-center transition-all ${
+                                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl transition-all ${
                                                                 step.completed 
-                                                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 scale-110' 
-                                                                : 'bg-slate-100 dark:bg-white/5 text-slate-300 dark:text-slate-600 hover:text-slate-400'
-                                                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                                                                : 'bg-slate-100 dark:bg-white/5 text-slate-400 border border-slate-200 dark:border-white/10'
+                                                            } disabled:opacity-50 font-black text-[10px] uppercase tracking-widest`}
                                                         >
-                                                            <span className="material-symbols-outlined text-lg font-black">
-                                                                {step.completed ? 'check' : 'close'}
+                                                            <span className="material-symbols-outlined text-[18px]">
+                                                                {step.completed ? 'check_circle' : 'circle'}
                                                             </span>
+                                                            {step.completed ? 'SELESAI' : 'BELUM'}
                                                         </button>
-                                                    </td>
-                                                    <td className={`px-8 py-5 text-right group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0 rounded-br-[2rem]' : ''}`}>
-                                                        {canEdit && (
-                                                            <div className="relative group/tooltip inline-block">
-                                                                <button 
-                                                                    type="button"
-                                                                    disabled={data.steps.length === 1}
-                                                                    onClick={() => handleRemoveStep(index)}
-                                                                    className="size-8 rounded-lg bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                                                >
-                                                                    <span className="material-symbols-outlined text-lg">delete</span>
-                                                                </button>
-                                                                <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover/tooltip:opacity-100 group-hover/tooltip:-translate-y-1 transition-all duration-300 whitespace-nowrap shadow-xl shadow-rose-500/20 z-50">
-                                                                    Hapus Tahapan
-                                                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-rose-500"></div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </td>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Desktop Table Layout */}
+                                    <div className="hidden md:block bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                                        <table className="w-full text-left border-separate border-spacing-0">
+                                            <thead>
+                                                <tr>
+                                                    <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">No</th>
+                                                    <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Tahapan</th>
+                                                    <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-32">Status</th>
+                                                    <th className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-24">Aksi</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {data.steps.map((step, index) => (
+                                                    <tr key={index} className="group">
+                                                        <td className={`px-8 py-5 group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0' : ''}`}>
+                                                            <span className="text-xs font-black text-slate-400">{index + 1}</span>
+                                                        </td>
+                                                        <td className={`px-6 py-5 group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0' : ''}`}>
+                                                            <input 
+                                                                type="text"
+                                                                value={step.name}
+                                                                onChange={e => handleStepChange(index, 'name', e.target.value)}
+                                                                placeholder="Nama Tahapan..."
+                                                                className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 disabled:opacity-50"
+                                                            />
+                                                        </td>
+                                                        <td className={`px-6 py-5 text-center group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0' : ''}`}>
+                                                            <button 
+                                                                type="button"
+                                                                disabled={!canEdit}
+                                                                onClick={() => handleStepChange(index, 'completed', !step.completed)}
+                                                                className={`size-8 mx-auto rounded-xl flex items-center justify-center transition-all ${
+                                                                    step.completed 
+                                                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 scale-110' 
+                                                                    : 'bg-slate-100 dark:bg-white/5 text-slate-300 dark:text-slate-600 hover:text-slate-400'
+                                                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                            >
+                                                                <span className="material-symbols-outlined text-lg font-black">
+                                                                    {step.completed ? 'check' : 'close'}
+                                                                </span>
+                                                            </button>
+                                                        </td>
+                                                        <td className={`px-8 py-5 text-right group-hover:bg-slate-50/30 dark:group-hover:bg-white/[0.01] transition-colors border-b border-slate-50 dark:border-white/5 ${index === data.steps.length - 1 ? 'border-b-0' : ''}`}>
+                                                            {canEdit && (
+                                                                <div className="relative group/tooltip inline-block">
+                                                                    <button 
+                                                                        type="button"
+                                                                        disabled={data.steps.length === 1}
+                                                                        onClick={() => handleRemoveStep(index)}
+                                                                        className="size-8 rounded-lg bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                                                    </button>
+                                                                    <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover/tooltip:opacity-100 group-hover/tooltip:-translate-y-1 transition-all duration-300 whitespace-nowrap shadow-xl shadow-rose-500/20 z-50">
+                                                                        Hapus Tahapan
+                                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-rose-500"></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </fieldset>
                         )}
