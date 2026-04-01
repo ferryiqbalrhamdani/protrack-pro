@@ -7,7 +7,17 @@ import BottomNavigation from '@/Components/BottomNavigation';
 import BottomSheet from '@/Components/BottomSheet';
 import { useTheme } from '@/Components/ThemeProvider';
 
-export default function AuthenticatedLayout({ header, children, stickySlot, bottomStickySlot, backUrl, backLabel, isReviewMode = false, hideTopbarMobile = false }) {
+export default function AuthenticatedLayout({ 
+    header, 
+    children, 
+    stickySlot, 
+    bottomStickySlot, 
+    backUrl, 
+    backLabel, 
+    isReviewMode = false, 
+    hideTopbarMobile = false,
+    progress = undefined 
+}) {
     const { user, permissions, is_admin } = usePage().props.auth;
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -644,6 +654,18 @@ export default function AuthenticatedLayout({ header, children, stickySlot, bott
                     <span className="material-symbols-outlined">menu_open</span>
                 </button>
             </div>
+
+            {/* Mobile Progress Bar */}
+            {progress !== undefined && (
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-slate-100 dark:bg-white/5 xl:hidden overflow-hidden origin-left">
+                    <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                    />
+                </div>
+            )}
         </header>
             </div>
 

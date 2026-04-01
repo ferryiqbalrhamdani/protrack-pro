@@ -180,6 +180,7 @@ export default function Edit({ contract, auth_user, canEdit }) {
             backUrl={route('contracts')}
             backLabel={canEdit ? "Edit Kontrak" : "Pratinjau Kontrak"}
             isReviewMode={!canEdit}
+            progress={progress}
             bottomStickySlot={
                 <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-4 py-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5 flex gap-3 mx-auto max-w-sm">
                     <Link 
@@ -203,20 +204,12 @@ export default function Edit({ contract, auth_user, canEdit }) {
                 </div>
             }
             stickySlot={
-                <>
+                <div className="sticky top-0 z-40 hidden xl:block w-full">
                     {/* Read-only Alert for non-authorized users or specific project statuses */}
-                    <div className="hidden xl:block">
                     {!canEdit && (
-                        <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
-                            contract.project_status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                            contract.project_status === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
-                            'bg-rose-500/10 border-rose-500/20 text-rose-500'
-                        }`}>
-                            <span className="material-symbols-outlined shrink-0">
-                                {contract.project_status === 'Pending' ? 'pause_circle' : 
-                                 contract.project_status === 'Completed' ? 'verified' : 'lock'}
-                            </span>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-center">
+                        <div className="px-4 sm:px-6 lg:px-8 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-3">
+                            <span className="material-symbols-outlined text-amber-600 font-bold text-xl">lock_open</span>
+                            <p className="text-[11px] font-black text-amber-700 uppercase tracking-[0.2em]">
                                 {contract.project_status === 'Pending' ? 'Data tidak bisa diubah karena status Project sedang Pending' :
                                  contract.project_status === 'Completed' ? 'Mode Pratinjau: Project telah Selesai (Completed). Data tidak dapat diubah.' :
                                  `Mode Pratinjau: Hanya ${contract.handle?.name || 'User Berwenang'} yang dapat mengubah data ini.`}
@@ -224,8 +217,8 @@ export default function Edit({ contract, auth_user, canEdit }) {
                         </div>
                     )}
 
-                    {/* Sticky Progress Header */}
-                    <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                    {/* Sticky Progress Header - Desktop Only */}
+                    <div className="px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-4">
                                 <Link 
@@ -287,7 +280,6 @@ export default function Edit({ contract, auth_user, canEdit }) {
                         </div>
                     </div>
                 </div>
-                </>
             }
         >
             <Head title={`Edit - ${contract.name}`} />

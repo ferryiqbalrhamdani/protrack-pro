@@ -7,7 +7,7 @@ const ModuleModal = ({ isOpen, onClose, module }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10 animate-fade-in">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
-            <div className="relative w-full max-w-2xl bg-white dark:bg-[#0a0a0a] rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-reveal">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-[#161d31] rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-reveal">
                 <div className="absolute top-0 right-0 p-6 flex gap-4">
                      <button onClick={onClose} className="size-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
                         <span className="material-symbols-outlined !text-xl">close</span>
@@ -92,7 +92,7 @@ const LegalModal = ({ isOpen, onClose, type }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10 animate-fade-in">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
-            <div className="relative w-full max-w-2xl bg-white dark:bg-[#0a0a0a] rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-reveal">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-[#161d31] rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-reveal">
                 <div className="p-10 lg:p-14">
                     <h3 className="text-3xl font-black mb-8 tracking-tight">{content.title}</h3>
                     <div className="space-y-8 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
@@ -236,7 +236,7 @@ export default function LandingPage({ auth }) {
     return (
         <>
             <Head title="Protrack Pro | Enterprise Project Integrity" />
-            <div className="bg-slate-50 dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100 antialiased transition-colors duration-700 selection:bg-indigo-600/30">
+            <div className="bg-slate-50 dark:bg-[#0c1120] font-sans text-slate-900 dark:text-slate-100 antialiased transition-colors duration-700 selection:bg-indigo-600/30">
                 
                 {/* Dynamic Background */}
                 <div className="fixed inset-0 pointer-events-none -z-10">
@@ -246,9 +246,9 @@ export default function LandingPage({ auth }) {
                 </div>
 
                 {/* Minimalist Header */}
-                <header className={`fixed top-0 left-0 w-full z-[80] transition-all duration-300 ${scrolled ? 'bg-white/80 dark:bg-black/80 backdrop-blur-xl py-3 border-b border-slate-200/50 dark:border-white/5 shadow-sm' : 'bg-transparent py-5'}`}>
+                <header className={`fixed top-0 left-0 w-full z-[80] transition-all duration-500 border-b ${scrolled ? 'bg-white/70 dark:bg-[#0c1120]/70 backdrop-blur-2xl py-3 border-slate-200/50 dark:border-white/[0.05] shadow-lg' : 'bg-transparent py-5 border-transparent'}`}>
                     <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-3.5 group cursor-pointer">
+                        <Link href="/" className={`flex items-center gap-3.5 group cursor-pointer transition-opacity duration-300 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="relative size-10 flex items-center justify-center bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl overflow-hidden shadow-2xl transition-all group-hover:scale-110 active:scale-95">
                                 <span className="material-symbols-outlined !text-2xl z-10">analytics</span>
                                 <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -277,7 +277,7 @@ export default function LandingPage({ auth }) {
                             </button>
                             <Link
                                 href={auth.user ? route('dashboard') : route('login')}
-                                className="hidden sm:inline-flex h-11 px-7 items-center justify-center rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-indigo-500/10 dark:shadow-none"
+                                className={`hidden sm:inline-flex h-11 px-7 items-center justify-center rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-indigo-500/10 dark:shadow-none ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                             >
                                 {auth.user ? 'Ke Dashboard' : 'Member Area'}
                             </Link>
@@ -334,12 +334,12 @@ export default function LandingPage({ auth }) {
 
                             {/* Realistic Dashboard Mockup */}
                             <div className="mt-24 relative w-full max-w-6xl mx-auto group animate-reveal [animation-delay:600ms]">
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50 dark:to-[#050505] z-10 pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50 dark:to-[#0c1120] z-10 pointer-events-none" />
                                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-4/5 h-20 bg-indigo-500/20 blur-[80px] -z-10" />
                                 
-                                <div className="relative rounded-3xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] dark:shadow-none overflow-hidden border-t-white/20 dark:border-t-white/5 transition-all duration-700 group-hover:shadow-[0_60px_120px_-30px_rgba(79,70,229,0.2)]">
+                                <div className="relative rounded-3xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#161d31]/80 backdrop-blur-xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] dark:shadow-none overflow-hidden border-t-white/20 dark:border-t-white/5 transition-all duration-700 group-hover:shadow-[0_60px_120px_-30px_rgba(79,70,229,0.2)]">
                                     {/* Mockup Internal Header */}
-                                    <div className="flex items-center justify-between px-6 lg:px-8 py-4 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#0a0a0a] relative z-20">
+                                    <div className="flex items-center justify-between px-6 lg:px-8 py-4 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#161d31] relative z-20">
                                         <div className="flex items-center gap-2.5">
                                             <div className="size-8 flex items-center justify-center bg-indigo-600 text-white rounded-lg">
                                                 <span className="material-symbols-outlined !text-xl">dashboard_customize</span>
@@ -369,7 +369,7 @@ export default function LandingPage({ auth }) {
                                             </div>
                                             <div className="relative">
                                                 <span className="material-symbols-outlined !text-2xl">notifications</span>
-                                                <div className="absolute top-0 right-0 size-1.5 bg-red-500 border border-white dark:border-[#0a0a0a] rounded-full" />
+                                                <div className="absolute top-0 right-0 size-1.5 bg-red-500 border border-white dark:border-[#161d31] rounded-full" />
                                             </div>
                                             <span className="hidden lg:inline material-symbols-outlined">settings</span>
                                             <div className="hidden lg:block size-8 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden shrink-0">
@@ -378,7 +378,7 @@ export default function LandingPage({ auth }) {
                                         </div>
                                     </div>
 
-                                    <div className="p-6 lg:p-12 space-y-10 bg-[#f8fafc] dark:bg-[#050505] overflow-y-auto max-h-[700px] custom-scrollbar pb-32 lg:pb-12">
+                                    <div className="p-6 lg:p-12 space-y-10 bg-[#f8fafc] dark:bg-[#0c1120] overflow-y-auto max-h-[700px] custom-scrollbar pb-32 lg:pb-12">
                                         {mockTab === 'dashboard' ? (
                                             <div className="animate-reveal space-y-10">
                                                 <div className="flex flex-col justify-start items-start gap-6">
@@ -787,7 +787,7 @@ export default function LandingPage({ auth }) {
 
                                     {/* Mockup Internal Bottom Navigation (Mobile Only) */}
                                     <div className="lg:hidden absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] z-[30]">
-                                        <div className="bg-white dark:bg-[#0a0a0a] rounded-[2rem] p-3 flex items-center justify-between shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-white/5">
+                                        <div className="bg-white dark:bg-[#161d31] rounded-[2rem] p-3 flex items-center justify-between shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-white/5">
                                             {[
                                                 { id: 'dashboard', label: 'DASHBOARD', icon: 'grid_view' },
                                                 { id: 'reports', label: 'REPORTS', icon: 'bar_chart' },
@@ -829,7 +829,7 @@ export default function LandingPage({ auth }) {
                                 {/* Contract Module */}
                                 <div 
                                     onClick={() => setSelectedModule(modules[0])}
-                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] group hover:border-indigo-500/50 transition-all overflow-hidden relative cursor-pointer"
+                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d31] group hover:border-indigo-500/50 transition-all overflow-hidden relative cursor-pointer"
                                 >
                                     <div className="relative z-10 h-full flex flex-col justify-between">
                                         <div className="size-14 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-indigo-500/10">
@@ -846,7 +846,7 @@ export default function LandingPage({ auth }) {
                                 {/* Merchandising Module */}
                                 <div 
                                     onClick={() => setSelectedModule(modules[1])}
-                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] group hover:border-violet-500/50 transition-all relative overflow-hidden cursor-pointer"
+                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d31] group hover:border-violet-500/50 transition-all relative overflow-hidden cursor-pointer"
                                 >
                                     <div className="relative z-10 h-full flex flex-col justify-between">
                                         <div className="size-14 rounded-2xl bg-violet-500/10 dark:bg-violet-500/20 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-violet-500/10">
@@ -863,7 +863,7 @@ export default function LandingPage({ auth }) {
                                 {/* Logistics Module */}
                                 <div 
                                     onClick={() => setSelectedModule(modules[2])}
-                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] group hover:border-sky-500/50 transition-all relative overflow-hidden cursor-pointer"
+                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d31] group hover:border-sky-500/50 transition-all relative overflow-hidden cursor-pointer"
                                 >
                                     <div className="relative z-10 h-full flex flex-col justify-between">
                                         <div className="size-14 rounded-2xl bg-sky-500/10 dark:bg-sky-500/20 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-sky-500/10">
@@ -880,7 +880,7 @@ export default function LandingPage({ auth }) {
                                 {/* Finance Module */}
                                 <div 
                                     onClick={() => setSelectedModule(modules[3])}
-                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] group hover:border-emerald-500/50 transition-all relative overflow-hidden cursor-pointer"
+                                    className="md:col-span-2 p-8 lg:p-12 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161d31] group hover:border-emerald-500/50 transition-all relative overflow-hidden cursor-pointer"
                                 >
                                     <div className="relative z-10 h-full flex flex-col justify-between">
                                         <div className="size-14 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-emerald-500/10">
@@ -1104,7 +1104,7 @@ export default function LandingPage({ auth }) {
                     </section>
                 </main>
 
-                <footer className="py-20 px-6 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#050505] relative z-20">
+                <footer className="py-20 px-6 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#0c1120] relative z-20">
                     <div className="max-w-7xl mx-auto">
                         <div className="flex flex-col lg:flex-row justify-between items-start gap-16 mb-20">
                             <div>
@@ -1172,10 +1172,17 @@ export default function LandingPage({ auth }) {
             </div>
 
             {/* Mobile Navigation Drawer */}
-            <div className={`lg:hidden fixed inset-0 z-[70] transition-all duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`lg:hidden fixed inset-0 z-[100] transition-all duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsMenuOpen(false)} />
-                <div className={`absolute right-0 top-0 bottom-0 w-[280px] bg-white dark:bg-[#0a0a0a] border-l border-slate-200 dark:border-white/10 transition-transform duration-500 transform ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                    <div className="p-8 space-y-8 h-full flex flex-col pt-24">
+                <div className={`absolute right-0 top-0 bottom-0 w-[300px] bg-white dark:bg-[#161d31] border-l border-slate-200 dark:border-white/10 transition-transform duration-500 transform ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <div className="p-8 space-y-8 h-full flex flex-col relative pt-24">
+                        {/* Close button inside drawer */}
+                        <button 
+                            onClick={() => setIsMenuOpen(false)}
+                            className="absolute top-6 right-6 size-11 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400"
+                        >
+                            <span className="material-symbols-outlined !text-2xl">close</span>
+                        </button>
                         <div className="space-y-4">
                             <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Navigasi</span>
                             <div className="flex flex-col gap-4">
@@ -1184,7 +1191,7 @@ export default function LandingPage({ auth }) {
                                         key={item}
                                         href={`#${item.toLowerCase().replace(' ', '-')}`}
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="text-2xl font-black hover:text-indigo-600 transition-colors"
+                                        className="text-2xl font-black text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                     >
                                         {item}
                                     </a>
@@ -1195,10 +1202,10 @@ export default function LandingPage({ auth }) {
                             <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Pengaturan</span>
                             <button 
                                 onClick={toggleDarkMode}
-                                className="w-full h-14 px-6 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-between font-bold"
+                                className="w-full h-14 px-6 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-between font-bold text-slate-900 dark:text-white"
                             >
                                 Tampilan {isDark ? 'Gelap' : 'Terang'}
-                                <span className="material-symbols-outlined">{isDark ? 'dark_mode' : 'light_mode'}</span>
+                                <span className={`material-symbols-outlined ${isDark ? 'text-indigo-400' : 'text-amber-500'}`}>{isDark ? 'dark_mode' : 'light_mode'}</span>
                             </button>
                         </div>
                         <div className="mt-auto">

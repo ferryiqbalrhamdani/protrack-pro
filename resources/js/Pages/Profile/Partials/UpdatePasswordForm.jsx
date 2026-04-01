@@ -49,9 +49,9 @@ export default function UpdatePasswordForm({ className = '' }) {
     return (
         <div className="space-y-6">
             {/* Password Toggle Row */}
-            <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-[2rem] border border-slate-100 dark:border-white/5 group hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-slate-50 dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5 group hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all gap-6">
                 <div className="flex items-center gap-6">
-                    <div className="size-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div className="size-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800 shrink-0">
                         <span className="material-symbols-outlined text-slate-600 dark:text-slate-400 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">lock</span>
                     </div>
                     <div>
@@ -62,7 +62,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                 <button
                     type="button"
                     onClick={() => setShowForm(!showForm)}
-                    className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all shadow-sm"
+                    className="w-full sm:w-auto px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all shadow-sm"
                 >
                     {showForm ? 'Tutup' : 'Ubah Password'}
                 </button>

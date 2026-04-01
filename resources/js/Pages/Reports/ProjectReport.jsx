@@ -77,115 +77,117 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
     return (
         <AuthenticatedLayout
             stickySlot={
-                <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-3 bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur-md border-b border-slate-100 dark:border-white/5 transition-all transition-all duration-300">
-                    <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center justify-between w-full lg:w-auto gap-4">
-                            <div className="flex items-center gap-3">
-                                <Link 
-                                    href={route('reports')}
-                                    className="size-9 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-primary dark:hover:text-blue-400 transition-all border border-slate-100 dark:border-white/5"
-                                >
-                                    <span className="material-symbols-outlined text-xl">arrow_back</span>
-                                </Link>
-                                <div>
-                                    <h1 className="text-lg font-black text-slate-800 dark:text-white leading-tight uppercase italic tracking-tight">Project Report</h1>
-                                    <p className="hidden md:block text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                                        Monitoring & Analisis Progress Fisik
-                                    </p>
+                <div className="sticky top-0 z-40 hidden xl:block w-full backdrop-blur-md bg-white/90 dark:bg-[#0b1120]/90 border-b border-slate-200 dark:border-white/5 transition-all transition-all duration-300">
+                    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center justify-between w-full lg:w-auto gap-4">
+                                <div className="flex items-center gap-3">
+                                    <Link 
+                                        href={route('reports')}
+                                        className="size-9 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-primary dark:hover:text-blue-400 transition-all border border-slate-100 dark:border-white/5"
+                                    >
+                                        <span className="material-symbols-outlined text-xl">arrow_back</span>
+                                    </Link>
+                                    <div>
+                                        <h1 className="text-lg font-black text-slate-800 dark:text-white leading-tight uppercase italic tracking-tight">Project Report</h1>
+                                        <p className="hidden md:block text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                            Monitoring & Analisis Progress Fisik
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Export Button - Mobile Only (Right) */}
-                            <button className="md:hidden size-9 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-90 transition-all">
-                                <span className="material-symbols-outlined text-xl">export_notes</span>
-                            </button>
-                        </div>
-
-                        <div className="flex items-center w-full lg:w-auto gap-2 lg:gap-3">
-                            <div className="relative group flex-grow lg:w-80">
-                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-primary transition-colors text-lg">search</span>
-                                <input 
-                                    type="text" 
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Cari project atau client..."
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-[10px] font-black focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none text-slate-600 dark:text-slate-200 placeholder:text-slate-400 uppercase tracking-widest"
-                                />
-                            </div>
-
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setShowMoreFilters(!showMoreFilters)}
-                                    className={`size-10 lg:w-auto lg:px-4 lg:py-2.5 rounded-2xl flex items-center justify-center gap-2 transition-all border ${
-                                        showMoreFilters 
-                                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
-                                        : 'bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-400'
-                                    }`}
-                                >
-                                    <span className="material-symbols-outlined text-lg leading-none">filter_alt</span>
-                                    <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest leading-none">Filter</span>
+                                {/* Export Button - Mobile Only (Right) */}
+                                <button className="md:hidden size-9 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-90 transition-all">
+                                    <span className="material-symbols-outlined text-xl">export_notes</span>
                                 </button>
+                            </div>
 
-                                {/* Filter Popover (Desktop) */}
-                                {showMoreFilters && !isMobile && (
-                                    <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#141720] border border-slate-100 dark:border-white/10 rounded-[2rem] shadow-2xl z-50 animate-reveal">
-                                        <div className="fixed inset-0 z-40" onClick={() => setShowMoreFilters(false)} />
-                                        <div className="relative z-50">
-                                            {/* Header */}
-                                            <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-white/5 rounded-t-[2rem]">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                                                            <span className="material-symbols-outlined text-lg">tune</span>
+                            <div className="flex items-center w-full lg:w-auto gap-2 lg:gap-3">
+                                <div className="relative group flex-grow lg:w-80">
+                                    <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-primary transition-colors text-lg">search</span>
+                                    <input 
+                                        type="text" 
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        placeholder="Cari project atau client..."
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-[10px] font-black focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none text-slate-600 dark:text-slate-200 placeholder:text-slate-400 uppercase tracking-widest"
+                                    />
+                                </div>
+
+                                <div className="relative">
+                                    <button 
+                                        onClick={() => setShowMoreFilters(!showMoreFilters)}
+                                        className={`size-10 lg:w-auto lg:px-4 lg:py-2.5 rounded-2xl flex items-center justify-center gap-2 transition-all border ${
+                                            showMoreFilters 
+                                            ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
+                                            : 'bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined text-lg leading-none">filter_alt</span>
+                                        <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest leading-none">Filter</span>
+                                    </button>
+
+                                    {/* Filter Popover (Desktop) */}
+                                    {showMoreFilters && !isMobile && (
+                                        <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#141720] border border-slate-100 dark:border-white/10 rounded-[2rem] shadow-2xl z-50 animate-reveal">
+                                            <div className="fixed inset-0 z-40" onClick={() => setShowMoreFilters(false)} />
+                                            <div className="relative z-50">
+                                                {/* Header */}
+                                                <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-white/5 rounded-t-[2rem]">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                                                <span className="material-symbols-outlined text-lg">tune</span>
+                                                            </div>
+                                                            <h4 className="text-xs font-black text-slate-700 dark:text-white uppercase tracking-widest">Filter Lanjutan</h4>
                                                         </div>
-                                                        <h4 className="text-xs font-black text-slate-700 dark:text-white uppercase tracking-widest">Filter Lanjutan</h4>
+                                                        <button
+                                                            onClick={() => setShowMoreFilters(false)}
+                                                            className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">close</span>
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        onClick={() => setShowMoreFilters(false)}
-                                                        className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all"
+                                                </div>
+
+                                                {/* Filters Content */}
+                                                <div className="px-6 py-5 space-y-6">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perusahaan</label>
+                                                            <SearchableSelect
+                                                                options={companyOptions}
+                                                                value={companyFilter}
+                                                                onChange={(val) => setCompanyFilter(val)}
+                                                                className="rounded-xl border-slate-100 dark:border-white/10 text-[10px] font-bold"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                {/* Footer */}
+                                                <div className="px-6 pb-6 mt-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSearch('');
+                                                            setStatusFilter('All');
+                                                            setCompanyFilter('All');
+                                                            setDateRange({ start: '', end: '' });
+                                                            setShowMoreFilters(false);
+                                                        }}
+                                                        className="w-full py-3 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-200 dark:hover:bg-white/10"
                                                     >
-                                                        <span className="material-symbols-outlined text-lg">close</span>
+                                                        Reset Filter
                                                     </button>
                                                 </div>
                                             </div>
-
-                                            {/* Filters Content */}
-                                            <div className="px-6 py-5 space-y-6">
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perusahaan</label>
-                                                        <SearchableSelect
-                                                            options={companyOptions}
-                                                            value={companyFilter}
-                                                            onChange={(val) => setCompanyFilter(val)}
-                                                            className="rounded-xl border-slate-100 dark:border-white/10 text-[10px] font-bold"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                            {/* Footer */}
-                                            <div className="px-6 pb-6 mt-2">
-                                                <button 
-                                                    onClick={() => {
-                                                        setSearch('');
-                                                        setStatusFilter('All');
-                                                        setCompanyFilter('All');
-                                                        setDateRange({ start: '', end: '' });
-                                                        setShowMoreFilters(false);
-                                                    }}
-                                                    className="w-full py-3 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-200 dark:hover:bg-white/10"
-                                                >
-                                                    Reset Filter
-                                                </button>
-                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
 
-                            <button className="hidden lg:flex px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all items-center gap-2 leading-none">
-                                <span className="material-symbols-outlined text-lg leading-none">export_notes</span>
-                                Export
-                            </button>
+                                <button className="hidden lg:flex px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all items-center gap-2 leading-none">
+                                    <span className="material-symbols-outlined text-lg leading-none">export_notes</span>
+                                    Export
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -242,6 +244,46 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
             )}
 
             <div className="relative px-4 sm:px-6 lg:px-8 py-6">
+                {/* Mobile Header Only */}
+                <div className="xl:hidden flex flex-col gap-6 mb-8 animate-reveal">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Link 
+                                href={route('reports')}
+                                className="size-10 flex items-center justify-center rounded-2xl bg-white dark:bg-white/5 text-slate-400 border border-slate-100 dark:border-white/10 shadow-sm"
+                            >
+                                <span className="material-symbols-outlined text-xl">arrow_back</span>
+                            </Link>
+                            <div>
+                                <h1 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter leading-tight">Project Report</h1>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Monitoring Progress Fisik</p>
+                            </div>
+                        </div>
+                        <button className="size-10 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-95 transition-all">
+                            <span className="material-symbols-outlined text-xl">export_notes</span>
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="relative group flex-1">
+                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                            <input 
+                                type="text" 
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Cari project..."
+                                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-[10px] font-black focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none text-slate-600 dark:text-slate-200 placeholder:text-slate-400 uppercase tracking-widest"
+                            />
+                        </div>
+                        <button 
+                            onClick={() => setShowMoreFilters(true)}
+                            className="size-12 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all"
+                        >
+                            <span className="material-symbols-outlined text-xl">filter_alt</span>
+                        </button>
+                    </div>
+                </div>
+
                 {/* Table Section (Desktop) */}
                 <div className="hidden md:block bg-white dark:bg-white/[0.02] rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl overflow-hidden ring-1 ring-slate-100/50 dark:ring-white/5 whitespace-nowrap">
                     <div className="overflow-x-auto custom-scrollbar">

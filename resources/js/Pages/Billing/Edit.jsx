@@ -155,6 +155,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
             backUrl={route('billing')}
             backLabel={canEdit ? "Edit Penagihan" : "Pratinjau Penagihan"}
             isReviewMode={!canEdit}
+            progress={progress}
             bottomStickySlot={
                 <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-4 py-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5 flex gap-3 mx-auto max-w-sm">
                     <Link 
@@ -178,28 +179,21 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                 </div>
             }
             stickySlot={
-                <>
+                <div className="sticky top-0 z-40 hidden xl:block w-full">
                     {/* Read-only Alert for non-authorized users */}
-                    <div className="hidden xl:block">
                     {!canEdit && (
-                        <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
-                            project.project_status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                            project.project_status === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
-                            'bg-rose-500/10 border-rose-500/20 text-rose-500'
-                        }`}>
-                            <span className="material-symbols-outlined shrink-0">
-                                {project.project_status === 'Pending' ? 'pause_circle' : 
-                                 project.project_status === 'Completed' ? 'verified' : 'lock'}
-                            </span>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-center">
-                                {project.project_status === 'Pending' ? 'Data tidak bisa diubah karena status Project sedang Pending' :
-                                 project.project_status === 'Completed' ? 'Mode Pratinjau: Project telah Selesai (Completed). Data tidak dapat diubah.' :
-                                 `Mode Pratinjau: Data ini sedang ditangani oleh user lain atau Anda tidak memiliki akses.`}
+                        <div className="px-4 sm:px-6 lg:px-8 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-3 text-amber-600">
+                            <span className="material-symbols-outlined font-black text-xl">lock_open</span>
+                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-center">
+                                {project.status === 'Pending' ? 'Data tidak bisa diubah karena status Project sedang Pending' :
+                                 project.status === 'Completed' ? 'Mode Pratinjau: Project telah Selesai (Completed). Data tidak dapat diubah.' :
+                                 `Mode Pratinjau: Hanya PIC yang ditunjuk atau Admin yang dapat mengubah data ini.`}
                             </p>
                         </div>
                     )}
 
-                    <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                    {/* Sticky Header - Desktop Only */}
+                    <div className="px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-4">
                                 <Link 
@@ -209,20 +203,19 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                                     <span className="material-symbols-outlined">arrow_back</span>
                                 </Link>
                                 <div>
-                                    <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">
-                                        {canEdit ? 'Edit Penagihan' : 'Pertinjauan Penagihan'}
-                                    </h1>
+                                    <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">Edit Billing</h1>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                                        {project.up_no}
-                                        {project.project_status === 'Pending' && (
+                                        {project.up_no} 
+                                        {project.status === 'Pending' && (
                                             <span className="ml-2 px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-full text-[8px]">Project Pending</span>
                                         )}
-                                        {project.project_status === 'Completed' && (
+                                        {project.status === 'Completed' && (
                                             <span className="ml-2 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full text-[8px]">Project Selesai</span>
                                         )}
                                     </p>
                                 </div>
 
+                                {/* Status Toggle Buttons */}
                                 <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl ml-4">
                                     {statusOptions.map((opt) => (
                                         <button
@@ -247,7 +240,7 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
 
                             <div className="flex flex-col items-end gap-2 w-full lg:w-64">
                                 <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
-                                    <span className="text-slate-400">Total Progress Penagihan</span>
+                                    <span className="text-slate-400">Total Progress</span>
                                     <span className="text-primary dark:text-blue-400">{progress}%</span>
                                 </div>
                                 <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
@@ -260,7 +253,6 @@ export default function Edit({ project, billing, auth_user, canEdit }) {
                         </div>
                     </div>
                 </div>
-                </>
             }
         >
             <Head title={`Edit Penagihan - ${project.name}`} />

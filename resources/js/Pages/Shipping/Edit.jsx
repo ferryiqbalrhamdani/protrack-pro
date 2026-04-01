@@ -141,6 +141,7 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
             backUrl={route('shipping')}
             backLabel={canEdit ? "Edit Pengiriman" : "Pratinjau Pengiriman"}
             isReviewMode={!canEdit}
+            progress={progress}
             bottomStickySlot={
                 <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-white/10 px-4 py-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/5 flex gap-3 mx-auto max-w-sm">
                     <Link 
@@ -164,20 +165,12 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                 </div>
             }
             stickySlot={
-                <>
+                <div className="sticky top-0 z-40 hidden xl:block w-full">
                     {/* Read-only Alert for non-authorized users */}
-                    <div className="hidden xl:block">
                     {!canEdit && (
-                        <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
-                            project.project_status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                            project.project_status === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
-                            'bg-rose-500/10 border-rose-500/20 text-rose-500'
-                        }`}>
-                            <span className="material-symbols-outlined shrink-0">
-                                {project.project_status === 'Pending' ? 'pause_circle' : 
-                                 project.project_status === 'Completed' ? 'verified' : 'lock'}
-                            </span>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <div className="px-4 sm:px-6 lg:px-8 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-3">
+                            <span className="material-symbols-outlined text-amber-600 font-bold text-xl">lock_open</span>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
                                 <span>Mode Pratinjau:</span>
                                 {project.project_status === 'Pending' || project.project_status === 'Completed' ? (
                                     <span className="opacity-90">Project ini berstatus {project.project_status}. Data tidak dapat diubah.</span>
@@ -188,70 +181,68 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                         </div>
                     )}
 
-                    <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
-                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <Link 
-                                href={route('shipping')}
-                                className="size-10 flex items-center justify-center rounded-xl bg-white dark:bg-white/5 text-slate-400 hover:text-primary dark:hover:text-blue-400 transition-all border border-slate-100 dark:border-white/5 shadow-sm"
-                            >
-                                <span className="material-symbols-outlined">arrow_back</span>
-                            </Link>
-                            <div>
-                                <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">
-                                    {canEdit ? 'Edit Pengiriman' : 'Pertinjauan Pengiriman'}
-                                </h1>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                                    {project.up_no}
-                                    {project.project_status === 'Pending' && (
-                                        <span className="ml-2 px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-full text-[8px]">Project Pending</span>
-                                    )}
-                                    {project.project_status === 'Completed' && (
-                                        <span className="ml-2 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full text-[8px]">Project Selesai</span>
-                                    )}
-                                </p>
+                    {/* Sticky Header - Desktop Only */}
+                    <div className="px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-4">
+                                <Link 
+                                    href={route('shipping')}
+                                    className="size-10 flex items-center justify-center rounded-xl bg-white dark:bg-white/5 text-slate-400 hover:text-primary dark:hover:text-blue-400 transition-all border border-slate-100 dark:border-white/5 shadow-sm"
+                                >
+                                    <span className="material-symbols-outlined">arrow_back</span>
+                                </Link>
+                                <div>
+                                    <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">
+                                        {canEdit ? 'Edit Pengiriman' : 'Pertinjauan Pengiriman'}
+                                    </h1>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                        {project.up_no}
+                                        {project.project_status === 'Pending' && (
+                                            <span className="ml-2 px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-full text-[8px]">Project Pending</span>
+                                        )}
+                                        {project.project_status === 'Completed' && (
+                                            <span className="ml-2 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full text-[8px]">Project Selesai</span>
+                                        )}
+                                    </p>
+                                </div>
+
+                                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl ml-4">
+                                    {statusOptions.map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => canEdit && setData('status', opt.id)}
+                                            disabled={!canEdit}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                data.status === opt.id
+                                                    ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
+                                                      opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                                      'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                            } ${!canEdit ? 'cursor-not-allowed opacity-50' : ''}`}
+                                        >
+                                            <span className={`material-symbols-outlined text-sm ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
+                                            {opt.id}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl ml-4">
-                                {statusOptions.map((opt) => (
-                                    <button
-                                        key={opt.id}
-                                        type="button"
-                                        onClick={() => canEdit && setData('status', opt.id)}
-                                        disabled={!canEdit}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                            data.status === opt.id
-                                                ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
-                                                  opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
-                                                  'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-                                        } ${!canEdit ? 'cursor-not-allowed opacity-50' : ''}`}
-                                    >
-                                        <span className={`material-symbols-outlined text-sm ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
-                                        {opt.id}
-                                    </button>
-                                ))}
+                            <div className="flex flex-col items-end gap-2 w-full lg:w-64">
+                                <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
+                                    <span className="text-slate-400">Total Progress</span>
+                                    <span className="text-primary dark:text-blue-400">{progress}%</span>
+                                </div>
+                                <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(59,130,246,0.5)]" 
+                                        style={{ width: `${progress}%` }}
+                                    />
+                                </div>
                             </div>
-
-
                         </div>
-
-                        <div className="flex flex-col items-end gap-2 w-full lg:w-64">
-                            <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
-                                <span className="text-slate-400">Total Progress Pengiriman</span>
-                                <span className="text-primary dark:text-blue-400">{progress}%</span>
-                            </div>
-                            <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                <div 
-                                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(59,130,246,0.5)]" 
-                                    style={{ width: `${progress}%` }}
-                                />
-                            </div>
-                        </div>
-                    </div>
                     </div>
                 </div>
-                </>
             }
         >
             <Head title={`${canEdit ? 'Edit' : 'Detail'} Pengiriman - ${project.name}`} />

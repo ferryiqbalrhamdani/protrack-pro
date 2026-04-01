@@ -75,63 +75,63 @@ export default function ProjectDetail({ project }) {
                 </div>
             }
             stickySlot={
-                <div className="hidden xl:block">
-                    <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                            <div className="flex items-center gap-4">
-                                <Link 
-                                    href={route('reports.project')}
-                                    className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-                                </Link>
-                                <div>
-                                    <div className="flex items-center gap-3">
-                                        <h1 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
-                                            Project {project.proj}
-                                        </h1>
-                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                                            project.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                                            project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                                            'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400'
-                                        }`}>
-                                            {project.status}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm font-medium text-slate-500 mt-1">Laporan Detail & Keterhubungan Modul</p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row items-center gap-6 w-full lg:w-auto">
-                                <div className="flex flex-col items-end gap-2 w-full lg:w-64">
-                                    <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
-                                        <span className="text-slate-400">Progress Project</span>
-                                        <span className="text-primary dark:text-blue-400">{project.progress}%</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(59,130,246,0.3)]" 
-                                            style={{ width: `${project.progress}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 shrink-0">
-                                    <a 
-                                        href={route('reports.project.print', { hashedId: project.id })}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="h-10 px-5 rounded-2xl bg-white dark:bg-white/5 text-sm font-black text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center gap-2 shadow-sm"
+                <div className="sticky top-0 z-40 hidden xl:block w-full bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                <div className="flex items-center gap-4">
+                                    <Link 
+                                        href={route('reports.project')}
+                                        className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
                                     >
-                                        <span className="material-symbols-outlined text-[18px]">print</span>
-                                        Cetak
-                                    </a>
+                                        <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                                    </Link>
+                                    <div>
+                                        <div className="flex items-center gap-3">
+                                            <h1 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+                                                Project {project.proj}
+                                            </h1>
+                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                                                project.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400'
+                                            }`}>
+                                                {project.status}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-medium text-slate-500 mt-1">Laporan Detail & Keterhubungan Modul</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center gap-6 w-full lg:w-auto">
+                                    <div className="flex flex-col items-end gap-2 w-full lg:w-64">
+                                        <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
+                                            <span className="text-slate-400">Progress Project</span>
+                                            <span className="text-primary dark:text-blue-400">{project.progress}%</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(59,130,246,0.3)]" 
+                                                style={{ width: `${project.progress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 shrink-0">
+                                        <a 
+                                            href={route('reports.project.print', { hashedId: project.id })}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="h-10 px-5 rounded-2xl bg-white dark:bg-white/5 text-sm font-black text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center gap-2 shadow-sm"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">print</span>
+                                            Cetak
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 </div>
             }
         >

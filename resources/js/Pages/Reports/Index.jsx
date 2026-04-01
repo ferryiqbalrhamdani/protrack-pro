@@ -354,24 +354,56 @@ export default function Index({
     const totalContractValue = companyContractValues.reduce((acc, curr) => acc + curr.value, 0);
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            stickySlot={
+                <div className="sticky top-0 z-40 hidden xl:block w-full backdrop-blur-md bg-white/90 dark:bg-[#0b1120]/90 border-b border-slate-200 dark:border-white/5 transition-all">
+                    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-none mb-1.5">
+                                    Pusat Laporan
+                                </h2>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    Analisis & Rekapitulasi Data
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className="w-48">
+                                    <SearchableSelect 
+                                        options={yearOptions}
+                                        value={year}
+                                        onChange={(val) => setYear(val)}
+                                        placeholder="Pilih Periode"
+                                    />
+                                </div>
+                                <button className="px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 h-10">
+                                    <span className="material-symbols-outlined text-lg font-fill">export_notes</span>
+                                    Export Semua
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        >
             <Head title="Laporan" />
 
             <div className="space-y-10">
-                {/* Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-4">
+                {/* Mobile Header Only */}
+                <div className="xl:hidden flex flex-col gap-6 mb-4 animate-reveal">
                     <div>
-                        <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-none mb-3 text-center lg:text-left">
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-none mb-3 text-center">
                             Pusat Laporan
                         </h2>
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center lg:justify-start gap-2">
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
                             <span className="w-8 h-px bg-slate-200 dark:bg-slate-700"></span>
                             Analisis & Rekapitulasi Data
                         </p>
                     </div>
 
-                    <div className="flex justify-center items-center gap-3">
-                        <div className="w-48">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
+                        <div className="w-full sm:w-48">
                             <SearchableSelect 
                                 options={yearOptions}
                                 value={year}
@@ -379,7 +411,7 @@ export default function Index({
                                 placeholder="Pilih Periode"
                             />
                         </div>
-                        <button className="px-6 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 h-[54px]">
+                        <button className="w-full sm:w-auto px-6 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 h-[54px]">
                             <span className="material-symbols-outlined text-lg font-fill">export_notes</span>
                             Export Semua
                         </button>

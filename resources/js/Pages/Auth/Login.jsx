@@ -32,14 +32,14 @@ export default function Login({ status, canResetPassword }) {
 
             <div className="w-full max-w-md animate-reveal relative">
                 {/* Header/Logo */}
-                <header className="flex flex-col items-center gap-3 mb-8 text-center text-primary">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-xl shadow-primary/20 transition-transform hover:scale-110">
+                <header className="flex flex-col items-center gap-3 mb-8 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 transition-transform hover:scale-110">
                         <span className="material-symbols-outlined text-2xl font-bold">
                             monitoring
                         </span>
                     </div>
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">Protrack <span className="text-primary tracking-normal not-italic px-1.5 bg-primary/10 rounded-md">Pro</span></h1>
+                        <h1 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">Protrack <span className="text-indigo-600 dark:text-indigo-400 tracking-normal not-italic px-1.5 bg-indigo-500/10 rounded-md">Pro</span></h1>
                     </div>
                 </header>
 
@@ -66,11 +66,11 @@ export default function Login({ status, canResetPassword }) {
                         <div className="space-y-3">
                             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1" htmlFor="login">Email atau Username</label>
                             <div className="relative group/input">
-                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within/input:text-primary transition-colors">
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within/input:text-indigo-600 transition-colors">
                                     <span className="material-symbols-outlined text-xl">alternate_email</span>
                                 </div>
                                 <input 
-                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-4 text-slate-900 text-base placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.login ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
+                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-4 text-slate-900 text-base placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.login ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
                                     id="login" 
                                     name="login" 
                                     value={data.login}
@@ -90,18 +90,18 @@ export default function Login({ status, canResetPassword }) {
                                 {canResetPassword && (
                                     <Link 
                                         href={route('password.request')}
-                                        className="text-xs font-bold text-primary hover:text-black dark:hover:text-white transition-colors"
+                                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-white transition-colors"
                                     >
                                         Lupa kata sandi?
                                     </Link>
                                 )}
                             </div>
                             <div className="relative group/input">
-                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within/input:text-primary transition-colors">
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within/input:text-indigo-600 transition-colors">
                                     <span className="material-symbols-outlined text-xl">lock</span>
                                 </div>
                                 <input 
-                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-12 text-slate-900 text-base placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.password ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
+                                    className={`block h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-12 pr-12 text-slate-900 text-base placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder:text-slate-500 transition-all ${errors.password ? 'border-red-500 dark:border-red-500 ring-1 ring-red-500' : ''}`}
                                     id="password" 
                                     name="password" 
                                     value={data.password}
@@ -138,7 +138,7 @@ export default function Login({ status, canResetPassword }) {
                         </div>
 
                         <button 
-                            className="flex w-full items-center justify-center rounded-2xl bg-primary px-6 py-4 text-base font-black text-white shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" 
+                            className="flex w-full items-center justify-center rounded-2xl bg-indigo-600 px-6 py-4 text-sm font-black text-white shadow-xl shadow-indigo-500/20 transition-all hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" 
                             type="submit"
                             disabled={processing}
                         >
@@ -160,7 +160,7 @@ export default function Login({ status, canResetPassword }) {
                 {/* Security Footer */}
                 <div className="mt-12 space-y-8 animate-reveal [animation-delay:200ms] opacity-0">
                     <div className="flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 p-5 backdrop-blur-md shadow-sm">
-                        <div className="size-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <div className="size-10 flex items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                             <span className="material-symbols-outlined font-bold">verified_user</span>
                         </div>
                         <div>
@@ -170,7 +170,7 @@ export default function Login({ status, canResetPassword }) {
                     </div>
                     
                     <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
-                        <button className="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary transition-colors">
+                        <button className="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">
                             <span className="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">contact_support</span>
                             Bantuan Teknis
                         </button>

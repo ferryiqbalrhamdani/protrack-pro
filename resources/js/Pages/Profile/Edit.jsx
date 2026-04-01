@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useTheme } from '@/Components/ThemeProvider';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import { useState } from 'react';
@@ -108,47 +108,21 @@ export default function Edit({ sessions = [], status }) {
                                     <span className="material-symbols-outlined text-slate-400 text-base">devices</span>
                                     <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{sessions.length} Sesi Aktif</span>
                                 </div>
+                                <Link
+                                    href={route('logout')}
+                                    method="post"
+                                    as="button"
+                                    className="flex items-center gap-2 px-4 py-2 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all group/logout"
+                                >
+                                    <span className="material-symbols-outlined text-base group-hover/logout:rotate-12 transition-transform">logout</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Keluar Sesi</span>
+                                </Link>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Visual Preference Card (Mobile Friendly) */}
-                <div className="bg-white dark:bg-black/40 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden">
-                    <div className="p-8 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="size-10 bg-indigo-500/10 text-indigo-500 rounded-xl flex items-center justify-center">
-                                <span className="material-symbols-outlined">settings_brightness</span>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-tight">Preferensi Visual</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Atur tampilan antarmuka aplikasi</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-6">
-                        <div className="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-white/5 p-2 rounded-3xl">
-                            {[
-                                { id: 'light', icon: 'light_mode', label: 'Terang' },
-                                { id: 'dark', icon: 'dark_mode', label: 'Gelap' },
-                                { id: 'system', icon: 'settings_brightness', label: 'Sistem' },
-                            ].map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => setTheme(t.id)}
-                                    className={`flex flex-col items-center gap-2 py-4 rounded-2xl transition-all ${
-                                        theme === t.id 
-                                            ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-white/10' 
-                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-                                    }`}
-                                >
-                                    <span className={`material-symbols-outlined text-2xl ${theme === t.id ? 'font-fill' : ''}`}>{t.icon}</span>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">{t.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

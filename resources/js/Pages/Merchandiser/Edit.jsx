@@ -266,31 +266,24 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
             backUrl={route('merchandiser')}
             backLabel={canEdit ? "Edit Merchandiser" : "Pratinjau Merchandiser"}
             isReviewMode={isReviewMode}
+            progress={progress}
             bottomStickySlot={<></>}
             stickySlot={
-                <>
+                <div className="sticky top-0 z-40 hidden xl:block w-full">
                     {/* Read-only Alert */}
-                    <div className="hidden xl:block">
                     {!canEdit && (
-                        <div className={`border-b px-8 py-3 flex items-center justify-center gap-3 ${
-                            project.status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                            project.status === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
-                            'bg-rose-500/10 border-rose-500/20 text-rose-500'
-                        }`}>
-                            <span className="material-symbols-outlined shrink-0">
-                                {project.status === 'Pending' ? 'pause_circle' : 
-                                 project.status === 'Completed' ? 'verified' : 'lock'}
-                            </span>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-center">
-                                {project.status === 'Pending' ? 'Data tidak bisa diubah karena status Project sedang Pending' :
-                                 project.status === 'Completed' ? 'Mode Pratinjau: Project telah Selesai (Completed). Data tidak dapat diubah.' :
-                                 `Mode Pratinjau: Hanya PIC yang ditunjuk atau Admin yang dapat mengubah data ini.`}
+                        <div className="px-4 sm:px-6 lg:px-8 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-3">
+                            <span className="material-symbols-outlined text-amber-600 font-bold text-xl">lock_open</span>
+                            <p className="text-[11px] font-black text-amber-700 uppercase tracking-[0.2em]">
+                                {merchandiser.project_status === 'Pending' ? 'Data tidak bisa diubah karena status Project sedang Pending' :
+                                    merchandiser.project_status === 'Completed' ? 'Mode Pratinjau: Project telah Selesai (Completed). Data tidak dapat diubah.' :
+                                    `Mode Pratinjau: Hanya ${merchandiser.handle?.name || 'User Berwenang'} yang dapat mengubah data ini.`}
                             </p>
                         </div>
                     )}
 
-                    {/* Sticky Header */}
-                    <div className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
+                    {/* Sticky Header - Desktop Only */}
+                    <div className="px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-4">
                                 <Link
@@ -300,50 +293,50 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                     <span className="material-symbols-outlined">arrow_back</span>
                                 </Link>
                                 <div>
-                                    <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">Edit Merchandiser</h1>
+                                    <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">
+                                        {canEdit ? 'Edit Merchandiser' : 'Pertinjauan Merchandiser'}
+                                    </h1>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                                        {project.up_no}
-                                        {project.status === 'Pending' && (
+                                        {merchandiser.up_no}
+                                        {merchandiser.project_status === 'Pending' && (
                                             <span className="ml-2 px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-full text-[8px]">Project Pending</span>
                                         )}
-                                        {project.status === 'Completed' && (
+                                        {merchandiser.project_status === 'Completed' && (
                                             <span className="ml-2 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full text-[8px]">Project Selesai</span>
                                         )}
                                     </p>
                                 </div>
 
-                                {/* Status Toggle */}
+                                {/* Status Toggle Buttons */}
                                 <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl ml-4">
-                                    {statusOptions.map(opt => (
+                                    {statusOptions.map((opt) => (
                                         <button
                                             key={opt.id}
                                             type="button"
                                             disabled={!canEdit}
                                             onClick={() => setData('status', opt.id)}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                data.status === opt.id
-                                                    ? opt.color === 'blue'    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                                                    : opt.color === 'amber'   ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                                                    : 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${data.status === opt.id
+                                                    ? opt.id === 'Ongoing' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' :
+                                                        opt.id === 'Pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                                            'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                                                     : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-                                            } disabled:opacity-50`}
+                                                } disabled:opacity-50`}
                                         >
-                                            <span className="material-symbols-outlined text-sm">{opt.icon}</span>
+                                            <span className={`material-symbols-outlined text-sm ${data.status === opt.id ? 'font-fill' : ''}`}>{opt.icon}</span>
                                             {opt.id}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Progress Bar */}
                             <div className="flex flex-col items-end gap-2 w-full lg:w-64">
                                 <div className="flex justify-between w-full text-[10px] font-black uppercase tracking-widest">
                                     <span className="text-slate-400">Total Progress</span>
-                                    <span className={progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{progress}%</span>
+                                    <span className="text-primary dark:text-blue-400">{progress}%</span>
                                 </div>
                                 <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(59,130,246,0.5)] ${progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
+                                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(59,130,246,0.5)]"
                                         style={{ width: `${progress}%` }}
                                     />
                                 </div>
@@ -351,7 +344,6 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                         </div>
                     </div>
                 </div>
-                </>
             }
         >
             <Head title={`Edit Merchandiser — ${project.name}`} />
