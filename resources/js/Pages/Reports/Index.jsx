@@ -7,6 +7,9 @@ import { motion, animate, useInView } from 'framer-motion';
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
 import { useRef } from 'react';
+import axios from 'axios';
+import html2pdf from 'html2pdf.js';
+import { toast } from 'react-hot-toast';
 
 const CountingNumber = ({ value }) => {
     const nodeRef = useRef(null);
@@ -55,6 +58,8 @@ export default function Index({
     const [isModuleModalClosing, setIsModuleModalClosing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+    const [aiResult, setAiResult] = useState(null);
+    const reportRef = useRef(null);
     
     const { queryParams } = usePage().props;
     const yearNum = new Date().getFullYear();
@@ -104,7 +109,107 @@ export default function Index({
         return () => clearTimeout(timeout);
     }, [year]);
 
-    // Auto-refresh (Real-time feel)
+    useEffect(() => {
+        const fetchAiSummary = async () => {
+            if (isAiModalOpen) {
+                setIsGenerating(true);
+                try {
+                    const response = await axios.post(route('reports.ai.summary'), {
+                        data: {
+                            statusStats,
+                            financialStats,
+                            moduleStats,
+                            monthlyStats,
+                            availableYears,
+                            companyContractValues
+                        },
+                        year
+                    });
+                    
+                    if (response.data && !response.data.error) {
+                        setAiResult(response.data);
+                    } else {
+                        throw new Error(response.data?.error || 'API returned empty result');
+                    }
+                } catch (error) {
+                    console.error('AI Summary Error:', error);
+                    toast.error('Gagal mendapatkan analisis AI. Harap periksa koneksi atau API Key Anda.', { id: 'ai-gen' });
+                    setAiResult(null);
+                } finally {
+                    setIsGenerating(false);
+                }
+            }
+        };
+
+        fetchAiSummary();
+    }, [isAiModalOpen, year]);
+
+    const handleDownloadPdf = () => {
+        if (!aiResult || !reportRef.current) {
+            toast.error('Data laporan belum siap.');
+            return;
+        }
+        
+        const pdfToast = toast.loading('Menyiapkan laporan PDF HD...', { id: 'pdf-gen' });
+        
+        const element = reportRef.current;
+        const opt = {
+            margin: [15, 15],
+            filename: `Protrack_AI_Audit_${year}_${new Date().getTime()}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { 
+                scale: 3, 
+                useCORS: true, 
+                logging: false,
+                letterRendering: true,
+                windowWidth: 1200
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
+        };
+
+        // Ensure images are loaded if any
+        html2pdf().set(opt).from(element).save()
+            .then(() => toast.success('Laporan PDF HD berhasil diunduh!', { id: 'pdf-gen' }))
+            .catch((err) => {
+                console.error('PDF Error:', err);
+                toast.error('Gagal membuat PDF. Harap coba lagi.', { id: 'pdf-gen' });
+            });
+    };
+
+    const handleShareSummary = async () => {
+        if (!aiResult) return;
+
+        const shareTitle = `Protrack AI Audit ${year}`;
+        const shareText = `📊 *LAPORAN AUDIT AI PROTRACK PRO - TAHUN ${year}*\n\n` +
+            `* EXECUTIVE SUMMARY :*\n"${aiResult.execSummary}"\n\n` +
+            `* PERFORMANCE SCORE :* ${aiResult.score} / 100\n\n` +
+            `* CAPAIAN UTAMA :*\n${aiResult.analysis.good.map(i => `✅ ${i}`).join('\n')}\n\n` +
+            `* REKOMENDASI :*\n${aiResult.recommendations.map(i => `➡ ${i}`).join('\n')}\n\n` +
+            `_Automated Industrial Intelligence System_`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: shareTitle,
+                    text: shareText,
+                });
+                toast.success('Membuka menu bagikan...');
+            } catch (error) {
+                copyToClipboard(shareText);
+            }
+        } else {
+            copyToClipboard(shareText);
+        }
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            toast.success('Laporan disalin ke clipboard! Siap dibagikan ke WA/Telegram.');
+        }).catch(() => {
+            toast.error('Gagal menyalin laporan.');
+        });
+    };
+
     useEffect(() => {
         const interval = setInterval(() => {
             router.reload({
@@ -939,8 +1044,6 @@ export default function Index({
                     <div 
                         onClick={() => {
                             setIsAiModalOpen(true);
-                            setIsGenerating(true);
-                            setTimeout(() => setIsGenerating(false), 3000);
                         }}
                         className="col-span-12 md:col-span-6 lg:col-span-6 group relative bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-purple-500/20 transition-all cursor-pointer overflow-hidden"
                     >
@@ -964,7 +1067,10 @@ export default function Index({
                         </div>
                         
                         <div className="mt-8 flex items-center justify-between relative z-10">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Generate Now</span>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Target Year: {year}</span>
+                                <span className="text-[8px] font-bold text-white/60 uppercase tracking-widest mt-1">Click to change & audit</span>
+                            </div>
                             <div className="size-8 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-purple-600 transition-all shadow-inner backdrop-blur-md">
                                 <span className="material-symbols-outlined text-sm">bolt</span>
                             </div>
@@ -1045,126 +1151,239 @@ export default function Index({
                                     <span className="material-symbols-outlined text-2xl font-fill">temp_preferences_custom</span>
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                                        Protrack AI Insight
-                                        <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-purple-500/10 dark:bg-purple-500/20">Beta</span>
-                                    </h2>
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">Ringkasan Performa Project Tahunan</p>
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Protrack AI Auditor</h3>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Deep Intelligence Audit System</p>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => setIsAiModalOpen(false)}
-                                className="size-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-colors"
-                            >
-                                <span className="material-symbols-outlined">close</span>
-                            </button>
-                        </div>
+                            
+                            <div className="flex items-center gap-3">
+                                {/* Year Selector inside Modal */}
+                                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-purple-500/5 border border-purple-500/10 rounded-2xl">
+                                    <span className="material-symbols-outlined text-purple-500 text-sm">calendar_month</span>
+                                    <select 
+                                        value={year}
+                                        onChange={(e) => {
+                                            setYear(e.target.value);
+                                        }}
+                                        className="bg-transparent border-none text-xs font-black text-purple-700 dark:text-purple-400 focus:ring-0 p-0 cursor-pointer uppercase tracking-widest"
+                                    >
+                                        <option value="All">All Years</option>
+                                        {availableYears.map((y) => (
+                                            <option key={y} value={y}>{y}</option>
+                                        ))}
+                                    </select>
+                                </div>
 
+                                <button 
+                                    onClick={() => setIsAiModalOpen(false)}
+                                    className="size-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                        </div>
+                        
                         {/* Modal Body */}
-                        <div className="p-6 sm:p-8 overflow-y-auto no-scrollbar relative flex-1">
+                        <div className="flex-1 overflow-y-auto pointer-events-auto custom-scrollbar">
                             {isGenerating ? (
-                                /* Generating State */
-                                <div className="flex flex-col items-center justify-center py-20">
-                                    <div className="relative size-24 mb-8">
-                                        <div className="absolute inset-0 border-4 border-slate-100 dark:border-white/5 rounded-full"></div>
-                                        <div className="absolute inset-0 border-4 border-purple-500 rounded-full border-t-transparent animate-spin"></div>
-                                        <div className="absolute inset-0 flex items-center justify-center text-purple-500">
-                                            <span className="material-symbols-outlined text-4xl animate-pulse">auto_awesome</span>
+                                <div className="p-12 flex flex-col items-center justify-center min-h-[450px]">
+                                    <div className="relative size-32 mb-10">
+                                        <div className="absolute inset-0 rounded-full border-8 border-purple-500/10 animate-[ping_2s_linear_infinite]"></div>
+                                        <div className="absolute inset-0 rounded-full border-t-4 border-purple-600 animate-spin"></div>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-5xl text-purple-600 animate-pulse font-fill">psychology</span>
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-black text-slate-800 dark:text-white mb-2">AI sedang menganalisis data...</h3>
-                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 text-center max-w-md">
-                                        Memproses ribuan titik data dari seluruh kontrak, penagihan, dan pengiriman Anda tahun ini untuk menemukan insight berharga.
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-widest animate-pulse mb-3 text-center">Neural Engine Audit...</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] text-center max-w-sm leading-relaxed">
+                                        Menganalisis anomali status, korelasi antar modul, dan efisiensi operasional tahun {year}
                                     </p>
                                     
-                                    <div className="mt-8 w-64 h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-[progress_2s_ease-in-out_infinite]"></div>
+                                    <div className="mt-12 w-64 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                        <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 rounded-full animate-[progress_2s_ease-in-out_infinite]"></div>
                                     </div>
                                 </div>
-                            ) : (
-                                /* Generated Content */
-                                <div className="space-y-8 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                            ) : aiResult ? (
+                                <div className="p-8 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     
                                     {/* Executive Summary */}
-                                    <div className="bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-purple-500/10 rounded-3xl p-6 sm:p-8">
-                                        <div className="flex items-start gap-4 mb-4">
-                                            <span className="material-symbols-outlined text-purple-500 mt-1">format_quote</span>
-                                            <div>
-                                                <h3 className="text-sm font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest mb-2">Executive Summary</h3>
-                                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                                                    Tahun 2024 menunjukkan performa yang sangat positif dengan peningkatan total nilai proyek sebesar <span className="text-emerald-500 font-bold">+12%</span> dibanding tahun sebelumnya. Sektor <span className="font-bold text-slate-900 dark:text-white">Konstruksi & Infrastruktur</span> menjadi penyumbang pendapatan terbesar. Namun, terdapat potensi bottleneck pada fase <span className="font-bold text-amber-500">Penagihan (Billing)</span> yang rata-rata mengalami delay 4 hari dari target.
-                                                </p>
+                                    <div className="bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-purple-500/10 rounded-[2.5rem] p-8 sm:p-10 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform">
+                                            <span className="material-symbols-outlined text-8xl text-purple-500">analytics</span>
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="size-8 rounded-xl bg-purple-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+                                                    <span className="material-symbols-outlined text-sm font-fill">format_quote</span>
+                                                </div>
+                                                <h3 className="text-xs font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest">Executive Summary</h3>
+                                            </div>
+                                            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium italic">
+                                                "{aiResult.execSummary}"
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Performance Score & Analysis Grid */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="lg:col-span-1 bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 rounded-[2.5rem] p-10 flex flex-col items-center justify-center relative overflow-hidden group shadow-sm">
+                                            <div className="relative z-10 text-center">
+                                                <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] mb-6">AI Performance Score</h3>
+                                                <div className="relative size-40 flex items-center justify-center">
+                                                    <svg className="size-full -rotate-90">
+                                                        <circle cx="80" cy="80" r="72" fill="none" stroke="currentColor" strokeWidth="12" className="text-slate-100 dark:text-white/5" />
+                                                        <motion.circle 
+                                                            cx="80" cy="80" r="72" fill="none" stroke="currentColor" strokeWidth="12" 
+                                                            strokeDasharray="452.4" 
+                                                            initial={{ strokeDashoffset: 452.4 }}
+                                                            animate={{ strokeDashoffset: 452.4 - (452.4 * (aiResult.score || 0)) / 100 }}
+                                                            transition={{ duration: 2, ease: "easeOut" }}
+                                                            className="text-purple-500 transition-all" 
+                                                            strokeLinecap="round" 
+                                                        />
+                                                    </svg>
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                        <span className="text-5xl font-black text-slate-900 dark:text-white marker:">
+                                                            <CountingNumber value={aiResult.score || 0} />
+                                                        </span>
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Audit Points</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        </div>
+
+                                        <div className="lg:col-span-2 space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                {/* Capaian Bagus */}
+                                                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-3xl p-6 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group/card">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="size-8 rounded-xl bg-emerald-500/20 text-emerald-600 flex items-center justify-center group-hover/card:scale-110 transition-transform">
+                                                            <span className="material-symbols-outlined text-sm font-bold">check_circle</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Good Progress</span>
+                                                    </div>
+                                                    <ul className="space-y-3">
+                                                        {aiResult.analysis?.good?.map((item, i) => (
+                                                            <li key={i} className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-tight flex gap-2">
+                                                                <span className="text-emerald-500">•</span>
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+
+                                                {/* Hambatan */}
+                                                <div className="bg-amber-500/5 border border-amber-500/10 rounded-3xl p-6 hover:shadow-lg hover:shadow-amber-500/5 transition-all group/card">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="size-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center group-hover/card:scale-110 transition-transform">
+                                                            <span className="material-symbols-outlined text-sm font-bold">warning</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">Anomali & Audit</span>
+                                                    </div>
+                                                    <ul className="space-y-3">
+                                                        {aiResult.analysis?.lacking?.map((item, i) => (
+                                                            <li key={i} className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-tight flex gap-2">
+                                                                <span className="text-amber-500">•</span>
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+
+                                                {/* Perbaikan */}
+                                                <div className="bg-blue-500/5 border border-blue-500/10 rounded-3xl p-6 hover:shadow-lg hover:shadow-blue-500/5 transition-all group/card">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="size-8 rounded-xl bg-blue-500/20 text-blue-600 flex items-center justify-center group-hover/card:scale-110 transition-transform">
+                                                            <span className="material-symbols-outlined text-sm font-bold">auto_fix_high</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">Recommended Fix</span>
+                                                    </div>
+                                                    <ul className="space-y-3">
+                                                        {aiResult.analysis?.toImprove?.map((item, i) => (
+                                                            <li key={i} className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-tight flex gap-2">
+                                                                <span className="text-blue-500">•</span>
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Key Insights Grid */}
-                                    <div>
-                                        <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-sm">lightbulb</span>
-                                            Key Insights
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {[
-                                                { icon: 'trending_up', color: 'emerald', title: 'Pertumbuhan Kontrak', desc: 'Volume kontrak baru meningkat signifikan di Q1 dan Q2, didorong oleh ekspansi klien korporat.' },
-                                                { icon: 'speed', color: 'blue', title: 'Efisiensi Merchandiser', desc: 'Fase persiapan barang / merchandiser menjadi yang paling efisien dengan success rate 92%.' },
-                                                { icon: 'warning', color: 'amber', title: 'Isu Penagihan Termin', desc: 'Terdapat 18% tagihan yang melewati jatuh tempo, mayoritas dari klien sektor retail.' },
-                                                { icon: 'local_shipping', color: 'indigo', title: 'Performa Pengiriman', desc: 'SLA pengiriman terjaga di angka 95%. Ekspedisi mitra B menunjukkan konsistensi terbaik.' },
-                                            ].map((insight, idx) => (
-                                                <div key={idx} className="bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 rounded-2xl p-5 flex gap-4 hover:shadow-lg transition-shadow">
-                                                    <div className={`size-10 rounded-xl flex-shrink-0 bg-${insight.color}-500/10 text-${insight.color}-500 flex items-center justify-center`}>
-                                                        <span className="material-symbols-outlined">{insight.icon}</span>
+                                    {/* Key Insights & Recommendations */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                        <div>
+                                            <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                                <span className="size-1.5 rounded-full bg-purple-500"></span>
+                                                Strategic Insights
+                                            </h3>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {aiResult.insights?.map((insight, idx) => (
+                                                    <div key={idx} className="bg-white dark:bg-slate-800/30 border border-slate-100 dark:border-white/5 rounded-[1.5rem] p-6 flex gap-5 group/insight hover:border-purple-500/30 transition-all">
+                                                        <div className={`size-12 rounded-2xl flex-shrink-0 bg-${insight.color}-500/10 text-${insight.color}-500 flex items-center justify-center shadow-lg shadow-${insight.color}-500/5 group-hover/insight:scale-110 transition-transform`}>
+                                                            <span className="material-symbols-outlined text-2xl">{insight.icon}</span>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-black text-slate-800 dark:text-white mb-1.5">{insight.title}</h4>
+                                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{insight.desc}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <h4 className="text-sm font-black text-slate-800 dark:text-white mb-1">{insight.title}</h4>
-                                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{insight.desc}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Actionable Recommendations */}
-                                    <div>
-                                        <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-sm">task_alt</span>
-                                            Rekomendasi AI
-                                        </h3>
-                                        <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 rounded-3xl p-2 space-y-1">
-                                            {[
-                                                'Otomatisasi reminder H-3 sebelum jatuh tempo invoice untuk menekan angka keterlambatan pembayaran.',
-                                                'Fokuskan tim sales pada penawaran upselling layanan pengiriman kilat ke klien korporat.',
-                                                'Evaluasi ulang kontrak dengan Ekspedisi Mitra C karena tingginya angka delay pengiriman di luar pulau.'
-                                            ].map((rec, i) => (
-                                                <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm">
-                                                    <div className="size-6 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-black flex-shrink-0">
-                                                        {i + 1}
+                                        <div>
+                                            <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                                <span className="size-1.5 rounded-full bg-indigo-500"></span>
+                                                Neural Recommendations
+                                            </h3>
+                                            <div className="bg-slate-50 dark:bg-white/[0.01] border border-slate-100 dark:border-white/5 rounded-[2rem] p-3 space-y-2">
+                                                {aiResult.recommendations?.map((rec, i) => (
+                                                    <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 shadow-sm hover:translate-x-1 transition-transform">
+                                                        <div className="size-7 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] font-black flex-shrink-0">
+                                                            {i + 1}
+                                                        </div>
+                                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-0.5 leading-relaxed">{rec}</p>
                                                     </div>
-                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-0.5">{rec}</p>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                     
+                                </div>
+                            ) : (
+                                <div className="p-12 flex flex-col items-center justify-center min-h-[400px]">
+                                    <span className="material-symbols-outlined text-6xl text-slate-200 dark:text-white/5 mb-6">error_outline</span>
+                                    <p className="text-sm font-black text-slate-400 uppercase tracking-widest text-center">
+                                        Gagal mendapatkan analisis AI.<br/>Harap periksa koneksi atau coba lagi nanti.
+                                    </p>
                                 </div>
                             )}
                         </div>
                         
                         {/* Footer (Actions) */}
-                        {!isGenerating && (
-                            <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] flex items-center justify-between rounded-b-[2.5rem]">
-                                <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">info</span>
-                                    AI Insight dihasilkan berdasarkan data per 10 Mar 2024
-                                </p>
-                                <div className="flex gap-3">
-                                    <button className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-white/5 transition-colors flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-[16px]">share</span>
-                                        Bagikan
+                        {!isGenerating && aiResult && (
+                            <div className="p-8 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between rounded-b-[2.5rem]">
+                                <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <div className="size-2 rounded-full bg-purple-500 animate-pulse"></div>
+                                    Audit Berbasis Budget Tahun {year === 'All' ? '2024-2026' : year}
+                                </div>
+                                <div className="flex gap-4">
+                                    <button 
+                                        onClick={handleShareSummary}
+                                        className="px-6 py-3 rounded-2xl border border-slate-200 dark:border-white/10 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-white/5 transition-all flex items-center gap-2"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">share</span>
+                                        Bagikan Audit
                                     </button>
-                                    <button className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20 text-xs font-black transition-colors flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-[16px]">download</span>
-                                        Unduh Laporan
+                                    <button 
+                                        onClick={handleDownloadPdf}
+                                        className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-purple-500/20 text-xs font-black transition-all flex items-center gap-2 group"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform">download</span>
+                                        Unduh Laporan PDF
                                     </button>
                                 </div>
                             </div>
@@ -1491,8 +1710,6 @@ export default function Index({
                             ))}
                         </div>
                     </div>
-
-                    {/* Footer / Pagination */}
                     <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-center">
                         <Pagination links={activityLogs?.links || []} />
                     </div>
@@ -1566,6 +1783,106 @@ export default function Index({
                     scrollbar-width: none;
                 }
             `}} />
+            {/* Hidden PDF Report Template */}
+            <div className="hidden">
+                <div ref={reportRef} className="p-12 bg-white text-slate-800 font-sans" style={{ width: '210mm' }}>
+                    {/* Header */}
+                    <div className="flex justify-between items-center border-b-2 border-slate-900 pb-8 mb-8">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-slate-900 rounded-lg">
+                                    <span className="material-symbols-outlined text-white text-2xl font-bold">query_stats</span>
+                                </div>
+                                <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase">Protrack Pro</h1>
+                            </div>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest italic">Industrial Project Intelligence System</p>
+                        </div>
+                        <div className="text-right">
+                            <h2 className="text-lg font-black text-slate-900 uppercase tracking-widest">AI Performance Report</h2>
+                            <p className="text-sm font-bold text-slate-500">Periode: {year === 'All' ? 'Seluruh Waktu' : `Budget Year ${year}`}</p>
+                            <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Generated on {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        </div>
+                    </div>
+
+                    {/* Executive Summary */}
+                    <div className="mb-10 flex gap-8 items-start">
+                        <div className="w-1/4 bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center justify-center shrink-0">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Performance Score</h3>
+                            <div className="text-5xl font-black text-slate-900 leading-none">{aiResult?.score || 0}</div>
+                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Points / 100</div>
+                        </div>
+                        <div className="flex-1 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Executive Summary</h3>
+                            <p className="text-sm text-slate-800 leading-relaxed font-medium italic">
+                                "{aiResult?.execSummary}"
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Detailed Analysis */}
+                    <div className="grid grid-cols-3 gap-6 mb-10">
+                        <div className="p-4 rounded-2xl bg-slate-50/50 border border-slate-50">
+                            <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                Capaian Bagus
+                            </h4>
+                            <ul className="space-y-2">
+                                {aiResult?.analysis?.good?.map((item, i) => (
+                                    <li key={i} className="text-[11px] font-medium text-slate-700 leading-tight">• {item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-slate-50/50 border border-slate-50">
+                            <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                Hambatan Utama
+                            </h4>
+                            <ul className="space-y-2">
+                                {aiResult?.analysis?.lacking?.map((item, i) => (
+                                    <li key={i} className="text-[11px] font-medium text-slate-700 leading-tight">• {item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-slate-50/50 border border-slate-50">
+                            <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                Perbaikan Strategis
+                            </h4>
+                            <ul className="space-y-2">
+                                {aiResult?.analysis?.toImprove?.map((item, i) => (
+                                    <li key={i} className="text-[11px] font-medium text-slate-700 leading-tight">• {item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Insights Grid */}
+                    <div className="grid grid-cols-2 gap-8 mb-10">
+                        {aiResult?.insights.map((insight, idx) => (
+                            <div key={idx} className="border-l-4 border-slate-200 pl-4 py-2">
+                                <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">{insight.title}</h4>
+                                <p className="text-sm font-bold text-slate-800">{insight.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="mb-12">
+                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Strategic Recommendations</h3>
+                        <div className="space-y-4">
+                            {aiResult?.recommendations.map((rec, i) => (
+                                <div key={i} className="flex gap-4 items-start bg-slate-50/50 p-4 rounded-xl border border-slate-50">
+                                    <span className="size-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-[10px] font-black shrink-0">{i + 1}</span>
+                                    <p className="text-sm font-medium text-slate-700">{rec}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="pt-8 border-t border-slate-100 flex justify-between items-center opacity-50">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">© {new Date().getFullYear()} NexaGroup Project Intelligence. All rights reserved.</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Security Classification: INTERNAL</p>
+                    </div>
+                </div>
+            </div>
         </AuthenticatedLayout>
     );
 }

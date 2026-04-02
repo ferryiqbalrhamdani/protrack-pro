@@ -15,6 +15,7 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AiController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -60,6 +61,7 @@ Route::get('/reports/project-report', [ReportController::class, 'projectReport']
 Route::get('/reports/project/{hashedId}', [ReportController::class, 'projectDetail'])->middleware(['auth', 'verified'])->name('reports.project.detail');
 
 Route::get('/reports/project/{hashedId}/print', [ReportController::class, 'projectPrint'])->middleware(['auth', 'verified'])->name('reports.project.print');
+Route::post('/reports/ai-summary', [AiController::class, 'summarize'])->middleware(['auth', 'verified'])->name('reports.ai.summary');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
