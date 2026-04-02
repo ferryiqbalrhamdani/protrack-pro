@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -37,8 +38,14 @@ class PermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
+        // Reset PostgreSQL sequences to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('permissions_id_seq', (SELECT MAX(id) FROM permissions))");
+
         // Create Super Admin role if it doesn't exist
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
+
+        DB::statement("SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles))");
+
         // Super admin already has all permissions via Gate::before overriding
     }
 }

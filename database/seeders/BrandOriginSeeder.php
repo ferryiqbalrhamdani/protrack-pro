@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\BrandOrigin;
 use App\Models\Certification;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class BrandOriginSeeder extends Seeder
 {
@@ -18,6 +19,9 @@ class BrandOriginSeeder extends Seeder
         foreach ($origins as $origin) {
             BrandOrigin::updateOrCreate(['id' => $origin['id']], ['name' => $origin['name']]);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('brand_origins_id_seq', (SELECT MAX(id) FROM brand_origins))");
 
         $certifications = [
             ["id" => 1, "brand_origin_id" => 1, "name" => "TKDNLITBAG"],
@@ -33,5 +37,8 @@ class BrandOriginSeeder extends Seeder
         foreach ($certifications as $cert) {
             Certification::updateOrCreate(['id' => $cert['id']], $cert);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('certifications_id_seq', (SELECT MAX(id) FROM certifications))");
     }
 }

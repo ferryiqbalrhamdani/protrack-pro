@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\BudgetType;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class BudgetTypeSeeder extends Seeder
 {
@@ -29,5 +30,8 @@ class BudgetTypeSeeder extends Seeder
         foreach ($types as $type) {
             BudgetType::updateOrCreate(['id' => $type['id']], $type);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('budget_types_id_seq', (SELECT MAX(id) FROM budget_types))");
     }
 }

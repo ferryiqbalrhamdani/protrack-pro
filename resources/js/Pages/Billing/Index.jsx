@@ -589,14 +589,21 @@ export default function Index({ projects, queryParams = null }) {
                                                     </div>
                                                 </td>
                                                 {/* Project Name & No. UP & No. Kontrak */}
-                                                <td className="px-6 py-6 whitespace-nowrap">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{project.name}</span>
-                                                        <div className="flex gap-3 items-center">
-                                                            <span className="text-[11px] font-bold text-slate-400"><span className="text-slate-300">UP:</span> {project.upNo}</span>
-                                                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
-                                                            <span className="text-[11px] font-bold text-slate-400"><span className="text-slate-300">KT:</span> {project.no_kontrak || '-'}</span>
+                                                <td className="px-6 py-6">
+                                                    <div className="relative group/name">
+                                                        <span className="block text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors max-w-[200px] truncate">{project.name}</span>
+                                                        {/* Tooltip for long names */}
+                                                        <div className="absolute left-0 bottom-full mb-2 z-[200] hidden group-hover/name:block pointer-events-none">
+                                                            <div className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black px-3 py-2 rounded-xl shadow-xl max-w-[320px] whitespace-normal leading-relaxed">
+                                                                {project.name}
+                                                                <div className="absolute top-full left-4 border-4 border-transparent border-t-slate-900 dark:border-t-white"></div>
+                                                            </div>
                                                         </div>
+                                                    </div>
+                                                    <div className="flex gap-3 items-center mt-1.5">
+                                                        <span className="text-[11px] font-bold text-slate-400"><span className="text-slate-300">UP:</span> {project.upNo}</span>
+                                                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
+                                                        <span className="text-[11px] font-bold text-slate-400 max-w-[120px] truncate"><span className="text-slate-300">KT:</span> {project.no_kontrak || '-'}</span>
                                                     </div>
                                                 </td>
                                                 {/* Company */}

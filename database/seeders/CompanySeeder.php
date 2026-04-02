@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class CompanySeeder extends Seeder
 {
@@ -18,5 +19,8 @@ class CompanySeeder extends Seeder
         foreach ($companies as $company) {
             Company::updateOrCreate(['id' => $company['id']], $company);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('companies_id_seq', (SELECT MAX(id) FROM companies))");
     }
 }

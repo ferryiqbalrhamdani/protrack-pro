@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -37,5 +38,8 @@ class DatabaseSeeder extends Seeder
         if (!$admin->hasRole('Super Admin')) {
             $admin->assignRole($role);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))");
     }
 }

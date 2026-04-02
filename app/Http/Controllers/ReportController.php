@@ -277,6 +277,8 @@ class ReportController extends Controller
                 'up' => $project->up_no ?? '-',
                 'pic' => $project->contract?->handle?->name ?? $project->pic?->name ?? '-',
                 'date' => $project->created_at->format('d M Y'),
+                'contractDate' => $project->contract_date,
+                'dueDate' => $project->due_date,
                 'due' => $project->due_date ? Carbon::parse($project->due_date)->format('d M Y') : '-',
                 'prog' => $project->progress,
                 'status' => $project->status,

@@ -168,7 +168,7 @@ export default function Edit({ project, shipping, auth_user, canEdit }) {
                 <div className="sticky top-0 z-40 hidden xl:block w-full">
                     {/* Read-only Alert for non-authorized users */}
                     {!canEdit && (
-                        <div className="px-4 sm:px-6 lg:px-8 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-3">
+                        <div className="px-4 sm:px-6 lg:px-8 py-3 bg-amber-500/20 backdrop-blur-md border-b border-amber-500/20 flex items-center justify-center gap-3">
                             <span className="material-symbols-outlined text-amber-600 font-bold text-xl">lock_open</span>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
                                 <span>Mode Pratinjau:</span>

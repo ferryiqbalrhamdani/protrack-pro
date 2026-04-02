@@ -124,6 +124,7 @@ export default function AuthenticatedLayout({
                 setIsTopbarHidden(false);
                 return;
             }
+
             const currentY = mainEl.scrollTop;
             if (currentY > lastScrollY.current && currentY > 60) {
                 setIsTopbarHidden(true);
@@ -376,297 +377,280 @@ export default function AuthenticatedLayout({
             />
             {/* Header */}
             <div 
-                className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${isTopbarHidden ? '-translate-y-full xl:translate-y-0' : 'translate-y-0'} ${hideTopbarMobile ? 'hidden xl:block' : ''}`}
+                className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${hideTopbarMobile ? 'hidden xl:block' : ''}`}
             >
-            <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 w-full h-20">
-                {/* Mobile Review Mode Banner */}
-                {isReviewMode && (
-                    <div className="xl:hidden bg-amber-500 py-1.5 px-4 flex items-center justify-center gap-2 relative border-b border-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.2)]">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-                        <span className="material-symbols-outlined text-white text-[14px] font-fill animate-pulse">visibility</span>
-                        <span className="text-[9px] font-black text-white uppercase tracking-[0.2em] relative z-10">Mode Peninjauan (Baca Saja)</span>
-                    </div>
-                )}
-                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-                    {/* Left Side: Logo */}
-                    <div className="flex-1 min-w-0 flex items-center">
-                        {backUrl ? (
-                            <Link 
-                                href={backUrl} 
-                                className="xl:hidden flex items-center gap-3 overflow-hidden group"
-                            >
-                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 group-hover:-translate-x-1 transition-transform text-2xl font-black">arrow_back</span>
-                                <div className="flex flex-col overflow-hidden">
-                                    <div className="flex items-center gap-1.5 leading-none mb-0.5">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
-                                            Kembali
-                                        </span>
-                                    </div>
-                                    <h2 className="text-slate-900 dark:text-white font-black text-base uppercase tracking-tight truncate leading-none">
-                                        {backLabel || 'Informasi Detail'}
-                                    </h2>
-                                </div>
-                            </Link>
-                        ) : null}
-
-                        <Link href="/" className={`${backUrl ? 'hidden xl:flex' : 'flex'} items-center gap-2.5 sm:gap-3 group`}>
-                            <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
-                                <span className="material-symbols-outlined text-lg font-black">grid_view</span>
-                            </div>
-                            <h1 className="text-slate-900 dark:text-slate-100 text-sm sm:text-base font-black leading-none tracking-tight uppercase italic flex items-center gap-1.5 truncate">
-                                PROTRACK <span className="not-italic text-blue-600 font-black">PRO</span>
-                            </h1>
-                        </Link>
-                    </div>
-
-                    {/* Center: Navigation */}
-                    <nav className="hidden xl:flex items-center justify-center gap-1 flex-none">
-                        {navItems.filter(item => item.name !== 'Profile').map((item) => (
-                            <Link 
-                                key={item.name}
-                                href={item.href}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all group ${
-                                    item.active 
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-                                    : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 dark:text-slate-400'
-                                }`}
-                            >
-                                <span className={`material-symbols-outlined text-[20px] transition-transform group-hover:scale-110 ${item.active ? 'text-white' : ''}`}>{item.icon}</span>
-                                <span>{item.name}</span>
-                            </Link>
-                        ))}
-                    </nav>
-
-                    {/* Right Side Tools */}
-                    <div className={`flex-1 flex items-center justify-end gap-2 sm:gap-4 ${backUrl ? 'xl:flex hidden' : 'flex'}`}>
-                        <div className="hidden md:flex items-center">
-                            <button 
-                                onClick={() => setIsSearchOpen(true)}
-                                className="flex items-center gap-2 px-3 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors group"
-                            >
-                                <span className="material-symbols-outlined group-hover:scale-110 transition-transform text-xl">search</span>
-                                <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700">
-                                    Ctrl+K
-                                </kbd>
-                            </button>
+                <header className="w-full flex flex-col xl:bg-white/70 xl:dark:bg-slate-900/70 xl:backdrop-blur-2xl xl:border-b xl:border-slate-200/50 xl:dark:border-white/10">
+                    {/* Mobile Review Mode Banner - STAYS STICKY */}
+                    {isReviewMode && (
+                        <div className="xl:hidden bg-amber-500/20 backdrop-blur-md py-1.5 px-4 flex items-center justify-center gap-2 relative border-b border-amber-500/10 shrink-0 z-20">
+                            <span className="material-symbols-outlined text-amber-600 text-[14px] font-fill animate-pulse">visibility</span>
+                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-[0.2em] relative z-10">Mode Peninjauan (Baca Saja)</span>
                         </div>
-
-                        <div className="flex items-center gap-0.5">
-                            <div className="relative" ref={notificationsRef}>
-                                <button 
-                                    onClick={() => {
-                                        if (window.innerWidth < 1280) {
-                                            router.visit(route('notifications.index'));
-                                        } else {
-                                            setIsNotificationsOpen(!isNotificationsOpen);
-                                        }
-                                    }}
-                                    className={`p-2 rounded-lg transition-all relative group ${
-                                        isNotificationsOpen 
-                                        ? 'bg-primary/10 text-primary' 
-                                        : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                    }`}
-                                >
-
-                                    <span className={`material-symbols-outlined text-2xl transition-transform ${isNotificationsOpen ? 'scale-110 font-fill' : 'group-hover:scale-110'}`}>
-                                        notifications
-                                    </span>
-                                    {notifications.filter(n => n.unread).length > 0 && (
-                                        <span className="absolute top-1 right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] font-black text-white animate-pulse">
-                                            {notifications.filter(n => n.unread).length > 99 ? '99+' : notifications.filter(n => n.unread).length}
-                                        </span>
-                                    )}
-                                </button>
-
-                                {isNotificationsOpen && (
-                                    <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-2xl animate-reveal overflow-hidden z-[100] ring-1 ring-black/5 dark:ring-white/5">
-                                        <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/[0.03]">
-                                            <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Notifikasi</h3>
-                                            <button onClick={markAllRead} className="text-[10px] font-black text-primary dark:text-blue-400 hover:text-primary-dark dark:hover:text-blue-300 uppercase tracking-widest transition-colors">
-                                                Tandai Semua Dibaca
-                                            </button>
+                    )}
+                    
+                    {/* Main Navigation Header - HIDABLE */}
+                    <div className={`transition-transform duration-300 ${isTopbarHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'} w-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/10 xl:bg-transparent xl:backdrop-blur-none xl:border-none`}>
+                        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+                            {/* Left Side: Logo */}
+                            <div className="flex-1 min-w-0 flex items-center">
+                                {backUrl ? (
+                                    <Link 
+                                        href={backUrl} 
+                                        className="xl:hidden flex items-center gap-3 overflow-hidden group"
+                                    >
+                                        <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 group-hover:-translate-x-1 transition-transform text-2xl font-black">arrow_back</span>
+                                        <div className="flex flex-col overflow-hidden">
+                                            <div className="flex items-center gap-1.5 leading-none mb-0.5">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                                                    Kembali
+                                                </span>
+                                            </div>
+                                            <h2 className="text-slate-900 dark:text-white font-black text-base uppercase tracking-tight truncate leading-none">
+                                                {backLabel || 'Informasi Detail'}
+                                            </h2>
                                         </div>
-                                        
-                                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                                            {notifications.length > 0 ? (
-                                                <div className="divide-y divide-slate-50 dark:divide-white/5">
-                                                    {notifications.map((n) => (
-                                                        <div key={n.id} className={`p-4 flex gap-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group/item ${n.unread ? 'bg-primary/5 dark:bg-primary/5' : ''}`}>
-                                                            <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${
-                                                                n.type === 'project' ? 'bg-blue-500/10 text-blue-500' :
-                                                                n.type === 'contract' ? 'bg-amber-500/10 text-amber-500' :
-                                                                n.type === 'merchandiser' ? 'bg-purple-500/10 text-purple-500' :
-                                                                n.type === 'billing' ? 'bg-rose-500/10 text-rose-500' :
-                                                                n.type === 'shipping' ? 'bg-emerald-500/10 text-emerald-500' :
-                                                                'bg-slate-500/10 text-slate-500'
-                                                            }`}>
-                                                                <span className="material-symbols-outlined text-xl">
-                                                                    {n.type === 'project' ? 'business_center' :
-                                                                     n.type === 'contract' ? 'description' :
-                                                                     n.type === 'merchandiser' ? 'storefront' :
-                                                                     n.type === 'billing' ? 'payments' :
-                                                                     n.type === 'shipping' ? 'local_shipping' :
-                                                                     'notifications'}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex flex-col gap-1 min-w-0">
-                                                                <div className="flex items-center justify-between gap-2">
-                                                                    <span className="text-xs font-black text-slate-800 dark:text-slate-200 truncate">{n.title}</span>
-                                                                    <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">{n.time}</span>
-                                                                </div>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{n.message}</p>
-                                                            </div>
-                                                            {n.unread && (
-                                                                <div className="size-2 rounded-full bg-primary dark:bg-blue-400 shrink-0 mt-2"></div>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="p-10 flex flex-col items-center justify-center text-center opacity-40">
-                                                    <span className="material-symbols-outlined text-4xl mb-2">notifications_off</span>
-                                                    <p className="text-xs font-bold uppercase tracking-widest">Tidak ada notifikasi</p>
-                                                </div>
-                                            )}
-                                        </div>
+                                    </Link>
+                                ) : null}
 
-                                        <div className="p-4 bg-slate-50 dark:bg-white/[0.03] border-t border-slate-100 dark:border-white/5 text-center">
-                                            <Link 
-                                                href={route('notifications.index')} 
-                                                className="text-[11px] font-black text-slate-500 hover:text-primary dark:hover:text-blue-400 transition-colors uppercase tracking-[0.2em]"
-                                                onClick={() => setIsNotificationsOpen(false)}
-                                            >
-                                                Lihat Semua Aktivitas
-                                            </Link>
-                                        </div>
+                                <Link href="/" className={`${backUrl ? 'hidden xl:flex' : 'flex'} items-center gap-2.5 sm:gap-3 group`}>
+                                    <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
+                                        <span className="material-symbols-outlined text-lg font-black">grid_view</span>
                                     </div>
-                                )}
-                            </div>
-                            
-                            {/* Master Data Link (Gear Icon) - Only on Desktop */}
-                            {canViewMasterData && (
-                                <Link 
-                                    href={route('master.data.index')}
-
-                                    className={`hidden xl:flex p-2 rounded-xl transition-all group ${
-                                        route().current('master.data.*')
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                        : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400'
-                                    }`}
-                                    title="Master Data"
-                                >
-                                    <span className={`material-symbols-outlined transition-transform ${route().current('master.data.*') ? 'scale-110 font-fill text-white' : 'group-hover:scale-110'} text-2xl`}>
-                                        settings
-                                    </span>
+                                    <h1 className="text-slate-900 dark:text-slate-100 text-sm sm:text-base font-black leading-none tracking-tight uppercase italic flex items-center gap-1.5 truncate">
+                                        PROTRACK <span className="not-italic text-blue-600 font-black">PRO</span>
+                                    </h1>
                                 </Link>
-                            )}
-                        </div>
+                            </div>
 
-                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden xl:block mx-1"></div>
+                            {/* Center: Navigation */}
+                            <nav className="hidden xl:flex items-center justify-center gap-1 flex-none">
+                                {navItems.filter(item => item.name !== 'Profile').map((item) => (
+                                    <Link 
+                                        key={item.name}
+                                        href={item.href}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all group ${
+                                            item.active 
+                                            ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                                            : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        <span className={`material-symbols-outlined text-[20px] transition-transform group-hover:scale-110 ${item.active ? 'text-white' : ''}`}>{item.icon}</span>
+                                        <span>{item.name}</span>
+                                    </Link>
+                                ))}
+                            </nav>
 
-                        <div className="relative hidden xl:block" ref={profileRef}>
-                            <button 
-                                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center gap-2 group outline-none"
-                            >
-                                <div className="size-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/10 group-hover:ring-2 ring-primary/20 transition-all">
-                                    <img 
-                                        alt="Profile" 
-                                        src={user.profile_photo_url}
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-                            </button>
-
-                        {/* Dropdown Menu */}
-                        {isProfileOpen && (
-                            <div className="absolute right-0 mt-3 w-64 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl animate-reveal p-2 z-[100]">
-                                <div className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-white/5 mb-2">
-                                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
-                                        <img 
-                                            alt="Profile" 
-                                            src={user.profile_photo_url}
-                                            className="h-full w-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{user.name}</span>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user.username || 'Admin'}</span>
-                                    </div>
+                            {/* Right Side Tools */}
+                            <div className={`flex-1 flex items-center justify-end gap-2 sm:gap-4 ${backUrl ? 'xl:flex hidden' : 'flex'}`}>
+                                <div className="hidden md:flex items-center">
+                                    <button 
+                                        onClick={() => setIsSearchOpen(true)}
+                                        className="flex items-center gap-2 px-3 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors group"
+                                    >
+                                        <span className="material-symbols-outlined group-hover:scale-110 transition-transform text-xl">search</span>
+                                        <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700">
+                                            Ctrl+K
+                                        </kbd>
+                                    </button>
                                 </div>
 
-                                {/* Theme Selector Grid */}
-                                <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-white/5 p-1 rounded-xl mb-2">
-                                    {[
-                                        { id: 'light', icon: 'light_mode', tip: 'Mode Terang' },
-                                        { id: 'dark', icon: 'dark_mode', tip: 'Mode Gelap' },
-                                        { id: 'system', icon: 'settings_brightness', tip: 'Sesuai tema perangkat' },
-                                    ].map((t) => (
-                                        <div key={t.id} className="relative group/tip">
-                                            <button
-                                                onClick={() => setTheme(t.id)}
-                                                className={`w-full flex justify-center py-2 rounded-lg transition-all ${
-                                                    theme === t.id 
-                                                        ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-white/10' 
-                                                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-                                                }`}
-                                            >
-                                                <span className={`material-symbols-outlined text-xl ${theme === t.id ? 'font-fill' : ''}`}>{t.icon}</span>
-                                            </button>
-                                            {/* Tooltip */}
-                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] font-bold rounded opacity-0 group-hover/tip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                                                {t.tip}
-                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                <div className="flex items-center gap-0.5">
+                                    <div className="relative" ref={notificationsRef}>
+                                        <button 
+                                            onClick={() => {
+                                                if (window.innerWidth < 1280) {
+                                                    router.visit(route('notifications.index'));
+                                                } else {
+                                                    setIsNotificationsOpen(!isNotificationsOpen);
+                                                }
+                                            }}
+                                            className={`p-2 rounded-lg transition-all relative group ${
+                                                isNotificationsOpen 
+                                                ? 'bg-primary/10 text-primary' 
+                                                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                            }`}
+                                        >
+
+                                            <span className={`material-symbols-outlined text-2xl transition-transform ${isNotificationsOpen ? 'scale-110 font-fill' : 'group-hover:scale-110'}`}>
+                                                notifications
+                                            </span>
+                                            {notifications.filter(n => n.unread).length > 0 && (
+                                                <span className="absolute top-1 right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] font-black text-white animate-pulse">
+                                                    {notifications.filter(n => n.unread).length > 99 ? '99+' : notifications.filter(n => n.unread).length}
+                                                </span>
+                                            )}
+                                        </button>
+
+                                        {isNotificationsOpen && (
+                                            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-2xl animate-reveal overflow-hidden z-[100] ring-1 ring-black/5 dark:ring-white/5">
+                                                <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/[0.03]">
+                                                    <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Notifikasi</h3>
+                                                    <button onClick={markAllRead} className="text-[10px] font-black text-primary dark:text-blue-400 hover:text-primary-dark dark:hover:text-blue-300 uppercase tracking-widest transition-colors">
+                                                        Tandai Semua Dibaca
+                                                    </button>
+                                                </div>
+                                                
+                                                <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                                                    {notifications.length > 0 ? (
+                                                        <div className="divide-y divide-slate-50 dark:divide-white/5">
+                                                            {notifications.map((n) => (
+                                                                <div key={n.id} className={`p-4 flex gap-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group/item ${n.unread ? 'bg-primary/5 dark:bg-primary/5' : ''}`}>
+                                                                    <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${
+                                                                        n.type === 'project' ? 'bg-blue-500/10 text-blue-500' :
+                                                                        n.type === 'contract' ? 'bg-amber-500/10 text-amber-500' :
+                                                                        n.type === 'merchandiser' ? 'bg-purple-500/10 text-purple-500' :
+                                                                        n.type === 'billing' ? 'bg-rose-500/10 text-rose-500' :
+                                                                        n.type === 'shipping' ? 'bg-emerald-500/10 text-emerald-500' :
+                                                                        'bg-slate-500/10 text-slate-500'
+                                                                    }`}>
+                                                                        <span className="material-symbols-outlined text-xl">
+                                                                            {n.type === 'project' ? 'business_center' :
+                                                                             n.type === 'contract' ? 'description' :
+                                                                             n.type === 'merchandiser' ? 'storefront' :
+                                                                             n.type === 'billing' ? 'payments' :
+                                                                             n.type === 'shipping' ? 'local_shipping' :
+                                                                             'notifications'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex flex-col gap-1 min-w-0">
+                                                                        <div className="flex items-center justify-between gap-2">
+                                                                            <span className="text-xs font-black text-slate-800 dark:text-slate-200 truncate">{n.title}</span>
+                                                                            <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">{n.time}</span>
+                                                                        </div>
+                                                                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{n.message}</p>
+                                                                    </div>
+                                                                    {n.unread && (
+                                                                        <div className="size-2 rounded-full bg-primary dark:bg-blue-400 shrink-0 mt-2"></div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="p-10 flex flex-col items-center justify-center text-center opacity-40">
+                                                            <span className="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+                                                            <p className="text-xs font-bold uppercase tracking-widest">Tidak ada notifikasi</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="p-4 bg-slate-50 dark:bg-white/[0.03] border-t border-slate-100 dark:border-white/5 text-center">
+                                                    <Link 
+                                                        href={route('notifications.index')} 
+                                                        className="text-[11px] font-black text-slate-500 hover:text-primary dark:hover:text-blue-400 transition-colors uppercase tracking-[0.2em]"
+                                                        onClick={() => setIsNotificationsOpen(false)}
+                                                    >
+                                                        Lihat Semua Aktivitas
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Master Data Link (Gear Icon) - Only on Desktop */}
+                                    {canViewMasterData && (
+                                        <Link 
+                                            href={route('master.data.index')}
+
+                                            className={`hidden xl:flex p-2 rounded-xl transition-all group ${
+                                                route().current('master.data.*')
+                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400'
+                                            }`}
+                                            title="Master Data"
+                                        >
+                                            <span className={`material-symbols-outlined transition-transform ${route().current('master.data.*') ? 'scale-110 font-fill text-white' : 'group-hover:scale-110'} text-2xl`}>
+                                                settings
+                                            </span>
+                                        </Link>
+                                    )}
+                                </div>
+
+                                <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden xl:block mx-1"></div>
+
+                                <div className="relative hidden xl:block" ref={profileRef}>
+                                    <button 
+                                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                        className="flex items-center gap-2 group outline-none"
+                                    >
+                                        <div className="size-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/10 group-hover:ring-2 ring-primary/20 transition-all">
+                                            <img 
+                                                alt="Profile" 
+                                                src={user.profile_photo_url}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {isProfileOpen && (
+                                        <div className="absolute right-0 mt-3 w-64 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl animate-reveal p-2 z-[100]">
+                                            <div className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-white/5 mb-2">
+                                                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
+                                                    <img 
+                                                        alt="Profile" 
+                                                        src={user.profile_photo_url}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{user.name}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{user.username || 'Admin'}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Theme Selector Grid */}
+                                            <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-white/5 p-1 rounded-xl mb-2">
+                                                {[
+                                                    { id: 'light', icon: 'light_mode', tip: 'Mode Terang' },
+                                                    { id: 'dark', icon: 'dark_mode', tip: 'Mode Gelap' },
+                                                    { id: 'system', icon: 'settings_brightness', tip: 'Sesuai tema perangkat' },
+                                                ].map((t) => (
+                                                    <div key={t.id} className="relative group/tip">
+                                                        <button
+                                                            onClick={() => setTheme(t.id)}
+                                                            className={`w-full flex justify-center py-2 rounded-lg transition-all ${
+                                                                theme === t.id 
+                                                                    ? 'bg-white dark:bg-white/10 text-primary dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-white/10' 
+                                                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                                            }`}
+                                                        >
+                                                            <span className={`material-symbols-outlined text-xl ${theme === t.id ? 'font-fill' : ''}`}>{t.icon}</span>
+                                                        </button>
+                                                        {/* Tooltip */}
+                                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] font-bold rounded opacity-0 group-hover/tip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                                                            {t.tip}
+                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="space-y-1">
+                                                <Link 
+                                                    href={route('profile.edit')} 
+                                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-600 dark:text-slate-400 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl">account_circle</span>
+                                                    <span>Profile</span>
+                                                </Link>
+                                                <Link 
+                                                    href={route('logout')} 
+                                                    method="post" 
+                                                    as="button"
+                                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-bold text-red-500 transition-colors text-left"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl rotate-180">logout</span>
+                                                    <span>Keluar</span>
+                                                </Link>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="space-y-1">
-                                    <Link 
-                                        href={route('profile.edit')} 
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-600 dark:text-slate-400 transition-colors"
-                                    >
-                                        <span className="material-symbols-outlined text-xl">account_circle</span>
-                                        <span>Profile</span>
-                                    </Link>
-                                    <Link 
-                                        href={route('logout')} 
-                                        method="post" 
-                                        as="button"
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-bold text-red-500 transition-colors text-left"
-                                    >
-                                        <span className="material-symbols-outlined text-xl rotate-180">logout</span>
-                                        <span>Keluar</span>
-                                    </Link>
+                                    )}
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
-
-                {/* Mobile Menu Toggle (Legacy - kept for XL transition but hidden on mobile) */}
-                <button 
-                    onClick={() => setIsBottomSheetOpen(true)}
-                    className="xl:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg absolute right-4 top-1/2 -translate-y-1/2 hidden"
-                >
-                    <span className="material-symbols-outlined">menu_open</span>
-                </button>
-            </div>
-
-            {/* Mobile Progress Bar */}
-            {progress !== undefined && (
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-slate-100 dark:bg-white/5 xl:hidden overflow-hidden origin-left">
-                    <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                    />
-                </div>
-            )}
-        </header>
+                </header>
             </div>
 
             {/* Mobile Navigation Dropdown (Legacy - Disabled in favor of BottomNav) */}
@@ -694,7 +678,7 @@ export default function AuthenticatedLayout({
             <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-0 xl:pt-0 pb-32 xl:pb-8">
                 {/* Mobile Header Placeholder - To prevent content from being hidden under fixed topbar */}
                 {!hideTopbarMobile && (
-                    <div className="xl:hidden h-20 w-full shrink-0" />
+                    <div className={`xl:hidden w-full shrink-0 transition-all ${isReviewMode ? 'h-[110px]' : 'h-20'}`} />
                 )}
                 
                 {isLoading ? (

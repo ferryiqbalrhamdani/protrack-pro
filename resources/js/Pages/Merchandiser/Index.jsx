@@ -481,12 +481,21 @@ export default function Index({ projects, summary, queryParams = null }) {
                                                 </td>
 
                                                 {/* Project & No. UP & No. Kontrak */}
-                                                <td className="px-8 py-5 whitespace-nowrap">
-                                                    <p className="font-black text-slate-800 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-blue-400 transition-colors mb-1.5">{row.name}</p>
+                                                <td className="px-8 py-5">
+                                                    <div className="relative group/name">
+                                                        <p className="font-black text-slate-800 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-blue-400 transition-colors mb-1.5 max-w-[220px] truncate">{row.name}</p>
+                                                        {/* Tooltip for long names */}
+                                                        <div className="absolute left-0 bottom-full mb-2 z-[200] hidden group-hover/name:block pointer-events-none">
+                                                            <div className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black px-3 py-2 rounded-xl shadow-xl max-w-[320px] whitespace-normal leading-relaxed">
+                                                                {row.name}
+                                                                <div className="absolute top-full left-4 border-4 border-transparent border-t-slate-900 dark:border-t-white"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                     <div className="flex gap-3 items-center">
                                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">UP:</span> {row.upNo}</span>
                                                         <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">KT:</span> {row.no_kontrak || '-'}</span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-[120px] truncate"><span className="text-slate-300">KT:</span> {row.no_kontrak || '-'}</span>
                                                     </div>
                                                 </td>
 

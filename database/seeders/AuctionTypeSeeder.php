@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\AuctionType;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AuctionTypeSeeder extends Seeder
 {
@@ -25,5 +26,8 @@ class AuctionTypeSeeder extends Seeder
         foreach ($types as $type) {
             AuctionType::updateOrCreate(['id' => $type['id']], $type);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('auction_types_id_seq', (SELECT MAX(id) FROM auction_types))");
     }
 }

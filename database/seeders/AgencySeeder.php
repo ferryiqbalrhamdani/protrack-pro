@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Agency;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AgencySeeder extends Seeder
 {
@@ -23,5 +24,8 @@ class AgencySeeder extends Seeder
         foreach ($agencies as $agency) {
             Agency::updateOrCreate(['id' => $agency['id']], $agency);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('agencies_id_seq', (SELECT MAX(id) FROM agencies))");
     }
 }

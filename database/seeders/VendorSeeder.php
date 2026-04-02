@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Vendor;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class VendorSeeder extends Seeder
 {
@@ -40,5 +41,8 @@ class VendorSeeder extends Seeder
         foreach ($vendors as $vendor) {
             Vendor::updateOrCreate(['id' => $vendor['id']], $vendor);
         }
+
+        // Reset PostgreSQL sequence to avoid duplicate key errors on next insert
+        DB::statement("SELECT setval('vendors_id_seq', (SELECT MAX(id) FROM vendors))");
     }
 }

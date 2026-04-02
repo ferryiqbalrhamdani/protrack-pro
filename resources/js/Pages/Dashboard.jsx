@@ -404,59 +404,109 @@ export default function Dashboard({
                 {/* Main Viz & Due Projects Grid */}
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                     {/* Chart Container */}
-                    <div className="xl:col-span-2 bg-white dark:bg-white/[0.02] p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/20 dark:shadow-none flex flex-col h-[480px]">
-                        <div className="flex items-center justify-between mb-10 shrink-0">
+                    <div className="xl:col-span-2 bg-white dark:bg-white/[0.03] p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/20 dark:shadow-none flex flex-col">
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 shrink-0">
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Trend Progres Project</h3>
-                                <p className="text-xs text-slate-500 font-medium">Monitoring performa pengerjaan proyek setiap bulan</p>
+                                <h3 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Trend Progres Project</h3>
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">Monitoring performa pengerjaan proyek setiap bulan</p>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="size-3 rounded-full bg-primary shadow-lg shadow-primary/40"></span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg. Progres (%)</span>
-                                </div>
+                            <div className="flex items-center gap-2 bg-primary/5 dark:bg-blue-500/10 px-3 py-2 rounded-xl border border-primary/10 dark:border-blue-500/20 shrink-0 self-start sm:self-auto">
+                                <span className="size-2.5 rounded-full bg-primary dark:bg-blue-400 shadow-lg shadow-primary/40"></span>
+                                <span className="text-[10px] font-black text-primary dark:text-blue-400 uppercase tracking-widest">Avg. Progres (%)</span>
                             </div>
                         </div>
-                        <div className="flex-1 w-full relative group mt-4 overflow-hidden">
-                            {/* Grid Lines */}
-                            <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest pb-10">
+
+                        {/* Chart Area — fixed height, responsive */}
+                        <div className="relative w-full h-[220px] sm:h-[280px] group">
+                            {/* Y-Axis labels + dashed grid lines */}
+                            <div className="absolute inset-0 pb-7 pl-10 flex flex-col justify-between pointer-events-none">
                                 {[100, 75, 50, 25, 0].map(val => (
-                                    <div key={val} className="flex items-center gap-4 border-b border-slate-100 dark:border-white/5 h-0 w-full relative">
-                                        <span className="absolute -top-2 bg-white dark:bg-[#0b1120] px-1 w-10">{val}%</span>
+                                    <div key={val} className="h-0 w-full relative flex items-center">
+                                        <span className="absolute -top-2.5 left-0 text-[9px] font-black text-slate-400 dark:text-slate-600 w-8 text-right">
+                                            {val}%
+                                        </span>
+                                        <div className="absolute left-10 right-0 border-t border-dashed border-slate-100 dark:border-white/[0.06]" />
                                     </div>
                                 ))}
                             </div>
+
                             {/* SVG Chart */}
-                            <div className="absolute inset-0 pt-0 pb-10 px-8">
-                                <svg className="w-full h-full drop-shadow-[0_20px_20px_rgba(26,43,60,0.1)] overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 400">
-                                    <path 
-                                        d={getPath()} 
-                                        fill="none" 
-                                        stroke="#1a2b3c" 
-                                        strokeLinecap="round" 
-                                        strokeWidth="4"
-                                        className="transition-all duration-1000 ease-out dark:stroke-slate-100"
+                            <div className="absolute inset-0 pb-7 pl-12 pr-2">
+                                <svg
+                                    className="w-full h-full overflow-visible"
+                                    preserveAspectRatio="none"
+                                    viewBox="0 0 1000 400"
+                                >
+                                    <defs>
+                                        <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
+                                            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                                        </linearGradient>
+                                    </defs>
+
+                                    {/* Gradient fill under line */}
+                                    <path
+                                        d={`${getPath()} L 1000 400 L 0 400 Z`}
+                                        fill="url(#chartAreaGrad)"
                                     />
+
+                                    {/* Chart line — uses currentColor so dark mode via className works */}
+                                    <path
+                                        d={getPath()}
+                                        fill="none"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="stroke-primary dark:stroke-blue-400 transition-all duration-1000"
+                                    />
+
+                                    {/* Data points */}
                                     {chartPoints.map((p, i) => {
                                         const x = (i / 11) * 1000;
                                         const y = 400 - (p.val * 4);
                                         return (
-                                            <circle 
-                                                key={i} 
-                                                cx={x} 
-                                                cy={y} 
-                                                fill="#1a2b3c" 
-                                                r="6" 
-                                                className="dark:fill-slate-100 hover:r-8 transition-all cursor-crosshair group-hover:r-[7px]"
-                                            />
+                                            <g key={i}>
+                                                <circle
+                                                    cx={x} cy={y} r="5"
+                                                    strokeWidth="2.5"
+                                                    className="fill-white dark:fill-[#101827] stroke-primary dark:stroke-blue-400 cursor-crosshair transition-all"
+                                                />
+                                                <text
+                                                    x={x} y={y - 14}
+                                                    textAnchor="middle"
+                                                    fontSize="30"
+                                                    fontWeight="900"
+                                                    className="fill-primary dark:fill-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    {p.val}%
+                                                </text>
+                                            </g>
                                         );
                                     })}
                                 </svg>
                             </div>
-                            {/* X Axis */}
-                            <div className="absolute bottom-0 inset-x-0 flex justify-between px-8 text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-                                {chartPoints.map(p => <span key={p.month}>{p.month}</span>)}
+
+                            {/* X-axis month labels */}
+                            <div className="absolute bottom-0 inset-x-0 pl-12 pr-2 flex justify-between">
+                                {chartPoints.map(p => (
+                                    <span key={p.month} className="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">{p.month}</span>
+                                ))}
                             </div>
+                        </div>
+
+                        {/* Footer: Min / Avg / Max stats */}
+                        <div className="mt-5 pt-5 border-t border-slate-100 dark:border-white/5 grid grid-cols-3 gap-3">
+                            {[
+                                { label: 'Tertinggi', value: `${Math.max(...chartPoints.map(p => p.val))}%`, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10', border: 'border-emerald-100 dark:border-emerald-500/20' },
+                                { label: 'Rata‑rata',  value: `${Math.round(chartPoints.reduce((a, b) => a + b.val, 0) / chartPoints.length)}%`, color: 'text-primary dark:text-blue-400', bg: 'bg-primary/5 dark:bg-blue-500/10', border: 'border-primary/10 dark:border-blue-500/20' },
+                                { label: 'Terendah',  value: `${Math.min(...chartPoints.map(p => p.val))}%`, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10', border: 'border-rose-100 dark:border-rose-500/20' },
+                            ].map(s => (
+                                <div key={s.label} className={`text-center py-3 rounded-2xl border ${s.bg} ${s.border}`}>
+                                    <p className={`text-sm sm:text-lg font-black ${s.color}`}>{s.value}</p>
+                                    <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{s.label}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
 

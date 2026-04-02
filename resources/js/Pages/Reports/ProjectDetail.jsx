@@ -88,10 +88,10 @@ export default function ProjectDetail({ project }) {
                                     </Link>
                                     <div>
                                         <div className="flex items-center gap-3">
-                                            <h1 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+                                            <h1 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight max-w-[420px] truncate" title={`Project ${project.proj}`}>
                                                 Project {project.proj}
                                             </h1>
-                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                                            <span className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
                                                 project.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
                                                 project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
                                                 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400'
@@ -99,7 +99,7 @@ export default function ProjectDetail({ project }) {
                                                 {project.status}
                                             </span>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-500 mt-1">Laporan Detail & Keterhubungan Modul</p>
+                                        <p className="text-sm font-medium text-slate-500 mt-1">Laporan Detail &amp; Keterhubungan Modul</p>
                                     </div>
                                 </div>
 
