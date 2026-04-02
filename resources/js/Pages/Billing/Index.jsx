@@ -677,7 +677,7 @@ export default function Index({ projects, queryParams = null }) {
 
                 {/* Card Grid View - Mobile: always visible, Web: only when viewMode === 'grid' */}
                 <div className={`${isMobile ? 'block' : viewMode === 'grid' ? 'hidden md:block' : 'hidden'} mt-4`}>
-                    <div className="grid grid-cols-2 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     {isTableLoading ? (
                         Array(10).fill(0).map((_, i) => (
                             <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
@@ -796,7 +796,7 @@ export default function Index({ projects, queryParams = null }) {
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-2 py-20 text-center flex flex-col items-center gap-4">
+                        <div className="col-span-1 md:col-span-2 py-20 text-center flex flex-col items-center gap-4">
                             <div className="size-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300">
                                 <span className="material-symbols-outlined text-4xl">inventory_2</span>
                             </div>
