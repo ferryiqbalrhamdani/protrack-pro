@@ -54,7 +54,7 @@ class AiController extends Controller
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
             ])->withoutVerifying() 
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
