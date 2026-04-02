@@ -42,6 +42,7 @@ export default function Index({ projects, queryParams = null }) {
 
     const [myDataFilter, setMyDataFilter] = useSessionFilter('Billing_myData', queryParams.my_data === 'true');
     const [showMoreFilters, setShowMoreFilters] = useState(false);
+    const [viewMode, setViewMode] = useSessionFilter('BillingIndex_viewMode', 'table');
     const [dateRange, setDateRange] = useSessionFilter('Billing_dateRange', { 
         start: queryParams.start_date || '', 
         end: queryParams.end_date || '' 
@@ -475,8 +476,36 @@ export default function Index({ projects, queryParams = null }) {
                     </div>
                 </div>
 
-                {/* Table Section */}
-                <div className="bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden">
+                {/* Data View Controls */}
+                <div className="flex justify-between items-center mb-6 px-1 lg:px-2">
+                    <p className="text-[10px] md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
+                        Menampilkan <span className="text-slate-800 dark:text-white font-black mx-1">{data?.length || 0}</span> dari <span className="text-slate-800 dark:text-white font-black mx-1">{pagination.total || 0}</span> Penagihan
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest sm:hidden">
+                        <span className="text-slate-800 dark:text-white font-black mr-1">{pagination.total || 0}</span> Penagihan
+                    </p>
+                    
+                    {/* View Mode Toggle - Web Only */}
+                    <div className="hidden md:flex flex-shrink-0 items-center gap-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-1 rounded-2xl h-[48px] shadow-sm">
+                        <button 
+                            onClick={() => setViewMode('table')}
+                            className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'table' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            title="Tampilan Tabel"
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${viewMode === 'table' ? 'font-fill' : ''}`}>table_rows</span>
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('grid')}
+                            className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            title="Tampilan Kartu"
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${viewMode === 'grid' ? 'font-fill' : ''}`}>grid_view</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Table Container - Web Only (table view) */}
+                <div className={`${viewMode === 'table' ? 'hidden md:block' : 'hidden'} bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden`}>
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="hidden md:table w-full text-left border-collapse">
                             <thead>
@@ -628,88 +657,152 @@ export default function Index({ projects, queryParams = null }) {
                                     )}
                                 </tbody>
                         </table>
-
-                        {/* Mobile Card Grid View */}
-                        <div className="md:hidden grid grid-cols-1 gap-4">
-                            {isTableLoading ? (
-                                Array(10).fill(0).map((_, i) => (
-                                    <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
-                                        <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-lg w-3/4 mb-3"></div>
-                                        <div className="h-3 bg-slate-50 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
-                                        <div className="space-y-2 pt-2">
-                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-full"></div>
-                                            <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-2/3"></div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : data.length > 0 ? (
-                                data.map((project, index) => (
-                                     <div 
-                                        key={project.id} 
-                                        className="bg-white dark:bg-white/5 rounded-[2rem] p-5 border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col gap-4 relative overflow-hidden group animate-slide-up-fade"
-                                        style={{ animationDelay: `${index * 50}ms` }}
-                                    >
-                                        <div className="flex justify-between items-start gap-2">
-                                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ring-1 ring-inset ${
-                                                project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
-                                                project.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20' :
-                                                project.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
-                                                'bg-slate-100 text-slate-500 dark:bg-white/5 ring-slate-200/50'
-                                            }`}>
-                                                {project.status || 'Ongoing'}
-                                            </div>
-                                            <Link href={project.hashed_id ? route('billing.edit', project.hashed_id) : '#'} className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400">
-                                                <span className="material-symbols-outlined text-lg">edit_square</span>
-                                            </Link>
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">{project.name}</h4>
-                                            <div className="flex flex-col gap-2 mt-1.5">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. UP</span>
-                                                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight">{project.upNo || '-'}</span>
-                                                </div>
-                                                <div className="flex flex-col pt-2 border-t border-slate-50 dark:border-white/5">
-                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. Kontrak</span>
-                                                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight break-all">{project.no_kontrak || '-'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
-                                                <span className="text-slate-400">Progres</span>
-                                                <span className={project.progres === 100 ? 'text-emerald-500' : 'text-primary'}>{project.progres || 0}%</span>
-                                            </div>
-                                            <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div className={`h-full rounded-full transition-all duration-700 ${project.progres === 100 ? 'bg-emerald-500' : 'bg-primary'}`} style={{ width: `${project.progres || 0}%` }} />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-1.5 pt-1 border-t border-slate-50 dark:border-white/5">
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[10px] text-slate-300">business</span>
-                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{project.company || '-'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[10px] text-slate-300">person</span>
-                                                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">
-                                                    {project.pic?.name || project.pic || '-'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-span-2 py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">Tidak ada data ditemukan</div>
-                            )}
-                        </div>
                     </div>
 
-                    {/* Pagination Footer */}
+                    {/* Pagination Footer - inside table container */}
                     <div className="px-0 md:px-8 py-8 md:py-6 border-t-0 md:border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-transparent md:bg-slate-50/50 dark:md:bg-white/[0.02] md:rounded-b-[3rem]">
                         <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
                             Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
                         </p>
-                        
+                        <Pagination links={pagination.links} />
+                    </div>
+                </div>
+
+                {/* Card Grid View - Mobile: always visible, Web: only when viewMode === 'grid' */}
+                <div className={`${isMobile ? 'block' : viewMode === 'grid' ? 'hidden md:block' : 'hidden'} mt-4`}>
+                    <div className="grid grid-cols-2 gap-4 md:gap-6">
+                    {isTableLoading ? (
+                        Array(10).fill(0).map((_, i) => (
+                            <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
+                                <div className="h-4 bg-slate-100 dark:bg-white/10 rounded-lg w-3/4 mb-3"></div>
+                                <div className="h-3 bg-slate-50 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                                <div className="space-y-2 pt-2">
+                                    <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-full"></div>
+                                    <div className="h-1.5 bg-slate-100 dark:bg-white/10 rounded-full w-2/3"></div>
+                                </div>
+                            </div>
+                        ))
+                    ) : data.length > 0 ? (
+                        data.map((project, index) => (
+                            <div 
+                                key={project.id} 
+                                className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-4 md:p-6 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-4 md:space-y-6 relative overflow-hidden group animate-slide-up-fade"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                {/* Header */}
+                                <div className="flex justify-between items-start gap-2 md:gap-4">
+                                    <div className="min-w-0">
+                                        <h4 className="text-xs md:text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2">{project.name}</h4>
+                                        <p className="text-[9px] md:text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1">UP: {project.upNo || project.id}</p>
+                                    </div>
+                                    <div className="flex items-start shrink-0">
+                                        <div className={`inline-flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 md:py-1.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ${
+                                            project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' :
+                                            project.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
+                                            project.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
+                                            'bg-slate-100 text-slate-500 ring-1 ring-slate-200/50 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10'
+                                        }`}>
+                                            <span className={`material-symbols-outlined text-[11px] md:text-[14px] ${project.status === 'Completed' ? 'font-fill' : ''}`}>
+                                                {project.status === 'Completed' ? 'check_circle' :
+                                                 project.status === 'Ongoing' ? 'autorenew' :
+                                                 project.status === 'Pending' ? 'schedule' : 'block'}
+                                            </span>
+                                            <span className="hidden sm:inline-block">{project.status}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Details - Client, PIC, Handler */}
+                                <div className="grid grid-cols-1 gap-3 pt-3 border-t border-slate-50 dark:border-white/5">
+                                    <div className="space-y-1 overflow-hidden">
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Client</p>
+                                        <p className="text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{project.company || '-'}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1 overflow-hidden">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">PIC</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="size-4 md:size-5 rounded-md bg-slate-100 dark:bg-white/5 flex flex-shrink-0 items-center justify-center text-slate-400">
+                                                    <span className="material-symbols-outlined text-[12px] md:text-[14px]">person</span>
+                                                </div>
+                                                <p className="text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{project.pic?.name || project.pic || '-'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1 overflow-hidden">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Handler</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="size-4 md:size-5 rounded-md bg-indigo-50 dark:bg-indigo-500/10 flex flex-shrink-0 items-center justify-center text-indigo-400">
+                                                    <span className="material-symbols-outlined text-[12px] md:text-[14px]">manage_accounts</span>
+                                                </div>
+                                                <p className="text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{project.handle?.name || '-'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* No Kontrak Highlight */}
+                                <div className="bg-slate-50 dark:bg-white/[0.02] px-3 py-2.5 md:p-4 rounded-[1rem] md:rounded-[1.25rem] border border-slate-100 dark:border-white/5">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">No. Kontrak</p>
+                                    <p className="text-[11px] md:text-sm font-black text-slate-800 dark:text-white truncate">{project.no_kontrak || '-'}</p>
+                                </div>
+
+                                {/* Progress */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center text-[9px] md:text-[10px] font-black uppercase tracking-widest">
+                                        <span className="text-slate-400">Progress</span>
+                                        <span className={project.progres === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{project.progres || 0}%</span>
+                                    </div>
+                                    <div className="h-1.5 md:h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-1000 ${project.progres === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
+                                            style={{ width: `${project.progres || 0}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+
+                                {/* Dates */}
+                                <div className="flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01] px-2 md:px-3 py-2 md:py-3 rounded-xl md:rounded-2xl border border-slate-100/50 dark:border-white/5">
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] md:tracking-[0.2em]">Tgl Kontrak</span>
+                                        <p className="text-[9px] md:text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                                            {project.contractDate ? new Date(project.contractDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                        </p>
+                                    </div>
+                                    <div className="w-px h-5 bg-slate-200 dark:bg-white/10"></div>
+                                    <div className="flex flex-col gap-0.5 text-right">
+                                        <span className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] md:tracking-[0.2em]">Due Date</span>
+                                        <p className="text-[9px] md:text-[10px] font-black text-amber-500">
+                                            {project.dueDate ? new Date(project.dueDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="pt-1">
+                                    <Link 
+                                        href={route('billing.edit', project.hashed_id)}
+                                        className="flex items-center justify-center gap-1.5 py-2 md:py-2.5 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-500/20 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[13px] md:text-[14px]">edit</span>
+                                        Update Penagihan
+                                    </Link>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-2 py-20 text-center flex flex-col items-center gap-4">
+                            <div className="size-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300">
+                                <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                            </div>
+                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Tidak ada data ditemukan</p>
+                        </div>
+                    )}
+                    </div>
+
+                    {/* Card Pagination */}
+                    <div className="py-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                            Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
+                        </p>
                         <Pagination links={pagination.links} />
                     </div>
                 </div>

@@ -10,8 +10,6 @@ import Pagination from '@/Components/Pagination';
 
 import { motion } from 'framer-motion';
 
-// Removed DUMMY_MERCHANDISER as we now use real data from backend
-
 export default function Index({ projects, summary, queryParams = null }) {
     queryParams = queryParams || {};
     const { auth } = usePage().props;
@@ -27,6 +25,7 @@ export default function Index({ projects, summary, queryParams = null }) {
     const [budgetFilter, setBudgetFilter] = useSessionFilter('Merchandiser_budget', queryParams.budget || 'Semua Anggaran');
     const [myDataFilter, setMyDataFilter] = useSessionFilter('Merchandiser_myData', queryParams.my_data === 'true');
     const [showMoreFilters, setShowMoreFilters] = useState(false);
+    const [viewMode, setViewMode] = useSessionFilter('MerchandiserIndex_viewMode', 'table');
     const [sortConfig, setSortConfig] = useSessionFilter('Merchandiser_sort', {
         key: queryParams.tableSortColumn || null,
         direction: queryParams.tableSortDirection || 'asc',
@@ -93,6 +92,9 @@ export default function Index({ projects, summary, queryParams = null }) {
         'Completed': { bg: 'bg-emerald-500/10', text: 'text-emerald-500 dark:text-emerald-400', ring: 'ring-emerald-500/20', icon: 'check_circle' },
         'Pending':   { bg: 'bg-amber-500/10', text: 'text-amber-500 dark:text-amber-400', ring: 'ring-amber-500/20', icon: 'schedule' },
     };
+
+    // On mobile, always show card view
+    const effectiveViewMode = isMobile ? 'grid' : viewMode;
 
     return (
         <AuthenticatedLayout>
@@ -365,188 +367,231 @@ export default function Index({ projects, summary, queryParams = null }) {
                     </div>
                 </div>
 
-                <div className="bg-transparent md:bg-white dark:md:bg-white/5 md:rounded-[3rem] md:border border-slate-100 dark:border-white/5 md:shadow-xl overflow-hidden">
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="hidden md:table w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] rounded-t-[3rem]">
-                                    <th
-                                        onClick={() => handleSort('progres')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center gap-2">Progress <SortIcon column="progres" /></div>
-                                    </th>
-                                    <th
-                                        onClick={() => handleSort('status')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center gap-2">Status <SortIcon column="status" /></div>
-                                    </th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
-                                        Project, No. UP &amp; No. Kontrak
-                                    </th>
-                                    <th
-                                        onClick={() => handleSort('budget_type')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th"
-                                    >
-                                        <div className="flex items-center gap-2">Jenis Anggaran <SortIcon column="budget_type" /></div>
-                                    </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">PIC</th>
-                                    <th
-                                        onClick={() => handleSort('merchandiser_barang_dikontrak')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th text-right"
-                                    >
-                                        <div className="flex items-center justify-end gap-2">Barang Dikontrak <SortIcon column="merchandiser_barang_dikontrak" /></div>
-                                    </th>
-                                    <th
-                                        onClick={() => handleSort('merchandiser_barang_diterima')}
-                                        className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th text-right"
-                                    >
-                                        <div className="flex items-center justify-end gap-2">Barang Diterima <SortIcon column="merchandiser_barang_diterima" /></div>
-                                    </th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                  {isTableLoading ? (
-                                     <TableSkeleton columns={8} rows={8} />
-                                 ) : data.length > 0 ? data.map((row, index) => {
-                                     const sc = statusConfig[row.status] || statusConfig['Pending'];
-                                     const barangDikontrak = Number(row.barang_dikontrak || 0);
-                                     const barangDiterima = Number(row.barang_diterima || 0);
-                                     const sisaBarang = barangDikontrak - barangDiterima;
-                                     const isPIC = auth_user?.name === row.pic;
-                                     const isReviewMode = row.status === 'Pending' || row.status === 'Completed';
+                {/* Data View Controls */}
+                <div className="flex justify-between items-center mb-6 px-1 lg:px-2">
+                    <p className="text-[10px] md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
+                        Menampilkan <span className="text-slate-800 dark:text-white font-black mx-1">{data?.length || 0}</span> dari <span className="text-slate-800 dark:text-white font-black mx-1">{pagination.total || 0}</span> Pengadaan
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest sm:hidden">
+                        <span className="text-slate-800 dark:text-white font-black mr-1">{pagination.total || 0}</span> Pengadaan
+                    </p>
+                    
+                    {/* View Mode Toggle — Desktop only */}
+                    <div className="hidden md:flex flex-shrink-0 items-center gap-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-1 rounded-2xl h-[48px] shadow-sm">
+                        <button 
+                            onClick={() => setViewMode('table')}
+                            className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'table' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            title="Tampilan Tabel"
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${viewMode === 'table' ? 'font-fill' : ''}`}>table_rows</span>
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('grid')}
+                            className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            title="Tampilan Kartu"
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${viewMode === 'grid' ? 'font-fill' : ''}`}>grid_view</span>
+                        </button>
+                    </div>
+                </div>
 
-                                     return (
-                                         <tr 
-                                             key={row.id} 
-                                             className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group animate-slide-up-fade"
-                                             style={{ animationDelay: `${index * 100 + 150}ms` }}
-                                         >
-                                             {/* Progress */}
-                                             <td className="px-6 py-5 min-w-[160px]">
-                                                 <div className="flex flex-col gap-1.5">
-                                                     <div className="flex items-center justify-between text-[10px] font-black">
-                                                         <span className="text-slate-400">Progress</span>
-                                                         <span className={row.progres === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{row.progres}%</span>
-                                                     </div>
-                                                     <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                         <div
-                                                             className={`h-full rounded-full transition-all duration-700 ${row.progres === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
-                                                             style={{ width: `${row.progres}%` }}
-                                                         />
-                                                     </div>
-                                                 </div>
-                                             </td>
+                {/* ─── TABLE VIEW (desktop only) ─── */}
+                {effectiveViewMode === 'table' && (
+                    <div className="bg-white dark:bg-white/5 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl overflow-hidden">
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] rounded-t-[3rem]">
+                                        <th
+                                            onClick={() => handleSort('progres')}
+                                            className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th"
+                                        >
+                                            <div className="flex items-center gap-2">Progress <SortIcon column="progres" /></div>
+                                        </th>
+                                        <th
+                                            onClick={() => handleSort('status')}
+                                            className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th"
+                                        >
+                                            <div className="flex items-center gap-2">Status <SortIcon column="status" /></div>
+                                        </th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                            Project, No. UP &amp; No. Kontrak
+                                        </th>
+                                        <th
+                                            onClick={() => handleSort('budget_type')}
+                                            className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th"
+                                        >
+                                            <div className="flex items-center gap-2">Jenis Anggaran <SortIcon column="budget_type" /></div>
+                                        </th>
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">PIC</th>
+                                        <th
+                                            onClick={() => handleSort('merchandiser_barang_dikontrak')}
+                                            className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th text-right"
+                                        >
+                                            <div className="flex items-center justify-end gap-2">Barang Dikontrak <SortIcon column="merchandiser_barang_dikontrak" /></div>
+                                        </th>
+                                        <th
+                                            onClick={() => handleSort('merchandiser_barang_diterima')}
+                                            className="px-6 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors group/th text-right"
+                                        >
+                                            <div className="flex items-center justify-end gap-2">Barang Diterima <SortIcon column="merchandiser_barang_diterima" /></div>
+                                        </th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                    {isTableLoading ? (
+                                        <TableSkeleton columns={8} rows={8} />
+                                    ) : data.length > 0 ? data.map((row, index) => {
+                                        const sc = statusConfig[row.status] || statusConfig['Pending'];
+                                        const barangDikontrak = Number(row.barang_dikontrak || 0);
+                                        const barangDiterima = Number(row.barang_diterima || 0);
+                                        const sisaBarang = barangDikontrak - barangDiterima;
+                                        const isPIC = auth_user?.name === row.pic;
+                                        const isReviewMode = row.status === 'Pending' || row.status === 'Completed';
 
-                                             {/* Status */}
-                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
-                                                     <span className="material-symbols-outlined text-[12px]">{sc.icon}</span>
-                                                     {row.status}
-                                                 </span>
-                                             </td>
+                                        return (
+                                            <tr 
+                                                key={row.id} 
+                                                className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group animate-slide-up-fade"
+                                                style={{ animationDelay: `${index * 100 + 150}ms` }}
+                                            >
+                                                {/* Progress */}
+                                                <td className="px-6 py-5 min-w-[160px]">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <div className="flex items-center justify-between text-[10px] font-black">
+                                                            <span className="text-slate-400">Progress</span>
+                                                            <span className={row.progres === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{row.progres}%</span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full transition-all duration-700 ${row.progres === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
+                                                                style={{ width: `${row.progres}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </td>
 
-                                             {/* Project & No. UP & No. Kontrak */}
-                                             <td className="px-8 py-5 whitespace-nowrap">
-                                                 <p className="font-black text-slate-800 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-blue-400 transition-colors mb-1.5">{row.name}</p>
-                                                 <div className="flex gap-3 items-center">
-                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">UP:</span> {row.upNo}</span>
-                                                     <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
-                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">KT:</span> {row.no_kontrak || '-'}</span>
-                                                 </div>
-                                             </td>
+                                                {/* Status */}
+                                                <td className="px-6 py-5 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
+                                                        <span className="material-symbols-outlined text-[12px]">{sc.icon}</span>
+                                                        {row.status}
+                                                    </span>
+                                                </td>
 
-                                             {/* Jenis Anggaran */}
-                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                 <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                                                     row.budgetType === 'APBN' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400' :
-                                                     row.budgetType === 'APBD' ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' :
-                                                     'bg-orange-500/10 text-orange-600 dark:text-orange-400'
-                                                 }`}>
-                                                     {row.budgetType}
-                                                 </span>
-                                             </td>
+                                                {/* Project & No. UP & No. Kontrak */}
+                                                <td className="px-8 py-5 whitespace-nowrap">
+                                                    <p className="font-black text-slate-800 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-blue-400 transition-colors mb-1.5">{row.name}</p>
+                                                    <div className="flex gap-3 items-center">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">UP:</span> {row.upNo}</span>
+                                                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20"></span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span className="text-slate-300">KT:</span> {row.no_kontrak || '-'}</span>
+                                                    </div>
+                                                </td>
 
-                                             {/* PIC */}
-                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                 <div className="flex items-center gap-2.5">
-                                                     <div className="size-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-[10px] font-black text-slate-500 dark:text-slate-400 flex-shrink-0">
-                                                         {row.pic?.split(' ').map(w => w[0]).join('').slice(0, 2) || '??'}
-                                                     </div>
-                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                        {row.pic} {isPIC && <span className="text-[9px] text-primary">(Anda)</span>}
-                                                     </span>
-                                                 </div>
-                                             </td>
+                                                {/* Jenis Anggaran */}
+                                                <td className="px-6 py-5 whitespace-nowrap">
+                                                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                                                        row.budgetType === 'APBN' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400' :
+                                                        row.budgetType === 'APBD' ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' :
+                                                        'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+                                                    }`}>
+                                                        {row.budgetType}
+                                                    </span>
+                                                </td>
 
-                                             {/* Barang Dikontrak */}
-                                             <td className="px-6 py-5 whitespace-nowrap text-right">
-                                                 <p className="text-sm font-black text-slate-800 dark:text-white">
-                                                     {barangDikontrak === 0
-                                                         ? <span className="text-slate-300 dark:text-white/20 font-bold">—</span>
-                                                         : barangDikontrak.toLocaleString('id-ID')}
-                                                 </p>
-                                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">unit</p>
-                                             </td>
+                                                {/* PIC */}
+                                                <td className="px-6 py-5 whitespace-nowrap">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="size-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-[10px] font-black text-slate-500 dark:text-slate-400 flex-shrink-0">
+                                                            {row.pic?.split(' ').map(w => w[0]).join('').slice(0, 2) || '??'}
+                                                        </div>
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                           {row.pic} {isPIC && <span className="text-[9px] text-primary">(Anda)</span>}
+                                                        </span>
+                                                    </div>
+                                                </td>
 
-                                             {/* Barang Diterima */}
-                                             <td className="px-6 py-5 whitespace-nowrap text-right">
-                                                 <p className={`text-sm font-black ${
-                                                     barangDiterima === 0 ? 'text-slate-300 dark:text-white/20' :
-                                                     barangDiterima === barangDikontrak ? 'text-emerald-500' :
-                                                     'text-slate-800 dark:text-white'
-                                                 }`}>
-                                                     {barangDiterima === 0 ? '—' : barangDiterima.toLocaleString('id-ID')}
-                                                 </p>
-                                                 {barangDikontrak > 0 && (
-                                                     <p className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${
-                                                         sisaBarang > 0 ? 'text-amber-500' : 'text-emerald-500'
-                                                     }`}>
-                                                         {sisaBarang > 0 ? `sisa ${sisaBarang.toLocaleString('id-ID')}` : 'lunas'}
-                                                     </p>
-                                                 )}
-                                             </td>
+                                                {/* Barang Dikontrak */}
+                                                <td className="px-6 py-5 whitespace-nowrap text-right">
+                                                    <p className="text-sm font-black text-slate-800 dark:text-white">
+                                                        {barangDikontrak === 0
+                                                            ? <span className="text-slate-300 dark:text-white/20 font-bold">—</span>
+                                                            : barangDikontrak.toLocaleString('id-ID')}
+                                                    </p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">unit</p>
+                                                </td>
 
-                                             {/* Aksi */}
-                                             <td className="px-8 py-5 whitespace-nowrap text-right">
-                                                 <div className="relative inline-flex group/tooltip justify-center">
-                                                     <Link
-                                                         href={route('merchandiser.edit', row.hashed_id)}
-                                                         className={`inline-flex size-10 items-center justify-center rounded-xl transition-all hover:scale-110 active:scale-95 border border-transparent ${
-                                                            isPIC && !isReviewMode
-                                                            ? 'bg-primary/10 text-primary dark:text-blue-400 border-primary/20'
-                                                            : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-white'
-                                                         }`}
-                                                     >
-                                                         <span className="material-symbols-outlined text-xl">
-                                                            {isPIC && !isReviewMode ? 'edit_square' : 'visibility'}
-                                                         </span>
-                                                     </Link>
-                                                     <div className="absolute bottom-full mb-2 right-0 px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible group-hover/tooltip:mb-3 transition-all duration-300 shadow-xl z-[100] whitespace-nowrap pointer-events-none">
-                                                         {isPIC && !isReviewMode ? 'Ubah Data' : 'Peninjauan'}
-                                                         <div className="absolute top-full right-3 border-4 border-transparent border-t-slate-900 dark:border-t-white"></div>
-                                                     </div>
-                                                 </div>
-                                             </td>
-                                         </tr>
-                                     );
-                                 }) : (
-                                     <tr>
-                                         <td colSpan="8" className="px-8 py-20 text-center">
-                                             <div className="flex flex-col items-center gap-3">
-                                                 <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-white/10">inventory_2</span>
-                                                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tidak ada data ditemukan</p>
-                                             </div>
-                                         </td>
-                                     </tr>
-                                 )}
-                             </tbody>
-                        </table>
+                                                {/* Barang Diterima */}
+                                                <td className="px-6 py-5 whitespace-nowrap text-right">
+                                                    <p className={`text-sm font-black ${
+                                                        barangDiterima === 0 ? 'text-slate-300 dark:text-white/20' :
+                                                        barangDiterima === barangDikontrak ? 'text-emerald-500' :
+                                                        'text-slate-800 dark:text-white'
+                                                    }`}>
+                                                        {barangDiterima === 0 ? '—' : barangDiterima.toLocaleString('id-ID')}
+                                                    </p>
+                                                    {barangDikontrak > 0 && (
+                                                        <p className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${
+                                                            sisaBarang > 0 ? 'text-amber-500' : 'text-emerald-500'
+                                                        }`}>
+                                                            {sisaBarang > 0 ? `sisa ${sisaBarang.toLocaleString('id-ID')}` : 'lunas'}
+                                                        </p>
+                                                    )}
+                                                </td>
 
-                        {/* Mobile Card Grid View */}
-                        <div className="md:hidden grid grid-cols-1 gap-4">
+                                                {/* Aksi */}
+                                                <td className="px-8 py-5 whitespace-nowrap text-right">
+                                                    <div className="relative inline-flex group/tooltip justify-center">
+                                                        <Link
+                                                            href={route('merchandiser.edit', row.hashed_id)}
+                                                            className={`inline-flex size-10 items-center justify-center rounded-xl transition-all hover:scale-110 active:scale-95 border border-transparent ${
+                                                               isPIC && !isReviewMode
+                                                               ? 'bg-primary/10 text-primary dark:text-blue-400 border-primary/20'
+                                                               : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-white'
+                                                            }`}
+                                                        >
+                                                            <span className="material-symbols-outlined text-xl">
+                                                               {isPIC && !isReviewMode ? 'edit_square' : 'visibility'}
+                                                            </span>
+                                                        </Link>
+                                                        <div className="absolute bottom-full mb-2 right-0 px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible group-hover/tooltip:mb-3 transition-all duration-300 shadow-xl z-[100] whitespace-nowrap pointer-events-none">
+                                                            {isPIC && !isReviewMode ? 'Ubah Data' : 'Peninjauan'}
+                                                            <div className="absolute top-full right-3 border-4 border-transparent border-t-slate-900 dark:border-t-white"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr>
+                                            <td colSpan="8" className="px-8 py-20 text-center">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-white/10">inventory_2</span>
+                                                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tidak ada data ditemukan</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination Footer — Table */}
+                        <div className="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50 dark:bg-white/[0.02] rounded-b-[3rem]">
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                                Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
+                            </p>
+                            <Pagination links={pagination.links} />
+                        </div>
+                    </div>
+                )}
+
+                {/* ─── CARD / GRID VIEW ─── */}
+                {effectiveViewMode === 'grid' && (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             {isTableLoading ? (
                                 Array(10).fill(0).map((_, i) => (
                                     <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
@@ -563,98 +608,131 @@ export default function Index({ projects, summary, queryParams = null }) {
                                     const sc = statusConfig[row.status] || statusConfig['Pending'];
                                     const barangDikontrak = Number(row.barang_dikontrak || 0);
                                     const barangDiterima = Number(row.barang_diterima || 0);
+                                    const sisaBarang = barangDikontrak - barangDiterima;
                                     const isPIC = auth_user?.name === row.pic;
                                     const isReviewMode = row.status === 'Pending' || row.status === 'Completed';
 
                                     return (
                                         <div 
                                             key={row.id} 
-                                            className="bg-white dark:bg-white/5 rounded-[2rem] p-5 border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col gap-4 relative overflow-hidden group animate-slide-up-fade"
+                                            className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-6 relative overflow-hidden group animate-slide-up-fade"
                                             style={{ animationDelay: `${index * 50}ms` }}
                                         >
-                                            {/* Status Badge - Top Right */}
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
-                                                    {row.status || 'Ongoing'}
+                                            {/* Header */}
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div className="min-w-0">
+                                                    <h4 className="text-sm md:text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2">{row.name || 'Untitled Project'}</h4>
+                                                    <p className="text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1.5">UP: {row.upNo || '-'}</p>
                                                 </div>
-                                                
-                                                <Link 
-                                                    href={row.hashed_id ? route('merchandiser.edit', row.hashed_id) : '#'}
-                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 transition-colors"
-                                                >
-                                                    <span className="material-symbols-outlined text-lg">
-                                                        {isPIC && !isReviewMode ? 'edit_square' : 'visibility'}
-                                                    </span>
-                                                </Link>
+                                                <div className="flex items-start gap-1 sm:gap-2 shrink-0">
+                                                    <div className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
+                                                        <span className={`material-symbols-outlined text-[12px] md:text-[14px] ${row.status === 'Completed' ? 'font-fill' : ''}`}>
+                                                            {sc.icon}
+                                                        </span>
+                                                        <span className="hidden sm:inline-block">{row.status}</span>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div className="flex flex-col gap-1">
-                                                <h4 className="text-[11px] font-black text-slate-800 dark:text-white line-clamp-2 leading-tight uppercase italic tracking-tight">
-                                                    {row.name || 'Untitled Project'}
-                                                </h4>
-                                                <div className="flex flex-col gap-2 mt-1.5">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. UP</span>
-                                                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight">{row.upNo || '-'}</span>
+                                            {/* Details: Anggaran, PIC & Handler (3 columns) */}
+                                            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-50 dark:border-white/5">
+                                                {/* Anggaran */}
+                                                <div className="space-y-1 overflow-hidden">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Anggaran</p>
+                                                    <span className={`inline-block px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                                        row.budgetType === 'APBN' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400' :
+                                                        row.budgetType === 'APBD' ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' :
+                                                        'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+                                                    }`}>{row.budgetType || '-'}</span>
+                                                </div>
+                                                {/* PIC */}
+                                                <div className="space-y-1 overflow-hidden">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">PIC</p>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="size-5 rounded-md bg-primary/10 dark:bg-blue-500/10 flex flex-shrink-0 items-center justify-center text-primary dark:text-blue-400">
+                                                            <span className="material-symbols-outlined text-[12px]">person</span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{row.pic || '-'}</p>
                                                     </div>
-                                                    <div className="flex flex-col pt-2 border-t border-slate-50 dark:border-white/5">
-                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">No. Kontrak</span>
-                                                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 tracking-tight break-all">{row.no_kontrak || '-'}</span>
+                                                </div>
+                                                {/* Handler */}
+                                                <div className="space-y-1 overflow-hidden">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Handler</p>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="size-5 rounded-md bg-violet-500/10 flex flex-shrink-0 items-center justify-center text-violet-500 dark:text-violet-400">
+                                                            <span className="material-symbols-outlined text-[12px]">manage_accounts</span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{row.handler || row.handle?.name || '-'}</p>
                                                     </div>
+                                                </div>
+                                            </div>
+
+                                            {/* No Kontrak & Info Barang */}
+                                            <div className="bg-slate-50 dark:bg-white/[0.02] p-4 rounded-[1.25rem] border border-slate-100 dark:border-white/5 flex flex-col gap-3">
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor Kontrak</p>
+                                                    <p className="text-sm font-black text-slate-800 dark:text-white truncate">{row.no_kontrak || '-'}</p>
+                                                </div>
+                                                <div className="pt-3 border-t border-slate-200/60 dark:border-white/10 flex justify-between items-center">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Progress Terima Barang</p>
+                                                    <p className={`text-xs font-black ${sisaBarang > 0 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                        {barangDiterima.toLocaleString('id-ID')} / {barangDikontrak.toLocaleString('id-ID')} unit
+                                                    </p>
                                                 </div>
                                             </div>
 
                                             {/* Progress */}
-                                            <div className="space-y-1.5">
-                                                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
-                                                    <span className="text-slate-400">Progres</span>
-                                                    <span className={row.progres === 100 ? 'text-emerald-500' : 'text-primary'}>{row.progres || 0}%</span>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                                    <span className="text-slate-400">Project Progress</span>
+                                                    <span className={row.progres === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{row.progres || 0}%</span>
                                                 </div>
-                                                <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner transition-all duration-1000">
                                                     <div 
-                                                        className={`h-full rounded-full transition-all duration-700 ${row.progres === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+                                                        className={`h-full rounded-full transition-all duration-1000 ${row.progres === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
                                                         style={{ width: `${row.progres || 0}%` }}
-                                                    />
+                                                    ></div>
                                                 </div>
                                             </div>
-
-                                            {/* Metas */}
-                                            <div className="grid grid-cols-1 gap-1.5 pt-1 border-t border-slate-50 dark:border-white/5">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-[10px] text-slate-300">payments</span>
-                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{row.budgetType || '-'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-[10px] text-slate-300">person</span>
-                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">{row.pic || '-'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-[10px] text-slate-300">inventory_2</span>
-                                                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
-                                                        {barangDiterima} / {barangDikontrak}
+                                            
+                                            {/* Actions */}
+                                            <div className="grid grid-cols-1 gap-2 pt-2">
+                                                <Link 
+                                                    href={route('merchandiser.edit', row.hashed_id)}
+                                                    className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors ${
+                                                        isPIC && !isReviewMode
+                                                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'
+                                                        : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20'
+                                                    }`}
+                                                >
+                                                    <span className="material-symbols-outlined text-[14px]">
+                                                        {isPIC && !isReviewMode ? 'edit' : 'visibility'}
                                                     </span>
-                                                </div>
+                                                    {isPIC && !isReviewMode ? 'Ubah Kontrak' : 'Lihat Detail'}
+                                                </Link>
                                             </div>
                                         </div>
                                     );
                                 })
                             ) : (
-                                <div className="col-span-2 py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                                    Tidak ada data ditemukan
+                                <div className="col-span-1 md:col-span-2 py-20 text-center flex flex-col items-center gap-4">
+                                    <div className="size-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300">
+                                        <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                                    </div>
+                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Tidak ada data ditemukan</p>
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    {/* Pagination Footer */}
-                    <div className="px-0 md:px-8 py-8 md:py-6 border-t-0 md:border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-transparent md:bg-slate-50/50 dark:md:bg-white/[0.02] md:rounded-b-[3rem]">
-                        <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
-                            Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
-                        </p>
-                        
-                        <Pagination links={pagination.links} />
-                    </div>
-            </div>
+                        {/* Pagination Footer — Card */}
+                        <div className="px-0 md:px-4 py-8 md:py-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                                Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> items
+                            </p>
+                            <Pagination links={pagination.links} />
+                        </div>
+                    </>
+                )}
             </div>
 
             <style dangerouslySetInnerHTML={{ __html: `

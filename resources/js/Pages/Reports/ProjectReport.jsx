@@ -24,6 +24,10 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
         start: queryParams.start_date || '', 
         end: queryParams.end_date || '' 
     });
+    const [viewMode, setViewMode] = useSessionFilter('ProjectReport_viewMode', 'table');
+
+    // On mobile, always show card view
+    const effectiveViewMode = isMobile ? 'grid' : viewMode;
     
     const [sortBy, setSortBy] = useState(queryParams.tableSortColumn || 'created_at');
     const [sortDir, setSortDir] = useState(queryParams.tableSortDirection || 'desc');
@@ -284,228 +288,278 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                     </div>
                 </div>
 
-                {/* Table Section (Desktop) */}
-                <div className="hidden md:block bg-white dark:bg-white/[0.02] rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl overflow-hidden ring-1 ring-slate-100/50 dark:ring-white/5 whitespace-nowrap">
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
-                                        Project & Client
-                                    </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
-                                        No. Kontrak & UP
-                                    </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
-                                        PIC
-                                    </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
-                                        Progress
-                                    </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {data.length > 0 ? (
-                                    data.map((row, i) => (
-                                        <tr 
-                                            key={i} 
-                                            className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors animate-slide-up-fade"
-                                            style={{ animationDelay: `${i * 30}ms` }}
-                                        >
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-xs group-hover:bg-primary group-hover:text-white transition-all transform group-hover:rotate-6 shadow-sm">
-                                                        {row.proj.substring(0,2).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors uppercase italic tracking-tight">{row.proj}</p>
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.client}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="size-8 rounded-lg bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
-                                                        <span className="material-symbols-outlined text-lg">description</span>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tight">{row.no}</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-0.5">{row.up || '-'}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold text-[10px] ring-2 ring-white dark:ring-slate-800 shadow-sm overflow-hidden">
-                                                        {row.pic.charAt(0)}
-                                                    </div>
-                                                    <span className="text-xs font-black text-slate-700 dark:text-slate-300">{row.pic}</span>
-                                                </div>
-                                            </td>
-                                            
-                                            <td className="px-6 py-5 w-48">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Growth</span>
-                                                    <span className={`text-[10px] font-black ${
-                                                        row.c === 'emerald' ? 'text-emerald-500' :
-                                                        row.c === 'amber' ? 'text-amber-500' :
-                                                        row.c === 'rose' ? 'text-rose-500' :
-                                                        'text-blue-500'
-                                                    }`}>{row.prog}%</span>
-                                                </div>
-                                                <div className="h-1.5 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
-                                                    <div className={`h-full rounded-full transition-all duration-1000 ${
-                                                        row.c === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-emerald-500/20' :
-                                                        row.c === 'amber' ? 'bg-gradient-to-r from-amber-400 to-amber-600 shadow-amber-500/20' :
-                                                        row.c === 'rose' ? 'bg-gradient-to-r from-rose-400 to-rose-600 shadow-rose-500/20' :
-                                                        'bg-gradient-to-r from-blue-400 to-blue-600 shadow-blue-500/20'
-                                                    } shadow-lg`} style={{ width: `${row.prog}%` }}></div>
-                                                </div>
-                                            </td>
-
-                                            <td className="px-6 py-5 text-right">
-                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-sm ${
-                                                    row.c === 'emerald' ? 'bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-100/50 dark:border-emerald-500/20' :
-                                                    row.c === 'amber' ? 'bg-amber-50/50 dark:bg-amber-500/10 border-amber-100/50 dark:border-amber-500/20' :
-                                                    row.c === 'rose' ? 'bg-rose-50/50 dark:bg-rose-500/10 border-rose-100/50 dark:border-rose-500/20' :
-                                                    'bg-blue-50/50 dark:bg-blue-500/10 border-blue-100/50 dark:border-blue-500/20'
-                                                }`}>
-                                                    <div className={`size-1.5 rounded-full animate-pulse ${
-                                                        row.c === 'emerald' ? 'bg-emerald-500' :
-                                                        row.c === 'amber' ? 'bg-amber-500' :
-                                                        row.c === 'rose' ? 'bg-rose-500' :
-                                                        'bg-blue-500'
-                                                    }`}></div>
-                                                    <span className={`text-[9px] font-black uppercase tracking-[0.15em] ${
-                                                        row.c === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' :
-                                                        row.c === 'amber' ? 'text-amber-600 dark:text-amber-400' :
-                                                        row.c === 'rose' ? 'text-rose-600 dark:text-rose-400' :
-                                                        'text-blue-600 dark:text-blue-400'
-                                                    }`}>
-                                                        {row.status}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <Link
-                                                    href={route('reports.project.detail', { hashedId: row.hashed_id })}
-                                                    className="size-9 inline-flex items-center justify-center rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-400 hover:text-primary dark:hover:text-blue-400 transition-all hover:scale-110 active:scale-95"
-                                                >
-                                                    <span className="material-symbols-outlined text-xl italic font-bold">arrow_forward</span>
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="6" className="py-20 text-center">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <div className="size-16 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300 dark:text-slate-600">
-                                                    <span className="material-symbols-outlined text-4xl">inventory_2</span>
-                                                </div>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tidak Ada Data Laporan</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Mobile Card Grid View */}
-                <div className="md:hidden flex flex-col gap-5">
-                    {data.length > 0 ? (
-                        data.map((row, index) => (
-                            <Link 
-                                key={index}
-                                href={route('reports.project.detail', { hashedId: row.hashed_id })}
-                                className="bg-white dark:bg-[#141720] rounded-[2.5rem] p-6 border border-slate-100 dark:border-white/5 shadow-[0_8px_40px_rgb(0,0,0,0.06)] dark:shadow-none animate-slide-up-fade"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                                <div className="flex justify-between items-start mb-5">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 font-black text-sm uppercase italic tracking-tighter shadow-inner ring-1 ring-slate-100 dark:ring-white/5">
-                                            {row.proj.substring(0,2).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <h4 className="text-[13px] font-black text-slate-800 dark:text-white leading-tight uppercase italic tracking-tighter line-clamp-1">{row.proj}</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.client}</p>
-                                        </div>
-                                    </div>
-                                    <div className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset shadow-sm ${
-                                        row.c === 'emerald' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
-                                        row.c === 'amber' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
-                                        row.c === 'rose' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20' :
-                                        'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
-                                    }`}>
-                                        {row.status}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 mb-6 pt-5 border-t border-slate-50 dark:border-white/5">
-                                    <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">No. Kontrak</p>
-                                        <p className="text-[10px] font-black text-slate-700 dark:text-slate-300 tracking-tight truncate">{row.no}</p>
-                                    </div>
-                                    <div className="space-y-1 border-l border-slate-50 dark:border-white/5 pl-4">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Handle PIC</p>
-                                        <div className="flex items-center gap-2">
-                                            <div className="size-4 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[6px] font-black">
-                                                {row.pic.charAt(0)}
-                                            </div>
-                                            <p className="text-[10px] font-black text-slate-700 dark:text-slate-300 tracking-tight truncate">{row.pic}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Growth</span>
-                                        <span className={`text-[11px] font-black ${
-                                            row.c === 'emerald' ? 'text-emerald-500' :
-                                            row.c === 'amber' ? 'text-amber-500' :
-                                            row.c === 'rose' ? 'text-rose-500' :
-                                            'text-blue-500'
-                                        }`}>{row.prog}%</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
-                                        <div className={`h-full rounded-full ${
-                                            row.c === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
-                                            row.c === 'amber' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
-                                            row.c === 'rose' ? 'bg-gradient-to-r from-rose-400 to-rose-600' :
-                                            'bg-gradient-to-r from-blue-400 to-blue-600'
-                                        } shadow-sm shadow-black/5 transition-all duration-700`} style={{ width: `${row.prog}%` }} />
-                                    </div>
-                                </div>
-                            </Link>
-                        ))
-                    ) : (
-                        <div className="py-20 flex flex-col items-center gap-4 bg-white dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5">
-                            <div className="size-20 rounded-[2rem] bg-slate-50 dark:bg-white/10 flex items-center justify-center text-slate-200 dark:text-white/10">
-                                <span className="material-symbols-outlined text-5xl italic font-black">inventory_2</span>
-                            </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">No Report Trace</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Pagination (Responsive) */}
-                <div className="mt-10 px-6 py-6 md:px-8 border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50 dark:bg-white/[0.01] rounded-[2.5rem] md:rounded-[3rem]">
-                    <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
-                        Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> results
+                {/* Data View Controls */}
+                <div className="flex justify-between items-center mb-6 px-1 lg:px-2">
+                    <p className="text-[10px] md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
+                        Menampilkan <span className="text-slate-800 dark:text-white font-black mx-1">{data?.length || 0}</span> dari <span className="text-slate-800 dark:text-white font-black mx-1">{pagination.total || 0}</span> Report
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest sm:hidden">
+                        <span className="text-slate-800 dark:text-white font-black mr-1">{pagination.total || 0}</span> Report
                     </p>
                     
-                    <div className="scale-90 md:scale-100">
-                        <Pagination links={pagination.links} />
+                    {/* View Mode Toggle — Desktop only */}
+                    <div className="hidden md:flex flex-shrink-0 items-center gap-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-1 rounded-2xl h-[48px] shadow-sm">
+                        <button 
+                            onClick={() => setViewMode('table')}
+                            className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'table' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            title="Tampilan Tabel"
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${viewMode === 'table' ? 'font-fill' : ''}`}>table_rows</span>
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('grid')}
+                            className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            title="Tampilan Kartu"
+                        >
+                            <span className={`material-symbols-outlined text-[22px] ${viewMode === 'grid' ? 'font-fill' : ''}`}>grid_view</span>
+                        </button>
                     </div>
                 </div>
+
+                {/* ─── TABLE VIEW (desktop only) ─── */}
+                {effectiveViewMode === 'table' && (
+                    <div className="bg-white dark:bg-white/[0.02] rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-xl overflow-hidden ring-1 ring-slate-100/50 dark:ring-white/5 whitespace-nowrap">
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                            Project &amp; Client
+                                        </th>
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                            No. Kontrak &amp; UP
+                                        </th>
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                            PIC
+                                        </th>
+
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap">
+                                            Progress
+                                        </th>
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right">
+                                            Status
+                                        </th>
+                                        <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5 whitespace-nowrap text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                    {data.length > 0 ? (
+                                        data.map((row, i) => (
+                                            <tr 
+                                                key={i} 
+                                                className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors animate-slide-up-fade"
+                                                style={{ animationDelay: `${i * 30}ms` }}
+                                            >
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-xs group-hover:bg-primary group-hover:text-white transition-all transform group-hover:rotate-6 shadow-sm">
+                                                            {row.proj.substring(0,2).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors uppercase italic tracking-tight">{row.proj}</p>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.client}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="size-8 rounded-lg bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                                            <span className="material-symbols-outlined text-lg">description</span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tight">{row.no}</p>
+                                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-0.5">{row.up || '-'}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* PIC */}
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="size-8 rounded-full bg-primary/10 dark:bg-blue-500/10 flex items-center justify-center text-primary dark:text-blue-400 font-bold text-[10px] shadow-sm">
+                                                            {row.pic?.charAt(0) || '?'}
+                                                        </div>
+                                                        <span className="text-xs font-black text-slate-700 dark:text-slate-300">{row.pic}</span>
+                                                    </div>
+                                                </td>
+
+
+                                                
+                                                <td className="px-6 py-5 w-48">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Growth</span>
+                                                        <span className={`text-[10px] font-black ${
+                                                            row.c === 'emerald' ? 'text-emerald-500' :
+                                                            row.c === 'amber' ? 'text-amber-500' :
+                                                            row.c === 'rose' ? 'text-rose-500' :
+                                                            'text-blue-500'
+                                                        }`}>{row.prog}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
+                                                        <div className={`h-full rounded-full transition-all duration-1000 ${
+                                                            row.c === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-emerald-500/20' :
+                                                            row.c === 'amber' ? 'bg-gradient-to-r from-amber-400 to-amber-600 shadow-amber-500/20' :
+                                                            row.c === 'rose' ? 'bg-gradient-to-r from-rose-400 to-rose-600 shadow-rose-500/20' :
+                                                            'bg-gradient-to-r from-blue-400 to-blue-600 shadow-blue-500/20'
+                                                        } shadow-lg`} style={{ width: `${row.prog}%` }}></div>
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-6 py-5 text-right">
+                                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-sm ${
+                                                        row.c === 'emerald' ? 'bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-100/50 dark:border-emerald-500/20' :
+                                                        row.c === 'amber' ? 'bg-amber-50/50 dark:bg-amber-500/10 border-amber-100/50 dark:border-amber-500/20' :
+                                                        row.c === 'rose' ? 'bg-rose-50/50 dark:bg-rose-500/10 border-rose-100/50 dark:border-rose-500/20' :
+                                                        'bg-blue-50/50 dark:bg-blue-500/10 border-blue-100/50 dark:border-blue-500/20'
+                                                    }`}>
+                                                        <div className={`size-1.5 rounded-full animate-pulse ${
+                                                            row.c === 'emerald' ? 'bg-emerald-500' :
+                                                            row.c === 'amber' ? 'bg-amber-500' :
+                                                            row.c === 'rose' ? 'bg-rose-500' :
+                                                            'bg-blue-500'
+                                                        }`}></div>
+                                                        <span className={`text-[9px] font-black uppercase tracking-[0.15em] ${
+                                                            row.c === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' :
+                                                            row.c === 'amber' ? 'text-amber-600 dark:text-amber-400' :
+                                                            row.c === 'rose' ? 'text-rose-600 dark:text-rose-400' :
+                                                            'text-blue-600 dark:text-blue-400'
+                                                        }`}>
+                                                            {row.status}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-5 text-right">
+                                                    <Link
+                                                        href={route('reports.project.detail', { hashedId: row.hashed_id })}
+                                                        className="size-9 inline-flex items-center justify-center rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-400 hover:text-primary dark:hover:text-blue-400 transition-all hover:scale-110 active:scale-95"
+                                                    >
+                                                        <span className="material-symbols-outlined text-xl italic font-bold">arrow_forward</span>
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="py-20 text-center">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="size-16 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300 dark:text-slate-600">
+                                                        <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                                                    </div>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tidak Ada Data Laporan</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination Footer — Table */}
+                        <div className="px-8 py-6 border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50 dark:bg-white/[0.01] rounded-b-[3rem]">
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                                Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> results
+                            </p>
+                            <Pagination links={pagination.links} />
+                        </div>
+                    </div>
+                )}
+
+                {/* ─── CARD / GRID VIEW ─── */}
+                {effectiveViewMode === 'grid' && (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {data.length > 0 ? (
+                                data.map((row, index) => (
+                                    <Link 
+                                        key={index}
+                                        href={route('reports.project.detail', { hashedId: row.hashed_id })}
+                                        className="bg-white dark:bg-[#141720] rounded-[2.5rem] p-6 border border-slate-100 dark:border-white/5 shadow-[0_8px_40px_rgb(0,0,0,0.06)] dark:shadow-none transition-transform hover:-translate-y-1 hover:shadow-2xl animate-slide-up-fade"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        {/* Header: Project name, client, status */}
+                                        <div className="flex justify-between items-start mb-5">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="size-12 flex-shrink-0 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 font-black text-sm uppercase italic tracking-tighter shadow-inner ring-1 ring-slate-100 dark:ring-white/5">
+                                                    {row.proj.substring(0,2).toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="text-[13px] font-black text-slate-800 dark:text-white leading-tight uppercase italic tracking-tighter line-clamp-1">{row.proj}</h4>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5 truncate">{row.client}</p>
+                                                </div>
+                                            </div>
+                                            <div className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset shadow-sm ml-2 ${
+                                                row.c === 'emerald' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
+                                                row.c === 'amber' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
+                                                row.c === 'rose' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20' :
+                                                'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
+                                            }`}>
+                                                {row.status}
+                                            </div>
+                                        </div>
+
+                                        {/* Details: No. Kontrak & PIC (2 columns) */}
+                                        <div className="grid grid-cols-2 gap-4 mb-6 pt-5 border-t border-slate-50 dark:border-white/5">
+                                            {/* No. Kontrak */}
+                                            <div className="space-y-1 overflow-hidden">
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">No. Kontrak</p>
+                                                <p className="text-[10px] font-black text-slate-700 dark:text-slate-300 tracking-tight truncate">{row.no}</p>
+                                            </div>
+                                            {/* PIC */}
+                                            <div className="space-y-1 border-l border-slate-50 dark:border-white/5 pl-4 overflow-hidden">
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Handle PIC</p>
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="size-4 rounded-full bg-primary/10 flex flex-shrink-0 items-center justify-center text-primary text-[6px] font-black">
+                                                        {row.pic?.charAt(0) || '?'}
+                                                    </div>
+                                                    <p className="text-[10px] font-black text-slate-700 dark:text-slate-300 truncate">{row.pic}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Progress */}
+                                        <div className="space-y-2 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Growth</span>
+                                                <span className={`text-[11px] font-black ${
+                                                    row.c === 'emerald' ? 'text-emerald-500' :
+                                                    row.c === 'amber' ? 'text-amber-500' :
+                                                    row.c === 'rose' ? 'text-rose-500' :
+                                                    'text-blue-500'
+                                                }`}>{row.prog}%</span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
+                                                <div className={`h-full rounded-full ${
+                                                    row.c === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
+                                                    row.c === 'amber' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
+                                                    row.c === 'rose' ? 'bg-gradient-to-r from-rose-400 to-rose-600' :
+                                                    'bg-gradient-to-r from-blue-400 to-blue-600'
+                                                } shadow-sm shadow-black/5 transition-all duration-700`} style={{ width: `${row.prog}%` }} />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="col-span-1 md:col-span-2 py-20 flex flex-col items-center gap-4 bg-white dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5">
+                                    <div className="size-20 rounded-[2rem] bg-slate-50 dark:bg-white/10 flex items-center justify-center text-slate-200 dark:text-white/10">
+                                        <span className="material-symbols-outlined text-5xl italic font-black">inventory_2</span>
+                                    </div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">No Report Trace</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Pagination Footer — Card */}
+                        <div className="mt-10 px-6 py-6 md:px-8 border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50 dark:bg-white/[0.01] rounded-[2.5rem] md:rounded-[3rem]">
+                            <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">
+                                Showing <span className="font-black text-slate-900 dark:text-white">{pagination.from || 0}</span> to <span className="font-black text-slate-900 dark:text-white">{pagination.to || 0}</span> of <span className="font-black text-slate-900 dark:text-white">{pagination.total || 0}</span> results
+                            </p>
+                            <div className="scale-90 md:scale-100">
+                                <Pagination links={pagination.links} />
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             <style dangerouslySetInnerHTML={{ __html: `

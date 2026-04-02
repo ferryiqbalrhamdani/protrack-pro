@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import ExportButton from '@/Components/ExportButton';
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
+import useSessionFilter from '@/Hooks/useSessionFilter';
+import useMediaQuery from '@/Hooks/useMediaQuery';
 
 export default function Dashboard({ 
     queryParams = null, 
@@ -31,6 +33,11 @@ export default function Dashboard({
 
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
     const [isDueProjectsModalOpen, setIsDueProjectsModalOpen] = useState(false);
+    const [viewMode, setViewMode] = useSessionFilter('DashboardRecent_viewMode', 'table');
+    const isMobile = useMediaQuery('(max-width: 767px)');
+
+    // On mobile always show card view
+    const effectiveViewMode = isMobile ? 'grid' : viewMode;
 
     // Weather State
     const [weather, setWeather] = useState({
@@ -601,15 +608,34 @@ export default function Dashboard({
 
                 {/* Recent Projects Header */}
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-1 lg:px-2 mb-6 gap-4">
                         <div>
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white italic">Recent Projects</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Status Proyek Terbaru</p>
                         </div>
+                        
+                        {/* View Mode Toggle — Desktop only */}
+                        <div className="hidden md:flex flex-shrink-0 items-center gap-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-1 rounded-2xl h-[48px] shadow-sm">
+                            <button 
+                                onClick={() => setViewMode('table')}
+                                className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'table' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                title="Tampilan Tabel"
+                            >
+                                <span className={`material-symbols-outlined text-[22px] ${viewMode === 'table' ? 'font-fill' : ''}`}>table_rows</span>
+                            </button>
+                            <button 
+                                onClick={() => setViewMode('grid')}
+                                className={`w-12 h-full rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary dark:bg-blue-500/10 dark:text-blue-400 shadow-sm ring-1 ring-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                title="Tampilan Kartu"
+                            >
+                                <span className={`material-symbols-outlined text-[22px] ${viewMode === 'grid' ? 'font-fill' : ''}`}>grid_view</span>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Mobile Card Layout (Visible only on mobile/tablet) */}
-                    <div className="lg:hidden space-y-4">
+                    {/* ─── CARD / GRID VIEW ─── */}
+                    {effectiveViewMode === 'grid' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {recentProjectsList.map((proj) => (
                             <div 
                                 key={proj.id}
@@ -656,7 +682,7 @@ export default function Dashboard({
                                 {/* No. Kontrak (Full width) */}
                                 <div className="pb-4 border-b border-slate-50 dark:border-white/5">
                                     <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 text-[8px]">Nomor Kontrak</p>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor Kontrak</p>
                                         <p className="text-[11px] font-black text-slate-600 dark:text-slate-200 truncate">{proj.contract_no || '-'}</p>
                                     </div>
                                 </div>
@@ -689,91 +715,94 @@ export default function Dashboard({
                                 </div>
                             </div>
                         ))}
-                    </div>
-
-                    {/* Desktop Table View */}
-                    <div className="hidden lg:block bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project Detail</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">No. Kontrak</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Client</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">PIC</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak / J.Tempo</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Progress</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                    {recentProjectsList.map((proj, index) => (
-                                        <tr 
-                                            key={proj.id} 
-                                            className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group"
-                                        >
-                                            <td className="px-8 py-6">
-                                                <div className="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{proj.name}</div>
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {proj.id}</div>
-                                            </td>
-                                            <td className="px-8 py-6 text-sm font-bold text-slate-600 dark:text-white">
-                                                {proj.contract_no || '-'}
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{proj.client}</span>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="size-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500">
-                                                        <span className="material-symbols-outlined text-lg">person</span>
-                                                    </div>
-                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{proj.pic}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                        <span className="material-symbols-outlined text-[14px] text-slate-400">description</span>
-                                                        {new Date(proj.contractDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-[10px] font-black text-rose-500 uppercase tracking-widest">
-                                                        <span className="material-symbols-outlined text-[14px]">event</span>
-                                                        {new Date(proj.dueDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-24 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner flex-shrink-0">
-                                                        <div 
-                                                            className={`h-full rounded-full transition-all duration-1000 ${proj.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
-                                                            style={{ width: `${proj.progress}%` }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className={`text-[10px] font-black ${proj.progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}`}>{proj.progress}%</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ring-1 ring-inset ${
-                                                    proj.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
-                                                    proj.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20' :
-                                                    proj.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
-                                                    'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400 ring-slate-200/50 dark:ring-white/10'
-                                                }`}>
-                                                    <span className={`material-symbols-outlined text-[13px] ${proj.status === 'Completed' ? 'font-fill' : ''}`}>
-                                                        {proj.status === 'Completed' ? 'check_circle' :
-                                                         proj.status === 'Ongoing' ? 'autorenew' :
-                                                         proj.status === 'Pending' ? 'schedule' : 'block'}
-                                                    </span>
-                                                    {proj.status}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
                         </div>
-                    </div>
+                    )}
+
+                    {/* ─── TABLE VIEW (desktop only) ─── */}
+                    {effectiveViewMode === 'table' && (
+                        <div className="bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project Detail</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">No. Kontrak</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Client</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">PIC</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak / J.Tempo</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Progress</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                        {recentProjectsList.map((proj) => (
+                                            <tr 
+                                                key={proj.id} 
+                                                className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group"
+                                            >
+                                                <td className="px-8 py-6">
+                                                    <div className="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{proj.name}</div>
+                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {proj.id}</div>
+                                                </td>
+                                                <td className="px-8 py-6 text-sm font-bold text-slate-600 dark:text-white">
+                                                    {proj.contract_no || '-'}
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{proj.client}</span>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="size-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500">
+                                                            <span className="material-symbols-outlined text-lg">person</span>
+                                                        </div>
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{proj.pic}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                            <span className="material-symbols-outlined text-[14px] text-slate-400">description</span>
+                                                            {new Date(proj.contractDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-[10px] font-black text-rose-500 uppercase tracking-widest">
+                                                            <span className="material-symbols-outlined text-[14px]">event</span>
+                                                            {new Date(proj.dueDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-24 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner flex-shrink-0">
+                                                            <div 
+                                                                className={`h-full rounded-full transition-all duration-1000 ${proj.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
+                                                                style={{ width: `${proj.progress}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        <span className={`text-[10px] font-black ${proj.progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}`}>{proj.progress}%</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ring-1 ring-inset ${
+                                                        proj.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20' :
+                                                        proj.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20' :
+                                                        proj.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' :
+                                                        'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400 ring-slate-200/50 dark:ring-white/10'
+                                                    }`}>
+                                                        <span className={`material-symbols-outlined text-[13px] ${proj.status === 'Completed' ? 'font-fill' : ''}`}>
+                                                            {proj.status === 'Completed' ? 'check_circle' :
+                                                             proj.status === 'Ongoing' ? 'autorenew' :
+                                                             proj.status === 'Pending' ? 'schedule' : 'block'}
+                                                        </span>
+                                                        {proj.status}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
