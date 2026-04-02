@@ -87,10 +87,8 @@ export default function Index({
     useEffect(() => {
         const timeout = setTimeout(() => {
             const params = { ...queryParams };
-            if (year !== 'All') {
+            if (year) {
                 params.year = year;
-            } else {
-                delete params.year;
             }
 
             const url = new URL(window.location.href);

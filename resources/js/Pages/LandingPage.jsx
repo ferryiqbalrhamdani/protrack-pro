@@ -19,7 +19,7 @@ const ModuleModal = ({ isOpen, onClose, module }) => {
                         <span className="material-symbols-outlined !text-4xl text-white">{module.icon}</span>
                     </div>
 
-                    <h3 className="text-3xl lg:text-4xl font-black mb-4 tracking-tight">{module.title}</h3>
+                    <h3 className="text-3xl lg:text-4xl font-black mb-4 tracking-tight text-slate-900 dark:text-white">{module.title}</h3>
                     <p className="text-slate-500 dark:text-slate-400 text-lg lg:text-xl font-medium mb-10 leading-relaxed">
                         {module.description}
                     </p>
@@ -94,7 +94,7 @@ const LegalModal = ({ isOpen, onClose, type }) => {
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
             <div className="relative w-full max-w-2xl bg-white dark:bg-[#161d31] rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-reveal">
                 <div className="p-10 lg:p-14">
-                    <h3 className="text-3xl font-black mb-8 tracking-tight">{content.title}</h3>
+                    <h3 className="text-3xl font-black mb-8 tracking-tight text-slate-900 dark:text-white">{content.title}</h3>
                     <div className="space-y-8 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
                         {content.sections.map((sec, i) => (
                             <div key={i} className="space-y-2">
@@ -836,7 +836,7 @@ export default function LandingPage({ auth }) {
                                             <span className="material-symbols-outlined !text-4xl text-indigo-500">description</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 group-hover:text-indigo-500 transition-colors">Contract Management</h3>
+                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 text-slate-900 dark:text-white group-hover:text-indigo-500 transition-colors">Contract Management</h3>
                                             <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-4">Penyimpanan kontrak terpusat dan monitoring surat jaminan proyek.</p>
                                             <span className="text-xs font-black text-indigo-500/50 uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">Pelajari Selengkapnya <span className="material-symbols-outlined !text-xs font-black">arrow_forward</span></span>
                                         </div>
@@ -853,7 +853,7 @@ export default function LandingPage({ auth }) {
                                             <span className="material-symbols-outlined !text-4xl text-violet-500">inventory_2</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 group-hover:text-violet-500 transition-colors">Operational Assets</h3>
+                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 text-slate-900 dark:text-white group-hover:text-violet-500 transition-colors">Operational Assets</h3>
                                             <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-4">Pengadaan barang dari vendor dan monitoring stok harian lapangan.</p>
                                             <span className="text-xs font-black text-violet-500/50 uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">Pelajari Selengkapnya <span className="material-symbols-outlined !text-xs font-black">arrow_forward</span></span>
                                         </div>
@@ -870,7 +870,7 @@ export default function LandingPage({ auth }) {
                                             <span className="material-symbols-outlined !text-4xl text-sky-500">local_shipping</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 group-hover:text-sky-500 transition-colors">Shipping Control</h3>
+                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">Shipping Control</h3>
                                             <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-4">Pantau status logistik dan validasi Berita Acara (BA) pengiriman.</p>
                                             <span className="text-xs font-black text-sky-500/50 uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">Pelajari Selengkapnya <span className="material-symbols-outlined !text-xs font-black">arrow_forward</span></span>
                                         </div>
@@ -887,7 +887,7 @@ export default function LandingPage({ auth }) {
                                             <span className="material-symbols-outlined !text-4xl text-emerald-500">account_balance</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 group-hover:text-emerald-500 transition-colors">Billing Integrity</h3>
+                                            <h3 className="text-2xl lg:text-3xl font-black mb-4 text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors">Billing Integrity</h3>
                                             <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-4">Manajemen termin pembayaran dan monitoring status BAST.</p>
                                             <span className="text-xs font-black text-emerald-500/50 uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">Pelajari Selengkapnya <span className="material-symbols-outlined !text-xs font-black">arrow_forward</span></span>
                                         </div>
@@ -1117,7 +1117,7 @@ export default function LandingPage({ auth }) {
                                 <p className="text-slate-500 dark:text-slate-400 max-w-xs font-medium leading-relaxed">Solusi monitoring proyek enterprise kelas dunia untuk ekosistem Tim Proyek Indonesia.</p>
                             </div>
                             
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-16">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16 w-full lg:w-auto">
                                 <div className="space-y-6">
                                     <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Products</h4>
                                     <ul className="text-sm font-bold text-slate-600 dark:text-slate-400 space-y-4">
@@ -1135,8 +1135,8 @@ export default function LandingPage({ auth }) {
                                 <div className="space-y-6">
                                     <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Contact Developer</h4>
                                     <div className="space-y-4">
-                                        <a href="mailto:rhamdani128@gmail.com" className="flex items-center gap-3 group">
-                                            <div className="size-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
+                                        <a href="mailto:rhamdani128@gmail.com" className="flex items-center gap-4 group">
+                                            <div className="size-10 shrink-0 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
                                                 <span className="material-symbols-outlined text-slate-400 group-hover:text-white transition-colors !text-xl">mail</span>
                                             </div>
                                             <div className="flex flex-col">
@@ -1144,8 +1144,8 @@ export default function LandingPage({ auth }) {
                                                 <span className="text-[11px] font-black group-hover:text-indigo-500 transition-colors">rhamdani128@gmail.com</span>
                                             </div>
                                         </a>
-                                        <a href="https://github.com/ferryiqbalrhamdani" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
-                                            <div className="size-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
+                                        <a href="https://github.com/ferryiqbalrhamdani" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                                            <div className="size-10 shrink-0 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
                                                 <span className="material-symbols-outlined text-slate-400 group-hover:text-white transition-colors !text-xl">code</span>
                                             </div>
                                             <div className="flex flex-col">
@@ -1160,10 +1160,10 @@ export default function LandingPage({ auth }) {
                         
                         <div className="flex flex-col md:flex-row justify-between items-center gap-8 pt-10 border-t border-slate-200 dark:border-white/5">
                             <p className="text-sm text-slate-500 dark:text-slate-400 font-bold tracking-tight">© {new Date().getFullYear()} Protrack Pro System. Powered by Tim Proyek Intelligence.</p>
-                            <div className="flex items-center gap-8 text-slate-400 grayscale contrast-125">
+                            <div className="flex items-center gap-8 text-slate-400 contrast-125">
                                 <div className="flex items-center gap-3">
                                     <div className={`size-2.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">{isOnline ? 'Network Stable' : 'Connection Lost'}</span>
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isOnline ? 'text-emerald-500' : 'text-red-500'}`}>{isOnline ? 'Network Stable' : 'Connection Lost'}</span>
                                 </div>
                             </div>
                         </div>

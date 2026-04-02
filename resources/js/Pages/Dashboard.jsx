@@ -348,13 +348,13 @@ export default function Dashboard({
 
                 {/* Main Billing Card */}
                 <div className="grid grid-cols-1 gap-6">
-                    <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-2xl shadow-slate-200/50 dark:shadow-none flex flex-col items-stretch gap-8 relative overflow-hidden group">
+                    <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-2xl shadow-slate-200/50 dark:shadow-none flex flex-col items-stretch gap-8 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 dark:bg-blue-400/10 blur-[100px] -z-10 rounded-full group-hover:bg-blue-500/20 transition-colors" />
                         
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-left">
                             <div className="space-y-2">
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Total Billing Protrack</p>
-                                <h3 className="text-[32px] sm:text-4xl font-black text-slate-900 dark:text-white leading-none">{formattedMetrics.totalBilling}</h3>
+                                <h3 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-none break-words">{formattedMetrics.totalBilling}</h3>
                                 <div className="flex items-center gap-3 mt-4">
                                     <div className={`flex items-center gap-1 text-[10px] font-black ${billingGrowth.trend === 'down' ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-500 bg-emerald-500/10' } px-2.5 py-1.5 rounded-xl`}>
                                         <span className="material-symbols-outlined text-sm font-black">{billingGrowth.trend === 'down' ? 'trending_down' : 'trending_up'}</span>
@@ -364,7 +364,7 @@ export default function Dashboard({
                                 </div>
                             </div>
                             <div className="w-full sm:w-auto text-left sm:text-right">
-                                <span className="text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400 drop-shadow-sm">{metrics.completedBillingPercentage || 0}%</span>
+                                <span className="text-2xl sm:text-4xl font-black text-blue-600 dark:text-blue-400 drop-shadow-sm">{metrics.completedBillingPercentage || 0}%</span>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Selesai Dibayar</p>
                             </div>
                         </div>
@@ -414,16 +414,17 @@ export default function Dashboard({
                             <div className="flex items-center gap-2 bg-primary/5 dark:bg-blue-500/10 px-3 py-2 rounded-xl border border-primary/10 dark:border-blue-500/20 shrink-0 self-start sm:self-auto">
                                 <span className="size-2.5 rounded-full bg-primary dark:bg-blue-400 shadow-lg shadow-primary/40"></span>
                                 <span className="text-[10px] font-black text-primary dark:text-blue-400 uppercase tracking-widest">Avg. Progres (%)</span>
+                                <span className="text-[10px] font-black text-primary dark:bg-blue-400 uppercase tracking-widest">Avg. Progres (%)</span>
                             </div>
                         </div>
 
                         {/* Chart Area — fixed height, responsive */}
                         <div className="relative w-full h-[220px] sm:h-[280px] group">
                             {/* Y-Axis labels + dashed grid lines */}
-                            <div className="absolute inset-0 pb-7 pl-10 flex flex-col justify-between pointer-events-none">
+                            <div className="absolute inset-0 pb-7 pl-12 flex flex-col justify-between pointer-events-none">
                                 {[100, 75, 50, 25, 0].map(val => (
                                     <div key={val} className="h-0 w-full relative flex items-center">
-                                        <span className="absolute -top-2.5 left-0 text-[9px] font-black text-slate-400 dark:text-slate-600 w-8 text-right">
+                                        <span className="absolute -top-2.5 left-0 text-[8px] sm:text-[9px] font-black text-slate-400 dark:text-slate-600 w-10 text-right pr-2">
                                             {val}%
                                         </span>
                                         <div className="absolute left-10 right-0 border-t border-dashed border-slate-100 dark:border-white/[0.06]" />
@@ -490,7 +491,10 @@ export default function Dashboard({
                             {/* X-axis month labels */}
                             <div className="absolute bottom-0 inset-x-0 pl-12 pr-2 flex justify-between">
                                 {chartPoints.map(p => (
-                                    <span key={p.month} className="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">{p.month}</span>
+                                    <span key={p.month} className="text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+                                        <span className="sm:hidden">{p.month.charAt(0)}</span>
+                                        <span className="hidden sm:inline">{p.month}</span>
+                                    </span>
                                 ))}
                             </div>
                         </div>
@@ -694,7 +698,7 @@ export default function Dashboard({
                                 {/* Header: Name & ID */}
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="min-w-0">
-                                        <h4 className="font-black text-slate-800 dark:text-white leading-tight truncate">{proj.name}</h4>
+                                        <h4 className="font-black text-slate-800 dark:text-white leading-tight truncate" title={proj.name}>{proj.name}</h4>
                                         <p className="text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1">UP: {proj.id}</p>
                                     </div>
                                     <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shrink-0 ${
@@ -772,7 +776,7 @@ export default function Dashboard({
                     {effectiveViewMode === 'table' && (
                         <div className="bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
                             <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left border-collapse">
+                                <table className="w-full min-w-[1100px] text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
                                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project Detail</th>
@@ -791,14 +795,22 @@ export default function Dashboard({
                                                 className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group"
                                             >
                                                 <td className="px-8 py-6">
-                                                    <div className="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">{proj.name}</div>
+                                                    <div className="premium-tooltip max-w-[200px] xl:max-w-[320px]" data-tooltip={proj.name}>
+                                                        <div className="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors truncate">{proj.name}</div>
+                                                    </div>
                                                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {proj.id}</div>
                                                 </td>
-                                                <td className="px-8 py-6 text-sm font-bold text-slate-600 dark:text-white">
-                                                    {proj.contract_no || '-'}
+                                                <td className="px-8 py-6 min-w-[180px]">
+                                                    <div className="premium-tooltip max-w-[160px]" data-tooltip={proj.contract_no || '-'}>
+                                                        <div className="text-sm font-bold text-slate-600 dark:text-white truncate">
+                                                            {proj.contract_no || '-'}
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{proj.client}</span>
+                                                    <div className="premium-tooltip max-w-[150px]" data-tooltip={proj.client}>
+                                                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 truncate block">{proj.client}</span>
+                                                    </div>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">

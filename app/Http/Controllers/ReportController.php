@@ -14,26 +14,27 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $year = $request->query('year', 'All');
-        
-        $availableYears = Project::whereNotNull('contract_date')
-            ->pluck('contract_date')
-            ->map(function ($date) {
-                return Carbon::parse($date)->year;
-            })
+        $availableYears = Project::whereNotNull('budget_year')
+            ->pluck('budget_year')
             ->unique()
             ->sortDesc()
             ->values()
             ->toArray();
 
-        // If no projects have contract_date, default to current year
+        // If no projects have budget_year, default to current year
         if (empty($availableYears)) {
-            $availableYears = [Carbon::now()->year];
+            $availableYears = [(int)Carbon::now()->year];
+        }
+
+        // Set default year to the latest budget_year if not specified
+        $year = $request->query('year');
+        if ($year === null) {
+            $year = (string)($availableYears[0] ?? 'All');
         }
         
         $query = Project::query();
         if ($year !== 'All') {
-            $query->whereYear('contract_date', $year);
+            $query->where('budget_year', $year);
         }
 
         // 1. Monthly Stats (Count)
@@ -42,7 +43,7 @@ class ReportController extends Controller
         
         $monthlyQueryBase = Project::query();
         if ($year !== 'All') {
-            $monthlyQueryBase->whereYear('contract_date', $year);
+            $monthlyQueryBase->where('budget_year', $year);
         }
 
         foreach ($months as $i => $month) {
@@ -111,7 +112,7 @@ class ReportController extends Controller
         // 5. Due Projects (Ongoing/Pending)
         $dueQuery = Project::whereIn('status', ['Ongoing', 'Pending']);
         if ($year !== 'All') {
-            $dueQuery->whereYear('due_date', $year);
+            $dueQuery->where('budget_year', $year);
         }
 
         $dueProjectsRaw = $dueQuery->orderBy('due_date', 'asc')
@@ -206,7 +207,6 @@ class ReportController extends Controller
         ];
 
         return Inertia::render('Reports/Index', [
-            'queryParams' => $request->query(),
             'monthlyStats' => $monthlyStats,
             'statusStats' => $statusStats,
             'companyContractValues' => $companyContractValues,
@@ -217,6 +217,7 @@ class ReportController extends Controller
             'recentActivities' => $recentActivities,
             'activityLogs' => $activityLogs,
             'availableYears' => $availableYears,
+            'queryParams' => ['year' => $year]
         ]);
     }
 
@@ -233,7 +234,7 @@ class ReportController extends Controller
             ->orderBy('created_at', 'desc');
 
         if ($year !== 'All') {
-            $query->whereYear('contract_date', $year);
+            $query->where('budget_year', $year);
         }
 
         if ($search) {
