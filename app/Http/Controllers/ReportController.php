@@ -4,15 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\ActivityLog;
-use App\Models\Company;
+use App\Exports\ProjectsExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
 class ReportController extends Controller
 {
     public function index(Request $request)
+    {
+        $data = $this->getReportData($request);
+
+        return Inertia::render('Reports/Index', array_merge($data, [
+            'queryParams' => ['year' => $data['year']]
+        ]));
+    }
+
+    public function reportPrint(Request $request)
+    {
+        $data = $this->getReportData($request);
+        
+        return Inertia::render('Reports/GlobalPrint', array_merge($data, [
+            'queryParams' => ['year' => $data['year']]
+        ]));
+    }
+
+    private function getReportData(Request $request)
     {
         $availableYears = Project::whereNotNull('budget_year')
             ->pluck('budget_year')
@@ -69,7 +89,7 @@ class ReportController extends Controller
 
         // 3. Contract Value per Company
         $companyStatsRaw = (clone $query)->select('company_id', DB::raw('SUM(contract_value) as total_value'))
-                                      ->with('company:id,name') // Ensure Company model relation is defined in Project
+                                      ->with('company:id,name')
                                       ->groupBy('company_id')
                                       ->orderByDesc('total_value')
                                       ->get();
@@ -86,12 +106,9 @@ class ReportController extends Controller
             }
         }
 
-        // 4. Sub-Module Lifecycle Statistics (Contracts, Merchandiser, Billing, Shipping)
-        // Helper to get stats for a specific relation
+        // 4. Sub-Module Lifecycle Statistics
         $getModuleStats = function($relationName) use ($query) {
             $baseQuery = clone $query;
-            // Since it's a 1-to-1 we can join or query existence. Filtering by project created_at (which is the year constraint).
-            // We need to count by the status of the related model.
             $ongoing = (clone $baseQuery)->whereHas($relationName, function ($q) { $q->where('status', 'Ongoing'); })->count();
             $completed = (clone $baseQuery)->whereHas($relationName, function ($q) { $q->where('status', 'Completed'); })->count();
             $pending = (clone $baseQuery)->whereHas($relationName, function ($q) { $q->where('status', 'Pending'); })->count();
@@ -128,12 +145,12 @@ class ReportController extends Controller
             ];
         });
 
-        // Retrieve the most recent projects mapped with each of their individual module status
+        // Retrieve module data for modals/print
         $getModuleTableData = function($relationName) use ($query) {
             $baseQuery = clone $query;
             $moduleRecords = $baseQuery->has($relationName)
                                        ->with(['company:id,name', 'pic:id,name', $relationName . '.handle:id,name'])
-                                       ->orderBy('created_at', 'desc') // Change sort if needed
+                                       ->orderBy('created_at', 'desc')
                                        ->get();
 
             return $moduleRecords->map(function ($proj) use ($relationName) {
@@ -151,10 +168,8 @@ class ReportController extends Controller
                     'contract_value' => (float) $proj->contract_value,
                     'project_status' => $proj->status,
                     'project_progress' => $proj->progress,
-                    // Extracting module specific data
                     'prog' => $moduleInstance ? $moduleInstance->progress : 0,
-                    'status' => $moduleInstance ? $moduleInstance->status : 'Pending', // Fallback
-                    // You might adjust these dates depending on the exact design intent vs schema
+                    'status' => $moduleInstance ? $moduleInstance->status : 'Pending',
                     'date' => $proj->created_at->format('d M Y'),
                     'due' => $proj->due_date ? Carbon::parse($proj->due_date)->format('d M Y') : '-',
                 ];
@@ -187,17 +202,14 @@ class ReportController extends Controller
             $totalNilaiProyek += $p->contract_value;
             
             if (str_starts_with($p->payment_term, 'DP')) {
-                // DP: Calculate expected DP value directly from the contract value
-                $dpPct = 0.3; // Default 30% if no percentage is specified
+                $dpPct = 0.3;
                 if (preg_match('/DP\s+(\d+)%/', $p->payment_term, $matches)) {
                     $dpPct = ((float)$matches[1]) / 100;
                 }
                 $akumulasiDp += $p->contract_value * $dpPct;
             } elseif ($p->payment_term === 'Termin Berjangka') {
-                // Termin: Accumulate total contract value for all projects with "Termin Berjangka"
                 $tagihanTermin += $p->contract_value;
             } elseif ($p->payment_term === 'Tidak ada DP') {
-                // Akumulasi Pembayaran Langsung: total contract value for all projects with "Tidak ada DP"
                 $pembayaranLangsung += $p->contract_value;
             }
         }
@@ -209,7 +221,8 @@ class ReportController extends Controller
             'tagihan_termin' => $tagihanTermin,
         ];
 
-        return Inertia::render('Reports/Index', [
+        return [
+            'year' => $year,
             'monthlyStats' => $monthlyStats,
             'statusStats' => $statusStats,
             'companyContractValues' => $companyContractValues,
@@ -220,8 +233,7 @@ class ReportController extends Controller
             'recentActivities' => $recentActivities,
             'activityLogs' => $activityLogs,
             'availableYears' => $availableYears,
-            'queryParams' => ['year' => $year]
-        ]);
+        ];
     }
 
     public function projectReport(Request $request)
@@ -290,18 +302,56 @@ class ReportController extends Controller
             ];
         });
 
-        // Get full company list that have projects for the filter dropdown
-        $companies = Company::whereHas('projects')
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get()
-            ->map(fn($c) => ['label' => $c->name, 'value' => (string)$c->id]);
-
         return Inertia::render('Reports/ProjectReport', [
             'projects' => $projects,
-            'companies' => $companies,
-            'queryParams' => $request->query(),
+            'companies' => Company::all()->map(fn($c) => ['label' => $c->name, 'value' => (string)$c->id]),
+            'queryParams' => $request->all(),
         ]);
+    }
+
+    public function projectReportExport(Request $request)
+    {
+        $year = $request->query('year', 'All');
+        $search = $request->query('search');
+        $status = $request->query('status', 'All');
+        $company = $request->query('company', 'All');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $query = Project::query()->orderBy('created_at', 'desc');
+
+        if ($year !== 'All') {
+            $query->where('budget_year', $year);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('contract_no', 'like', "%{$search}%")
+                  ->orWhereHas('company', function ($c) use ($search) {
+                      $c->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($status !== 'All') {
+            $query->where('status', $status);
+        }
+
+        if ($company !== 'All') {
+            $query->where('company_id', $company);
+        }
+
+        if ($startDate) {
+            $query->whereDate('contract_date', '>=', $startDate);
+        }
+        
+        if ($endDate) {
+            $query->whereDate('contract_date', '<=', $endDate);
+        }
+
+        $filename = 'Laporan_Proyek_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new ProjectsExport($query), $filename);
     }
 
     public function projectDetail($hashedId)

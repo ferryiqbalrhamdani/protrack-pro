@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import useSessionFilter from '@/Hooks/useSessionFilter';
 import useMediaQuery from '@/Hooks/useMediaQuery';
 import SearchableSelect from '@/Components/SearchableSelect';
-import ExportButton from '@/Components/ExportButton';
+
 import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -152,11 +152,7 @@ export default function Index({ projects, filters, auth }) {
                         </p>
                     </div>
                     <div className="flex items-center gap-3 md:gap-4 w-full md:w-auto">
-                        <ExportButton 
-                            className="w-full md:w-auto"
-                            onExportExcel={() => console.log('Exporting Projects to Excel...')}
-                            onExportPdf={() => console.log('Exporting Projects to PDF...')}
-                        />
+
                         <Link 
                             href={route('projects.create')}
                             className="hidden md:flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all group active:scale-95"
@@ -609,7 +605,7 @@ export default function Index({ projects, filters, auth }) {
                                                                 className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-2 z-[9999] animate-reveal-down text-left"
                                                             >
                                                                 <Link 
-                                                                    href={route('projects')} 
+                                                                    href={route('projects.show', project.hashed_id)} 
                                                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors"
                                                                 >
                                                                     <span className="material-symbols-outlined text-lg text-blue-400">visibility</span>
@@ -775,7 +771,7 @@ export default function Index({ projects, filters, auth }) {
                                         {/* Actions */}
                                         <div className="grid grid-cols-3 gap-2 pt-2">
                                             <Link 
-                                                href={route('projects')} 
+                                                href={route('projects.show', project.hashed_id)} 
                                                 className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-[10px] font-black uppercase tracking-widest transition-colors"
                                             >
                                                 <span className="material-symbols-outlined text-[14px]">visibility</span>

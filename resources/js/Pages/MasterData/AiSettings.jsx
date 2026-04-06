@@ -63,6 +63,18 @@ export default function AiSettings({ settings }) {
             'google/gemini-flash-1.5',
             'meta-llama/llama-3.3-70b-instruct',
         ],
+        'OpenAI': [
+            'gpt-4o',
+            'gpt-4o-mini',
+            'gpt-4-turbo',
+            'gpt-3.5-turbo',
+        ],
+        'NVIDIA': [
+            'meta/llama-3.3-70b-instruct',
+            'meta/llama-3.1-405b-instruct',
+            'meta/llama-3.1-70b-instruct',
+            'mistralai/mistral-large-2-instruct',
+        ],
         'GitHub Models': [
             'gpt-4o',
             'gpt-4o-mini',
@@ -299,6 +311,8 @@ export default function AiSettings({ settings }) {
                                 <option value="" disabled>Pilih Provider</option>
                                 <option value="Groq">Groq (Llama 3.3)</option>
                                 <option value="Gemini">Gemini API (Google)</option>
+                                <option value="OpenAI">OpenAI (GPT-4o)</option>
+                                <option value="NVIDIA">NVIDIA NIM</option>
                                 <option value="OpenRouter">OpenRouter</option>
                                 <option value="GitHub Models">GitHub Models</option>
                             </select>

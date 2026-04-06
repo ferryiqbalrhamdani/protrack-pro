@@ -1,18 +1,24 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage, router, Link } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ExportButton from '@/Components/ExportButton';
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
 import useSessionFilter from '@/Hooks/useSessionFilter';
 import useMediaQuery from '@/Hooks/useMediaQuery';
+import * as XLSX from 'xlsx';
+import html2pdf from 'html2pdf.js';
+import { toast } from 'react-hot-toast';
+import DashboardPrintView from '@/Components/DashboardPrintView';
 
 export default function Dashboard({ 
     queryParams = null, 
+    availableYears = [],
     recentActivities = [], 
     activityLogs = null, 
     dueProjects = [], 
     recentProjectsList = [],
+    allProjectsForExport = [],
     chartPoints = [],
     metrics = {
         totalBilling: 0,
@@ -53,19 +59,147 @@ export default function Dashboard({
     // Formatting Helpers
     const formattedMetrics = {
         totalBilling: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(metrics.totalBilling),
+        totalProjects: metrics.totalProjects,
         activeProjects: metrics.activeProjects,
-        ongoingProjects: metrics.ongoingProjects,
         completedProjects: metrics.completedProjects,
     };
 
+    const [year, setYear] = useState(() => {
+        // Priority: URL Param -> LocalStorage -> Default 'All'
+        if (queryParams?.year) return queryParams.year;
+        const savedYear = localStorage.getItem('protrack_dashboard_year');
+        return savedYear || 'All';
+    });
+    
+    const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+    const yearDropdownRef = useRef(null);
+    const printRef = useRef(null);
+
+    // Initial persistence sync
+    useEffect(() => {
+        const urlYear = queryParams?.year;
+        const savedYear = localStorage.getItem('protrack_dashboard_year');
+
+        // Case: No year in URL, but we have a saved year. Sync URL to localStorage.
+        if (!urlYear && savedYear && savedYear !== 'All') {
+            handleYearChange(savedYear);
+        }
+    }, []);
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target)) {
+                setIsYearDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
     // Timeframe filter logic
     const handleTimeframeChange = (timeframe) => {
-        router.get(route('dashboard'), { timeframe }, {
+        router.get(route('dashboard'), { ...queryParams, timeframe }, {
             preserveState: true,
             preserveScroll: true,
-            only: ['activityLogs', 'recentActivities', 'queryParams'],
         });
     };
+
+    // Year filter logic
+    const handleYearChange = (newYear) => {
+        // Update LocalStorage and state
+        localStorage.setItem('protrack_dashboard_year', newYear);
+        setYear(newYear);
+        
+        router.get(route('dashboard'), { ...queryParams, year: newYear }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // Export Logic
+    const exportToExcel = () => {
+        if (!allProjectsForExport || allProjectsForExport.length === 0) {
+            toast.error(`Tidak ada data proyek untuk tahun ${year === 'All' ? 'semua tahun' : year}`);
+            return;
+        }
+        const toastId = toast.loading('Menyiapkan file Excel...');
+        try {
+            // Build headers and rows manually to ensure no column offsets (L1 issue)
+            const headers = ['UP No', 'Project Name', 'Contract No', 'Client', 'PIC', 'Budget Year', 'Value', 'Contract Date', 'Due Date', 'Progress', 'Status'];
+            
+            const rows = allProjectsForExport.map(p => [
+                // Flexible mapping to handle both original and mapped prop names
+                p['UP No'] || p.up_no || '',
+                p['Name'] || p.name || '',
+                p['Contract No'] || p.contract_no || '',
+                p['Client'] || (p.company ? p.company.name : ''),
+                p['PIC'] || (p.pic ? p.pic.name : ''),
+                p['Year'] || p.budget_year || '',
+                p['Value'] || p.contract_value || 0,
+                p['Date'] || p.contract_date || '',
+                p['Due'] || p.due_date || '',
+                p['Progress'] || (p.progress + '%') || '0%',
+                p['Status'] || p.status || ''
+            ]);
+
+            const worksheetData = [headers, ...rows];
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
+            
+            // Fixed Column Widths for a clean start
+            worksheet['!cols'] = [
+                { wch: 15 }, // UP No
+                { wch: 40 }, // Project Name
+                { wch: 20 }, // Contract No
+                { wch: 25 }, // Client
+                { wch: 20 }, // PIC
+                { wch: 12 }, // Budget Year
+                { wch: 15 }, // Value
+                { wch: 15 }, // Date
+                { wch: 15 }, // Due
+                { wch: 10 }, // Progress
+                { wch: 15 }  // Status
+            ];
+
+            XLSX.writeFile(workbook, `Protrack_Dashboard_Project_List_${year}_${new Date().toLocaleDateString('id-ID')}.xlsx`);
+            toast.success('Excel berhasil diunduh', { id: toastId });
+        } catch (error) {
+            console.error('Excel Export Error:', error);
+            toast.error('Gagal mengekspor Excel', { id: toastId });
+        }
+    };
+
+    const exportToPdf = () => {
+        if (!printRef.current) return;
+        const toastId = toast.loading('Menyiapkan laporan PDF Landscape...');
+        
+        const element = printRef.current;
+        const opt = {
+            margin: 0,
+            filename: `Protrack_Premium_Dashboard_${year}_${new Date().getTime()}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(element).save()
+            .then(() => toast.success('PDF berhasil diunduh', { id: toastId }))
+            .catch(err => {
+                console.error('PDF Error:', err);
+                toast.error('Gagal mengekspor PDF', { id: toastId });
+            });
+    };
+
+    // Sync year state with queryParams
+    useEffect(() => {
+        if (queryParams?.year) {
+            setYear(String(queryParams.year));
+        } else {
+            setYear('All');
+        }
+    }, [queryParams?.year]);
 
     // Auto-refresh (Real-time feel)
     useEffect(() => {
@@ -219,29 +353,29 @@ export default function Dashboard({
             trend: val > 0 ? 'up' : 'down' 
         };
     }
+    const totalGrowth = formatGrowth(metrics.totalProjectsGrowth);
     const activeGrowth = formatGrowth(metrics.activeGrowth);
-    const ongoingGrowth = formatGrowth(metrics.ongoingGrowth);
     const completedGrowth = formatGrowth(metrics.completedGrowth);
     const billingGrowth = formatGrowth(metrics.totalBillingGrowth);
 
     const stats = [
         {
-            label: "Total Proyek Aktif",
-            value: formattedMetrics.activeProjects,
-            desc: "Ongoing & Pending",
-            icon: "stacks",
+            label: "Total Proyek",
+            value: formattedMetrics.totalProjects,
+            desc: "Seluruh Proyek",
+            icon: "inventory_2",
             iconClass: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-            trend: activeGrowth.trend,
-            growth: activeGrowth.text,
+            trend: totalGrowth.trend,
+            growth: totalGrowth.text,
         },
         {
-            label: "Proyek Berjalan",
-            value: formattedMetrics.ongoingProjects,
-            desc: "Sedang Diproses",
-            icon: "assignment",
+            label: "Proyek Aktif",
+            value: formattedMetrics.activeProjects,
+            desc: "Sedang Berjalan",
+            icon: "assignment_late",
             iconClass: "bg-blue-100/50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-            trend: ongoingGrowth.trend,
-            growth: ongoingGrowth.text,
+            trend: activeGrowth.trend,
+            growth: activeGrowth.text,
         },
         {
             label: "Proyek Selesai",
@@ -263,19 +397,85 @@ export default function Dashboard({
 
             <div className="max-w-[1600px] mx-auto p-4 sm:p-8 space-y-8 pb-32 xl:pb-8">
                 {/* Welcome & Filter */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 px-1">
                     <div className="space-y-1 sm:space-y-2 text-left">
                         <h2 className="text-[28px] sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
                             Halo, Selamat Datang kembali!
                         </h2>
-                        <p className="text-[10px] sm:text-sm text-slate-400 font-black uppercase tracking-[0.2em]">
-                            Semoga harimu menyenangkan, <span className="text-blue-600 dark:text-blue-400">{user.name}</span>.
-                        </p>
+                        <div className="flex items-center gap-3">
+                            <p className="text-[10px] sm:text-xs text-slate-400 font-black uppercase tracking-[0.2em]">
+                                Semoga harimu menyenangkan, <span className="text-blue-600 dark:text-blue-400">{user.name}</span>.
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        {/* Custom Year Filter Dropdown */}
+                        <div className="relative w-full sm:w-auto" ref={yearDropdownRef}>
+                            <button 
+                                onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+                                className="w-full sm:w-auto bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between gap-4 group hover:border-blue-500/50 transition-all shadow-sm"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-500 transition-colors text-xl">calendar_month</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white">
+                                        {year === 'All' ? 'Semua Tahun' : `Anggaran ${year}`}
+                                    </span>
+                                </div>
+                                <span className={`material-symbols-outlined text-slate-400 transition-transform duration-300 ${isYearDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                            </button>
+
+                            {isYearDropdownOpen && (
+                                <div className="absolute top-full left-0 mt-3 w-full sm:w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-[110] overflow-hidden animate-reveal p-2 backdrop-blur-xl">
+                                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                                        {[...availableYears].sort((a, b) => b - a).map(y => (
+                                            <button
+                                                key={y}
+                                                onClick={() => {
+                                                    handleYearChange(y);
+                                                    setIsYearDropdownOpen(false);
+                                                }}
+                                                className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-1 last:mb-0 flex items-center justify-between group ${year === String(y) ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                                            >
+                                                Anggaran {y}
+                                                {year === String(y) && <span className="material-symbols-outlined text-sm">check_circle</span>}
+                                            </button>
+                                        ))}
+                                        {availableYears.length > 0 && <div className="h-px bg-slate-100 dark:bg-white/5 my-1 mx-2"></div>}
+                                        <button
+                                            onClick={() => {
+                                                handleYearChange('All');
+                                                setIsYearDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${year === 'All' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                                        >
+                                            Semua Tahun
+                                            {year === 'All' && <span className="material-symbols-outlined text-sm">check_circle</span>}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <ExportButton 
-                            onExportExcel={() => console.log('Exporting Dashboard to Excel...')}
-                            onExportPdf={() => console.log('Exporting Dashboard to PDF...')}
+                            onExportExcel={exportToExcel}
+                            onExportPdf={exportToPdf}
+                            className="w-full sm:w-auto"
+                        />
+                    </div>
+                </div>
+
+                {/* Hidden Print Content */}
+                <div className="hidden">
+                    <div ref={printRef}>
+                        <DashboardPrintView 
+                            metrics={metrics}
+                            chartPoints={chartPoints}
+                            recentProjectsList={recentProjectsList}
+                            dueProjects={dueProjects}
+                            year={year}
+                            stats={stats}
+                            formattedMetrics={formattedMetrics}
+                            billingGrowth={billingGrowth}
                         />
                     </div>
                 </div>
@@ -393,7 +593,7 @@ export default function Dashboard({
                                 {stat.trend !== 'neutral' ? (
                                     <span className={`text-[10px] sm:text-sm font-black ${stat.trend === 'down' ? 'text-rose-500' : 'text-emerald-500'}`}>{stat.growth}</span>
                                 ) : (
-                                    <span className="text-sm font-black text-slate-400">-</span>
+                                    <span className="text-[10px] sm:text-sm font-black text-slate-400">{stat.growth}</span>
                                 )}
                             </div>
                             <p className="text-[10px] text-slate-400 dark:text-slate-600 font-black uppercase tracking-widest mt-2">{stat.desc}</p>

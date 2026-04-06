@@ -73,6 +73,17 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
         return () => clearTimeout(timeout);
     }, [search, statusFilter, companyFilter, dateRange, sortBy, sortDir]);
 
+    const handleExport = () => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (statusFilter !== 'All') params.append('status', statusFilter);
+        if (companyFilter !== 'All') params.append('company', companyFilter);
+        if (dateRange.start) params.append('start_date', dateRange.start);
+        if (dateRange.end) params.append('end_date', dateRange.end);
+        
+        window.open(route('reports.project.export') + '?' + params.toString(), '_blank');
+    };
+
     const companyOptions = [
         { label: 'Semua Perusahaan', value: 'All' },
         ...companies
@@ -101,7 +112,10 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                 </div>
 
                                 {/* Export Button - Mobile Only (Right) */}
-                                <button className="md:hidden size-9 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-90 transition-all">
+                                <button 
+                                    onClick={handleExport}
+                                    className="md:hidden size-9 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-90 transition-all"
+                                >
                                     <span className="material-symbols-outlined text-xl">export_notes</span>
                                 </button>
                             </div>
@@ -187,7 +201,10 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                     )}
                                 </div>
 
-                                <button className="hidden lg:flex px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all items-center gap-2 leading-none">
+                                <button 
+                                    onClick={handleExport}
+                                    className="hidden lg:flex px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all items-center gap-2 leading-none"
+                                >
                                     <span className="material-symbols-outlined text-lg leading-none">export_notes</span>
                                     Export
                                 </button>
@@ -263,7 +280,10 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Monitoring Progress Fisik</p>
                             </div>
                         </div>
-                        <button className="size-10 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-95 transition-all">
+                        <button 
+                            onClick={handleExport}
+                            className="size-10 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-95 transition-all"
+                        >
                             <span className="material-symbols-outlined text-xl">export_notes</span>
                         </button>
                     </div>

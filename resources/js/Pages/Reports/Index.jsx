@@ -488,10 +488,14 @@ export default function Index({
                                         placeholder="Pilih Periode"
                                     />
                                 </div>
-                                <button className="px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 h-10">
-                                    <span className="material-symbols-outlined text-lg font-fill">export_notes</span>
-                                    Export Semua
-                                </button>
+                                <a 
+                                    href={route('reports.print', { year })} 
+                                    target="_blank"
+                                    className="px-5 py-2.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 h-10"
+                                >
+                                    <span className="material-symbols-outlined text-lg font-fill">print</span>
+                                    Cetak PDF
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -522,10 +526,14 @@ export default function Index({
                                 placeholder="Pilih Periode"
                             />
                         </div>
-                        <button className="w-full sm:w-auto px-6 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 h-[54px]">
-                            <span className="material-symbols-outlined text-lg font-fill">export_notes</span>
-                            Export Semua
-                        </button>
+                        <a 
+                            href={route('reports.print', { year })} 
+                            target="_blank"
+                            className="w-full sm:w-auto px-6 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 h-[54px]"
+                        >
+                            <span className="material-symbols-outlined text-lg font-fill">print</span>
+                            Cetak PDF
+                        </a>
                     </div>
                 </div>
 

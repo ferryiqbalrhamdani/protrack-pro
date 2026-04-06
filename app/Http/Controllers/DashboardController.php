@@ -13,91 +13,87 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $timeframe = $request->query('timeframe', 'month');
+        $selectedYear = $request->query('year', 'All');
         $now = Carbon::now();
 
-        $query = ActivityLog::with('user');
-
+        // 1. Activity Logs (Timeframe based)
+        $logQuery = ActivityLog::with('user');
         switch ($timeframe) {
             case 'day':
-                $query->whereBetween('created_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()]);
+                $logQuery->whereBetween('created_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()]);
                 break;
             case 'week':
-                $query->where('created_at', '>=', $now->copy()->subWeek());
+                $logQuery->where('created_at', '>=', $now->copy()->subWeek());
                 break;
             case 'year':
-                $query->where('created_at', '>=', $now->copy()->subYear());
+                $logQuery->where('created_at', '>=', $now->copy()->subYear());
                 break;
             case 'month':
             default:
-                $query->where('created_at', '>=', $now->copy()->subMonth());
+                $logQuery->where('created_at', '>=', $now->copy()->subMonth());
                 break;
         }
 
-        $activityLogs = $query->latest()->paginate(10)->withQueryString();
-        $recentActivities = $query->latest()->take(5)->get();
+        $activityLogs = $logQuery->latest()->paginate(10)->withQueryString();
+        $recentActivities = (clone $logQuery)->latest()->take(5)->get();
 
-        // Real Metrics
-        $startDateThisMonth = Carbon::now()->startOfMonth();
-        $startDateLastMonth = Carbon::now()->subMonth()->startOfMonth();
-        $endDateLastMonth = Carbon::now()->subMonth()->endOfMonth();
+        // 2. Available Years for Filter
+        $availableYears = Project::whereNotNull('budget_year')
+            ->distinct()
+            ->orderBy('budget_year', 'desc')
+            ->pluck('budget_year')
+            ->toArray();
 
-        // 1. Total Active Projects (Ongoing & Pending)
-        $activeProjects = Project::whereIn('status', ['Ongoing', 'Pending'])->count();
-        $activeProjectsLastMonth = Project::whereIn('status', ['Ongoing', 'Pending'])
-                                          ->where('created_at', '<=', $endDateLastMonth)
-                                          ->count();
-        $activeGrowth = $activeProjectsLastMonth > 0 
-                        ? round((($activeProjects - $activeProjectsLastMonth) / $activeProjectsLastMonth) * 100) 
-                        : ($activeProjects > 0 ? 100 : 0);
-
-        // 2. Ongoing Projects
-        $ongoingProjects = Project::where('status', 'Ongoing')->count();
-        $ongoingProjectsLastMonth = Project::where('status', 'Ongoing')
-                                           ->where('created_at', '<=', $endDateLastMonth)
-                                           ->count();
-        $ongoingGrowth = $ongoingProjectsLastMonth > 0 
-                         ? round((($ongoingProjects - $ongoingProjectsLastMonth) / $ongoingProjectsLastMonth) * 100) 
-                         : ($ongoingProjects > 0 ? 100 : 0);
-
-        // 3. Completed Projects
-        $completedProjects = Project::where('status', 'Completed')->count();
-        $completedProjectsLastMonth = Project::where('status', 'Completed')
-                                             ->where('created_at', '<=', $endDateLastMonth)
-                                             ->count();
-        $completedGrowth = $completedProjectsLastMonth > 0 
-                           ? round((($completedProjects - $completedProjectsLastMonth) / $completedProjectsLastMonth) * 100) 
-                           : ($completedProjects > 0 ? 100 : 0);
-
-        // Calculate total billing (Accumulation of all project contract values)
-        $totalBilling = Project::sum('contract_value');
-        
-        $totalBillingLastMonthEnd = Project::where('created_at', '<=', $endDateLastMonth)->sum('contract_value');
-        
-        $totalBillingGrowth = 0;
-        if ($totalBillingLastMonthEnd > 0) {
-            $totalBillingGrowth = round((($totalBilling - $totalBillingLastMonthEnd) / $totalBillingLastMonthEnd) * 100);
-        } else if ($totalBilling > 0) {
-            $totalBillingGrowth = 100;
+        // 3. Unified Project Base Query (Strict Budget Year)
+        $baseQuery = Project::query();
+        if ($selectedYear !== 'All') {
+            $baseQuery->where('budget_year', (int)$selectedYear);
         }
 
-        // Percentage of Completed Projects Value vs Total Billing
-        $completedBilling = Project::where('status', 'Completed')->sum('contract_value');
+        // --- Metrics Calculation ---
+        $endDateLastMonth = Carbon::now()->subMonth()->endOfMonth();
+
+        // 1. Total Projects (ALL)
+        $totalProjects = (clone $baseQuery)->count();
+        $totalProjectsLastMonth = (clone $baseQuery)->where('created_at', '<=', $endDateLastMonth)->count();
+        $totalProjectsGrowth = $totalProjectsLastMonth > 0 ? round((($totalProjects - $totalProjectsLastMonth) / $totalProjectsLastMonth) * 100) : ($totalProjects > 0 ? 100 : 0);
+
+        // 2. Active Projects (Ongoing ONLY)
+        $activeProjects = (clone $baseQuery)->where('status', 'Ongoing')->count();
+        $activeLastMonth = (clone $baseQuery)->where('status', 'Ongoing')
+                                            ->where('created_at', '<=', $endDateLastMonth)
+                                            ->count();
+        $activeGrowth = $activeLastMonth > 0 ? round((($activeProjects - $activeLastMonth) / $activeLastMonth) * 100) : ($activeProjects > 0 ? 100 : 0);
+
+        // 3. Completed Projects
+        $completedProjects = (clone $baseQuery)->where('status', 'Completed')->count();
+        $completedLastMonth = (clone $baseQuery)->where('status', 'Completed')
+                                               ->where('created_at', '<=', $endDateLastMonth)
+                                               ->count();
+        $completedGrowth = $completedLastMonth > 0 ? round((($completedProjects - $completedLastMonth) / $completedLastMonth) * 100) : ($completedProjects > 0 ? 100 : 0);
+
+        // Billing Metrics
+        $totalBilling = (clone $baseQuery)->sum('contract_value'); // Total contract value volume for selected year
+        $completedBilling = (clone $baseQuery)->where('status', 'Completed')->sum('contract_value');
+        $billingLastMonth = (clone $baseQuery)->where('created_at', '<=', $endDateLastMonth)->sum('contract_value');
+        
+        $totalBillingGrowth = $billingLastMonth > 0 ? round((($totalBilling - $billingLastMonth) / $billingLastMonth) * 100) : ($totalBilling > 0 ? 100 : 0);
         $completedBillingPercentage = $totalBilling > 0 ? round(($completedBilling / $totalBilling) * 100) : 0;
 
-        // Due Projects (Ongoing & Pending)
-        $dueProjects = Project::whereIn('status', ['Ongoing', 'Pending'])
+        // --- Lists Generation ---
+
+        // Due Projects
+        $dueProjects = (clone $baseQuery)->whereIn('status', ['Ongoing', 'Pending'])
             ->whereNotNull('due_date')
             ->orderBy('due_date', 'asc')
-            ->take(5)
+            ->take(8)
             ->get()
             ->map(function($project) {
                 $dueDate = Carbon::parse($project->due_date);
                 $daysLeft = Carbon::now()->diffInDays($dueDate, false);
-                
                 $status = 'Safe';
                 if ($daysLeft < 7) $status = 'Urgent';
                 else if ($daysLeft < 30) $status = 'Near Due';
-
                 return [
                     'name' => $project->name,
                     'contract_no' => $project->contract_no,
@@ -107,10 +103,10 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Recent Projects Table
-        $recentProjectsList = Project::with(['pic', 'company'])
-            ->latest()
-            ->take(5)
+        // Recent Projects (Showing all in the filtered year)
+        $recentProjectsList = (clone $baseQuery)->with(['pic', 'company'])
+            ->latest('updated_at')
+            ->take(6)
             ->get()
             ->map(function($project) {
                 return [
@@ -126,21 +122,37 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Project Progress Trend (Average progress per month for the current year)
-        $currentYear = Carbon::now()->year;
+        // Full Export List (Excel)
+        $allProjectsForExport = (clone $baseQuery)->with(['pic', 'company'])
+            ->orderBy('up_no', 'desc')
+            ->get()
+            ->map(function($p) {
+                return [
+                    'UP No' => $p->up_no,
+                    'Name' => $p->name,
+                    'Contract No' => $p->contract_no,
+                    'Client' => $p->company?->name,
+                    'PIC' => $p->pic?->name,
+                    'Year' => $p->budget_year,
+                    'Value' => (double) $p->contract_value,
+                    'Date' => $p->contract_date,
+                    'Due' => $p->due_date,
+                    'Progress' => $p->progress . '%',
+                    'Status' => $p->status
+                ];
+            })->toArray();
+
+        // 4. Trend Chart Logic
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        
-        $chartPoints = collect($months)->map(function ($month, $index) use ($currentYear) {
+        $chartPoints = collect($months)->map(function ($month, $index) use ($selectedYear) {
             $monthNum = $index + 1;
-            
-            // Average progress of projects created in this month
-            // Alternatively, average of all projects updated this month
-            // We'll use created_at to show trend among new projects, or updated_at for active activity.
-            // Let's use updated_at to reflect recent activity.
-            $avgProgress = Project::whereYear('updated_at', $currentYear)
-                                  ->whereMonth('updated_at', $monthNum)
-                                  ->avg('progress') ?? 0;
-            
+            $subQuery = Project::query();
+            if ($selectedYear !== 'All') {
+                $subQuery->where('budget_year', $selectedYear);
+            } else {
+                $subQuery->whereYear('updated_at', Carbon::now()->year);
+            }
+            $avgProgress = $subQuery->whereMonth('updated_at', $monthNum)->avg('progress') ?? 0;
             return [
                 'month' => $month,
                 'val' => (int) round($avgProgress)
@@ -149,19 +161,21 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'queryParams' => (object)$request->query(),
+            'availableYears' => $availableYears,
             'activityLogs' => $activityLogs,
             'recentActivities' => $recentActivities,
             'dueProjects' => $dueProjects,
             'recentProjectsList' => $recentProjectsList,
+            'allProjectsForExport' => $allProjectsForExport,
             'chartPoints' => $chartPoints,
             'metrics' => [
                 'totalBilling' => $totalBilling,
                 'totalBillingGrowth' => $totalBillingGrowth,
                 'completedBillingPercentage' => $completedBillingPercentage,
+                'totalProjects' => $totalProjects,
+                'totalProjectsGrowth' => $totalProjectsGrowth,
                 'activeProjects' => $activeProjects,
                 'activeGrowth' => $activeGrowth,
-                'ongoingProjects' => $ongoingProjects,
-                'ongoingGrowth' => $ongoingGrowth,
                 'completedProjects' => $completedProjects,
                 'completedGrowth' => $completedGrowth,
             ],

@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\ProjectUpdatedNotification;
+use Carbon\Carbon;
+use App\Support\Hashid;
 
 class ProjectController extends Controller
 {
@@ -67,6 +69,11 @@ class ProjectController extends Controller
         }
 
         $projects = $query->paginate(10)->withQueryString();
+
+        $projects->getCollection()->transform(function ($project) {
+            $project->hashed_id = Hashid::encode($project->id);
+            return $project;
+        });
 
         return Inertia::render('Project/Index', [
             'projects' => $projects,
@@ -320,5 +327,202 @@ class ProjectController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus proyek: ' . $e->getMessage());
         }
+    }
+
+    public function show($hashedId)
+    {
+        $id = Hashid::decode($hashedId);
+        $project = Project::findOrFail($id);
+        $hashedId = Hashid::encode($project->id);
+        $formattedProject = $this->getFormattedProject($project, $hashedId);
+
+        return Inertia::render('Project/Show', [
+            'project' => $formattedProject
+        ]);
+    }
+
+    private function getFormattedProject($project, $hashedId)
+    {
+        $project->load([
+            'auctionType', 'agency', 'company', 'budgetType', 'pic', 'brandOrigin',
+            'vendors', 'certifications', 'installments',
+            'contract.handle', 'contract.steps', 'contract.attachments',
+            'merchandiser.handle', 'merchandiser.pos.invoices', 'merchandiser.pos.vendor', 'merchandiser.files',
+            'billing.handle', 'billing.basts', 'billing.items', 'billing.files',
+            'shipping.handle', 'shipping.documents', 'shipping.files'
+        ]);
+
+        // Format installments
+        $formattedInstallments = $project->installments->map(function ($inst, $key) use ($project) {
+            return [
+                'id' => $key + 1,
+                'name' => $inst->name,
+                'percentage' => $inst->percentage,
+                'value' => 'Rp ' . number_format($inst->value ?: ($project->contract_value * ($inst->percentage / 100)), 0, ',', '.')
+            ];
+        });
+
+        // Format contract stages
+        $contractStages = collect();
+        if ($project->contract) {
+            $contractStages = $project->contract->steps->map(function ($step, $key) {
+                return [
+                    'id' => $key + 1,
+                    'name' => $step->name,
+                    'completed' => (bool) $step->completed
+                ];
+            });
+        }
+
+        // Format billing basts
+        $billingBasts = collect();
+        if ($project->billing) {
+            $billingBasts = $project->billing->basts->map(function ($bast, $key) {
+                return [
+                    'id' => $key + 1,
+                    'no' => $bast->no_bast,
+                    'date' => $bast->tgl_bast ? Carbon::parse($bast->tgl_bast)->format('d M Y') : '-'
+                ];
+            });
+        }
+
+        // Format billing items
+        $billingStages = collect();
+        if ($project->billing) {
+            $billingStages = $project->billing->items->map(function ($item, $key) {
+                return [
+                    'id' => $key + 1,
+                    'name' => $item->name,
+                    'type' => $item->type,
+                    'completed' => (bool) $item->completed
+                ];
+            });
+        }
+
+        // Format shipping documents
+        $baAnnames = collect();
+        $baInnames = collect();
+        if ($project->shipping) {
+            $baAnnames = $project->shipping->documents->where('type', 'anname')->values()->map(function ($doc, $key) {
+                return [
+                    'id' => $key + 1,
+                    'no' => $doc->doc_no,
+                    'date' => $doc->doc_date ? Carbon::parse($doc->doc_date)->format('d M Y') : '-'
+                ];
+            });
+            $baInnames = $project->shipping->documents->where('type', 'inname')->values()->map(function ($doc, $key) {
+                return [
+                    'id' => $key + 1,
+                    'no' => $doc->doc_no,
+                    'date' => $doc->doc_date ? Carbon::parse($doc->doc_date)->format('d M Y') : '-'
+                ];
+            });
+        }
+        
+        $valueStr = 'Rp ' . number_format($project->contract_value, 0, ',', '.');
+
+        return [
+            'id' => $hashedId,
+            'real_id' => $project->id,
+            'name' => $project->name,
+            'proj' => $project->name,
+            'up' => $project->up_no ?? '-',
+            'auctionType' => $project->auctionType->name ?? '-',
+            'institution' => $project->agency->name ?? '-',
+            'company' => $project->company->name ?? '-',
+            'budgetType' => $project->budgetType->name ?? '-',
+            'pic' => $project->pic->name ?? '-',
+            'budgetYear' => $project->budget_year ?? '-',
+            'vendors' => $project->vendors->pluck('name'),
+            'description' => $project->description,
+            'taxFree' => $project->tax_free,
+            'taxDoc' => $project->tax_doc ?? '-',
+            'brandOrigin' => $project->brandOrigin->name ?? '-',
+            'certificates' => $project->certifications->pluck('name'),
+            'paymentTerm' => $project->payment_term,
+            'warranty' => $project->warranty,
+            'contractNo' => $project->contract_no ?? '-',
+            'value' => $valueStr,
+            'contractDate' => $project->contract_date ? Carbon::parse($project->contract_date)->format('d M Y') : '-',
+            'dueDate' => $project->due_date ? Carbon::parse($project->due_date)->format('d M Y') : '-',
+            'progress' => $project->progress,
+            'status' => $project->status,
+            'installments' => $formattedInstallments,
+
+            'relations' => [
+                'contract' => [
+                    'userHandle' => $project->contract->handle->name ?? '-',
+                    'jamlak' => $project->contract->jamlak ?? '-',
+                    'jamlakValue' => $project->contract->jamlak_nominal ?? 0,
+                    'jamuk' => $project->contract->jamuka ?? '-',
+                    'jamukValue' => $project->contract->jamuka_nominal ?? 0,
+                    'jamwar' => $project->contract->jamwar ?? '-',
+                    'jamwarValue' => $project->contract->jamwar_nominal ?? 0,
+                    'stages' => $contractStages,
+                    'files' => $project->contract?->attachments?->map(function($f) {
+                        return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
+                    }) ?? [],
+                    'progress' => $project->contract->progress ?? 0,
+                    'status' => $project->contract->status ?? 'Pending'
+                ],
+                'merchandiser' => [
+                    'userPIC' => $project->pic->name ?? '-',
+                    'paymentName' => $project->merchandiser->account_name ?? '-',
+                    'paymentBank' => $project->merchandiser->bank_name ?? '-',
+                    'paymentAccount' => $project->merchandiser->account_number ?? '-',
+                    'contractItems' => $project->merchandiser->contract_item ?? 0,
+                    'contractEA' => $project->merchandiser->contract_ea ?? 0,
+                    'receivedItems' => $project->merchandiser->rec_item ?? 0,
+                    'receivedEA' => $project->merchandiser->rec_ea ?? 0,
+                    'totalPOValue' => (float) ($project->merchandiser?->pos?->sum('po_value') ?? 0),
+                    'totalPOCount' => (int) ($project->merchandiser?->pos?->count() ?? 0),
+                    'pos' => $project->merchandiser?->pos?->map(function($po) {
+                        return [
+                            'id' => $po->id,
+                            'no' => $po->po_number,
+                            'vendor' => $po->vendor?->name ?? $po->supplier_name_manual,
+                            'items' => $po->item_count,
+                            'ea' => $po->ea_count,
+                            'value' => (float) $po->po_value,
+                            'invoices' => $po->invoices->map(function($inv) {
+                                return [
+                                    'id' => $inv->id,
+                                    'invoice_number' => $inv->invoice_number,
+                                    'date' => \Carbon\Carbon::parse($inv->invoice_date)->format('d M Y'),
+                                    'status' => $inv->status
+                                ];
+                            })
+                        ];
+                    }) ?? [],
+                    'files' => $project->merchandiser?->files?->map(function($f) {
+                        return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
+                    }) ?? [],
+                    'progress' => $project->merchandiser->progress ?? 0,
+                    'status' => $project->merchandiser->status ?? 'Pending'
+                ],
+                'billing' => [
+                    'userHandle' => $project->billing->handle->name ?? '-',
+                    'basts' => $billingBasts,
+                    'stages' => $billingStages,
+                    'files' => $project->billing?->files?->map(function($f) {
+                        return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
+                    }) ?? [],
+                    'progress' => $project->billing->progress ?? 0,
+                    'status' => $project->billing->status ?? 'Pending'
+                ],
+                'shipping' => [
+                    'userHandle' => $project->shipping->handle->name ?? '-',
+                    'type' => ($project->shipping && $project->shipping->shipping_type === 'Lengkap' && empty($project->shipping->shipping_date) && empty($project->shipping->handle_id)) ? '-' : ($project->shipping->shipping_type ?? '-'),
+                    'date' => $project->shipping->shipping_date ? Carbon::parse($project->shipping->shipping_date)->format('d M Y') : '-',
+                    'baAnnames' => $baAnnames,
+                    'baInnames' => $baInnames,
+                    'files' => $project->shipping?->files?->map(function($f) {
+                        return ['name' => $f->file_name, 'url' => asset('storage/' . $f->file_path)];
+                    }) ?? [],
+                    'progress' => $project->shipping->progress ?? 0,
+                    'status' => $project->shipping->status ?? 'Pending'
+                ]
+            ]
+        ];
     }
 }

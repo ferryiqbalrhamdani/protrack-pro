@@ -69,6 +69,7 @@ class AiSettingController extends Controller
         $model    = $aiSetting->model;
 
         $url = match($provider) {
+            'OpenAI'        => 'https://api.openai.com/v1/chat/completions',
             'Gemini'        => 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
             'OpenRouter'    => 'https://openrouter.ai/api/v1/chat/completions',
             'GitHub Models' => 'https://models.inference.ai.azure.com/chat/completions',

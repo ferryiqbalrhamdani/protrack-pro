@@ -214,6 +214,7 @@ EOT;
 
         try {
             $url = match($provider) {
+                'OpenAI' => "https://api.openai.com/v1/chat/completions",
                 'Gemini' => "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
                 'OpenRouter' => "https://openrouter.ai/api/v1/chat/completions",
                 'GitHub Models' => "https://models.inference.ai.azure.com/chat/completions",
@@ -246,8 +247,10 @@ EOT;
 
             // Handle Rate Limit FIRST before checking success
             if ($response->status() === 429) {
-                Log::warning("{$provider} Rate Limit hit (429).");
-                return response()->json(['error' => 'AI sudah mencapai batas limit, silahkan coba lagi besok.'], 429);
+                $body = $response->json();
+                $errorMsg = $body['error']['message'] ?? 'AI sudah mencapai batas limit, silahkan coba lagi besok.';
+                Log::warning("{$provider} Rate Limit hit (429): " . $errorMsg);
+                return response()->json(['error' => $errorMsg], 429);
             }
 
             if ($response->successful()) {
@@ -284,7 +287,9 @@ EOT;
             }
 
             if ($response->status() === 429) {
-                return response()->json(['error' => 'AI sudah mencapai batas limit silahkan coba lagi besok'], 429);
+                $body = $response->json();
+                $errorMsg = $body['error']['message'] ?? 'Rate limit tercapai. Coba lagi besok.';
+                return response()->json(['success' => false, 'message' => "Limit: {$errorMsg}"], 200);
             }
 
             Log::error("{$provider} API Error [" . $response->status() . ']: ' . $response->body());

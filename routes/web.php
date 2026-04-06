@@ -29,6 +29,7 @@ Route::get('/projects', [ProjectController::class, 'index'])->middleware(['auth'
 Route::get('/projects/create', [ProjectController::class, 'create'])->middleware(['auth', 'verified'])->name('projects.create');
 Route::post('/projects', [ProjectController::class, 'store'])->middleware(['auth', 'verified'])->name('projects.store');
 
+Route::get('/projects/{hashedId}', [ProjectController::class, 'show'])->middleware(['auth', 'verified'])->name('projects.show');
 Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->middleware(['auth', 'verified'])->name('projects.edit');
 Route::put('/projects/{project}', [ProjectController::class, 'update'])->middleware(['auth', 'verified'])->name('projects.update');
 Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->middleware(['auth', 'verified'])->name('projects.destroy');
@@ -56,8 +57,9 @@ Route::delete('/shipping/file/{fileId}', [App\Http\Controllers\ShippingControlle
 
 Route::get('/reports', [ReportController::class, 'index'])->middleware(['auth', 'verified', 'permission:view_reports'])->name('reports');
 
-Route::get('/reports/project', [ReportController::class, 'projectReport'])->middleware(['auth', 'verified'])->name('reports.project');
-Route::get('/reports/project-report', [ReportController::class, 'projectReport'])->middleware(['auth', 'verified']);
+Route::get('/reports/summary/print', [ReportController::class, 'reportPrint'])->middleware(['auth', 'verified'])->name('reports.print');
+Route::get('/reports/project-report', [ReportController::class, 'projectReport'])->middleware(['auth', 'verified'])->name('reports.project');
+Route::get('/reports/project-report/export', [ReportController::class, 'projectReportExport'])->middleware(['auth', 'verified'])->name('reports.project.export');
 
 Route::get('/reports/project/{hashedId}', [ReportController::class, 'projectDetail'])->middleware(['auth', 'verified'])->name('reports.project.detail');
 
