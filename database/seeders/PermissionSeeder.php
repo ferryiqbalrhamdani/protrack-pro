@@ -31,7 +31,8 @@ class PermissionSeeder extends Seeder
             'view_master_auction_type',
             'view_master_budget_type',
             'view_master_brand_origin',
-            'manage_users_roles'
+            'manage_users_roles',
+            'manage_ai_configuration'
         ];
 
         foreach ($permissions as $permission) {

@@ -131,11 +131,14 @@ export default function Index({
                     if (response.data && !response.data.error) {
                         setAiResult(response.data);
                     } else {
-                        throw new Error(response.data?.error || 'API returned empty result');
+                        const errorMessage = response.data?.error;
+                        throw new Error(errorMessage || 'API returned empty result');
                     }
                 } catch (error) {
                     console.error('AI Summary Error:', error);
-                    toast.error('Gagal mendapatkan analisis AI. Harap periksa koneksi atau API Key Anda.', { id: 'ai-gen' });
+                    // Show the actual error message from the server if available
+                    const msg = error.response?.data?.error || error.message || 'Gagal mendapatkan analisis AI. Harap periksa konfigurasi AI di Master Data.';
+                    toast.error(msg, { id: 'ai-gen', duration: 6000 });
                     setAiResult(null);
                 } finally {
                     setIsGenerating(false);
@@ -183,10 +186,13 @@ export default function Index({
 
         const shareTitle = `Protrack AI Audit ${year}`;
         const shareText = `📊 *LAPORAN AUDIT AI PROTRACK PRO - TAHUN ${year}*\n\n` +
-            `* EXECUTIVE SUMMARY :*\n"${aiResult.execSummary}"\n\n` +
-            `* PERFORMANCE SCORE :* ${aiResult.score} / 100\n\n` +
-            `* CAPAIAN UTAMA :*\n${aiResult.analysis.good.map(i => `✅ ${i}`).join('\n')}\n\n` +
-            `* REKOMENDASI :*\n${aiResult.recommendations.map(i => `➡ ${i}`).join('\n')}\n\n` +
+            `*EXECUTIVE SUMMARY:*\n"${aiResult.execSummary}"\n\n` +
+            `*PERFORMANCE SCORE:* ${aiResult.score} / 100\n\n` +
+            `*✅ GOOD PROGRESS:*\n${aiResult.analysis.good.map(i => `✅ ${i}`).join('\n')}\n\n` +
+            `*⚠️ ANOMALI & AUDIT:*\n${aiResult.analysis.lacking.map(i => `⚠️ ${i}`).join('\n')}\n\n` +
+            `*🔧 RECOMMENDED FIX:*\n${aiResult.analysis.toImprove.map(i => `🔧 ${i}`).join('\n')}\n\n` +
+            `*💡 STRATEGIC INSIGHTS:*\n${aiResult.insights?.map(i => `${i.title}: ${i.desc}`).join('\n') || '-'}\n\n` +
+            `*🎯 REKOMENDASI STRATEGIS:*\n${aiResult.recommendations.map(i => `➡ ${i}`).join('\n')}\n\n` +
             `_Automated Industrial Intelligence System_`;
 
         if (navigator.share) {

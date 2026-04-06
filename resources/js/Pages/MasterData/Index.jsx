@@ -73,6 +73,14 @@ export default function MasterDataIndex() {
             color: 'rose',
             permission: 'manage_users_roles'
         },
+        { 
+            title: 'Konfigurasi AI', 
+            description: 'Kelola API Provider (Groq, Gemini) dan API Key untuk AI Auditor.',
+            icon: 'smart_toy', 
+            href: route('master.data.ai-setting'),
+            color: 'blue',
+            permission: 'manage_ai_configuration'
+        },
     ].filter(item => !item.permission || hasPermission(item.permission));
 
     const getColorClasses = (color) => {

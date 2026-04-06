@@ -16,6 +16,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\AiSettingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -110,6 +111,11 @@ Route::middleware(['auth', 'verified', 'permission:view_master_data|view_master_
     Route::resource('user', UserController::class)->only(['index', 'store', 'update', 'destroy'])->names([
         'index' => 'user'
     ]);
+
+    Route::resource('ai-setting', AiSettingController::class)->only(['index', 'store', 'update', 'destroy'])->names([
+        'index' => 'ai-setting'
+    ]);
+    Route::post('ai-setting/{aiSetting}/test', [AiSettingController::class, 'testConnection'])->name('ai-setting.test');
 });
 
 Route::middleware('auth')->group(function () {

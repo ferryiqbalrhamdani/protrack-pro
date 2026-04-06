@@ -10,17 +10,73 @@ class AiController extends Controller
 {
     public function summarize(Request $request)
     {
-        $apiKey = config('services.groq.key');
-        $data = $request->input('data');
-        $year = $request->input('year');
-
-        if (!$apiKey) {
-            Log::error('Groq API Key is missing from .env');
-            return response()->json(['error' => 'Groq API Key tidak terkonfigurasi di server.'], 500);
+        // 1. Fetch active setting from DB (Enforced as per user request)
+        $activeSetting = \App\Models\AiSetting::where('is_active', true)->first();
+        
+        if (!$activeSetting) {
+            Log::warning('AI Audit attempted without active DB configuration.');
+            return response()->json(['error' => 'Konfigurasi AI belum diatur atau belum ada yang aktif. Silakan atur di Master Data > Konfigurasi AI.'], 400);
         }
 
+        $apiKey = $activeSetting->api_key;
+        $provider = $activeSetting->provider;
+        $model = $activeSetting->model;
+
+        $data = $request->input('data') ?? [];
+        $year = $request->input('year');
+
+        // --- TOKEN OPTIMIZATION ---
+        // Build compact, per-project dataset from the nested moduleData structure sent by frontend
+        // Frontend sends: data.moduleData.contract[], data.moduleData.merchandiser[], etc.
+        $moduleData = $data['moduleData'] ?? [];
+        $contractItems  = collect($moduleData['contract']  ?? []);
+        $merchandiserItems = collect($moduleData['merchandiser'] ?? []);
+        $billingItems   = collect($moduleData['billing']   ?? []);
+        $shippingItems  = collect($moduleData['shipping']  ?? []);
+
+        // Build a project map keyed by project name for cross-module merge
+        $projectMap = [];
+
+        foreach ($contractItems as $p) {
+            $key = $p['proj'] ?? 'Unknown';
+            $projectMap[$key] = [
+                'name'     => substr($key, 0, 60),
+                'value'    => isset($p['contract_value']) ? 'Rp ' . number_format($p['contract_value'] / 1000000000, 2, ',', '.') . ' M' : 'Rp 0',
+                'status'   => $p['project_status'] ?? 'Pending',
+                'progress' => ($p['project_progress'] ?? 0) . '%',
+                'due_date' => $p['due_date'] ?? null,
+                'modules'  => [
+                    'contract'     => ['s' => $p['status'] ?? 'Pending', 'p' => ($p['prog'] ?? 0) . '%'],
+                    'merchandiser' => ['s' => 'Pending', 'p' => '0%'],
+                    'billing'      => ['s' => 'Pending', 'p' => '0%'],
+                    'shipping'     => ['s' => 'Pending', 'p' => '0%'],
+                ]
+            ];
+        }
+
+        foreach ($merchandiserItems as $p) {
+            $key = $p['proj'] ?? 'Unknown';
+            if (!isset($projectMap[$key])) { $projectMap[$key] = ['name' => substr($key, 0, 60), 'value' => 'Rp 0', 'status' => $p['project_status'] ?? 'Pending', 'progress' => ($p['project_progress'] ?? 0) . '%', 'due_date' => null, 'modules' => ['contract' => ['s' => 'Pending', 'p' => '0%'], 'merchandiser' => ['s' => 'Pending', 'p' => '0%'], 'billing' => ['s' => 'Pending', 'p' => '0%'], 'shipping' => ['s' => 'Pending', 'p' => '0%']]]; }
+            $projectMap[$key]['modules']['merchandiser'] = ['s' => $p['status'] ?? 'Pending', 'p' => ($p['prog'] ?? 0) . '%'];
+        }
+
+        foreach ($billingItems as $p) {
+            $key = $p['proj'] ?? 'Unknown';
+            if (!isset($projectMap[$key])) { $projectMap[$key] = ['name' => substr($key, 0, 60), 'value' => 'Rp 0', 'status' => $p['project_status'] ?? 'Pending', 'progress' => ($p['project_progress'] ?? 0) . '%', 'due_date' => null, 'modules' => ['contract' => ['s' => 'Pending', 'p' => '0%'], 'merchandiser' => ['s' => 'Pending', 'p' => '0%'], 'billing' => ['s' => 'Pending', 'p' => '0%'], 'shipping' => ['s' => 'Pending', 'p' => '0%']]]; }
+            $projectMap[$key]['modules']['billing'] = ['s' => $p['status'] ?? 'Pending', 'p' => ($p['prog'] ?? 0) . '%'];
+        }
+
+        foreach ($shippingItems as $p) {
+            $key = $p['proj'] ?? 'Unknown';
+            if (!isset($projectMap[$key])) { $projectMap[$key] = ['name' => substr($key, 0, 60), 'value' => 'Rp 0', 'status' => $p['project_status'] ?? 'Pending', 'progress' => ($p['project_progress'] ?? 0) . '%', 'due_date' => null, 'modules' => ['contract' => ['s' => 'Pending', 'p' => '0%'], 'merchandiser' => ['s' => 'Pending', 'p' => '0%'], 'billing' => ['s' => 'Pending', 'p' => '0%'], 'shipping' => ['s' => 'Pending', 'p' => '0%']]]; }
+            $projectMap[$key]['modules']['shipping'] = ['s' => $p['status'] ?? 'Pending', 'p' => ($p['prog'] ?? 0) . '%'];
+        }
+
+        // Take up to 60 projects to stay within safe TPM limits
+        $optimizedData = array_slice(array_values($projectMap), 0, 60);
+
         $maskedKey = substr($apiKey, 0, 4) . '...' . substr($apiKey, -4);
-        Log::info("Attempting AI Summary (Groq). Key: {$maskedKey}");
+        Log::info("Attempting AI Summary via {$provider}. Model: {$model}. Projects: " . count($optimizedData));
 
         // === SYSTEM PROMPT ===
         $systemPrompt = <<<EOT
@@ -54,29 +110,29 @@ EOT;
         $userPrompt = "PERIODE ANALISIS: {$periode}\n";
         $userPrompt .= "TANGGAL HARI INI: " . now()->format('d M Y') . "\n\n";
 
-        // --- Section 1: Per-Project Module Data (PRIMARY DATA SOURCE) ---
-        $userPrompt .= "=== DATA UTAMA: DETAIL PER PROYEK PER MODUL ===\n";
-        $userPrompt .= "Data ini berisi detail setiap proyek dengan status dan progress di tiap modul.\n";
-        $userPrompt .= "Gunakan data ini sebagai SUMBER UTAMA analisis.\n\n";
+        // --- Section 1: Per-Project Detailed Data (PRIMARY DATA SOURCE) ---
+        $userPrompt .= "=== DATA PROYEK (SUMBER UTAMA ANALISIS) ===\n";
+        $userPrompt .= "Format: Nama | Progress Total | Status | Nilai | [M1: Modul1, M2: Modul2, dst]\n\n";
 
-        if (isset($data['moduleData'])) {
-            foreach (['contract' => 'CONTRACT', 'merchandiser' => 'MERCHANDISER', 'billing' => 'BILLING', 'shipping' => 'SHIPPING'] as $key => $label) {
-                if (isset($data['moduleData'][$key]) && count($data['moduleData'][$key]) > 0) {
-                    $userPrompt .= "--- MODUL {$label} ---\n";
-                    foreach ($data['moduleData'][$key] as $proj) {
-                        $name = $proj['proj'] ?? 'Unknown';
-                        $client = $proj['client'] ?? '-';
-                        $status = $proj['status'] ?? 'Pending';
-                        $prog = $proj['prog'] ?? 0;
-                        $value = isset($proj['contract_value']) ? 'Rp ' . number_format($proj['contract_value'], 0, ',', '.') : '-';
-                        $projStatus = $proj['project_status'] ?? '-';
-                        $projProgress = $proj['project_progress'] ?? 0;
-                        $userPrompt .= "  Proyek: {$name} | Client: {$client} | Nilai: {$value} | Status Proyek: {$projStatus} | Progress Proyek: {$projProgress}% | Status Modul: {$status} | Progress Modul: {$prog}%\n";
+        foreach ($optimizedData as $p) {
+            $m = $p['modules'];
+            $userPrompt .= "- {$p['name']} ({$p['value']}) | Total: {$p['progress']} | Status: {$p['status']}\n";
+            $userPrompt .= "  MODUL: [CONT: {$m['contract']['p']} ({$m['contract']['s']})] [MERCH: {$m['merchandiser']['p']} ({$m['merchandiser']['s']})] [BILL: {$m['billing']['p']} ({$m['billing']['s']})] [SHIP: {$m['shipping']['p']} ({$m['shipping']['s']})]\n";
+            
+            // Add due date if urgent
+            if ($p['due_date'] && $p['due_date'] !== 'No Date') {
+                try {
+                    $due = \Carbon\Carbon::parse($p['due_date']);
+                    $daysLeft = now()->diffInDays($due, false);
+                    if ($daysLeft <= 30) {
+                        $label = $daysLeft < 0 ? 'LEWAT ' . abs((int)$daysLeft) : 'TERSISA ' . (int)$daysLeft;
+                        $userPrompt .= "  ⚠️ URGENT DEADLINE: {$label} HARI ({$p['due_date']})\n";
                     }
-                    $userPrompt .= "\n";
-                }
+                } catch (\Exception $e) {}
             }
         }
+
+        $userPrompt .= "\n";
 
         // --- Section 2: Aggregate Statistics (SUPPORTING DATA) ---
         $userPrompt .= "=== DATA PENDUKUNG: STATISTIK AGREGAT ===\n";
@@ -86,53 +142,12 @@ EOT;
             $userPrompt .= "Status Proyek: Total={$ss['total']}, Ongoing={$ss['ongoing']}, Completed={$ss['completed']}, Pending={$ss['pending']}\n";
         }
 
-        if (isset($data['financialStats'])) {
-            $fs = $data['financialStats'];
-            $userPrompt .= "Finansial: Total Nilai=Rp " . number_format($fs['total_nilai'], 0, ',', '.') . ", ";
-            $userPrompt .= "Akumulasi DP=Rp " . number_format($fs['akumulasi_dp'], 0, ',', '.') . ", ";
-            $userPrompt .= "Pembayaran Langsung=Rp " . number_format($fs['pembayaran_langsung'], 0, ',', '.') . ", ";
-            $userPrompt .= "Tagihan Termin=Rp " . number_format($fs['tagihan_termin'], 0, ',', '.') . "\n";
-        }
-
         if (isset($data['moduleStats'])) {
             $userPrompt .= "Agregat Modul:\n";
             foreach ($data['moduleStats'] as $mod => $stats) {
                 $userPrompt .= "  {$mod}: Ongoing={$stats['ongoing']}, Completed={$stats['completed']}, Pending={$stats['pending']}\n";
             }
         }
-
-        if (isset($data['companyContractValues']) && count($data['companyContractValues']) > 0) {
-            $userPrompt .= "Nilai Kontrak per Perusahaan:\n";
-            foreach ($data['companyContractValues'] as $cv) {
-                $userPrompt .= "  {$cv['name']}: Rp " . number_format($cv['value'], 0, ',', '.') . "\n";
-            }
-        }
-
-        if (isset($data['dueProjects']) && count($data['dueProjects']) > 0) {
-            $userPrompt .= "Proyek Jatuh Tempo (PERHATIAN KHUSUS):\n";
-            $today = now();
-            foreach ($data['dueProjects'] as $dp) {
-                $dueDate = $dp['due_date'] ?? null;
-                $urgency = '';
-                if ($dueDate && $dueDate !== 'No Date') {
-                    try {
-                        $due = \Carbon\Carbon::parse($dueDate);
-                        $daysLeft = $today->diffInDays($due, false);
-                        if ($daysLeft < 0) {
-                            $urgency = ' ⚠️ SUDAH LEWAT ' . abs((int)$daysLeft) . ' HARI!';
-                        } elseif ($daysLeft <= 30) {
-                            $urgency = ' ⚠️ TERSISA ' . (int)$daysLeft . ' HARI (URGENT!)';
-                        } elseif ($daysLeft <= 60) {
-                            $urgency = ' (tersisa ' . (int)$daysLeft . ' hari)';
-                        }
-                    } catch (\Exception $e) {
-                        // Skip date parsing errors
-                    }
-                }
-                $userPrompt .= "  {$dp['name']} — Due: {$dueDate} | Progress: {$dp['progress']}%{$urgency}\n";
-            }
-        }
-
         $userPrompt .= "\n";
 
         // --- Section 3: Audit Instructions ---
@@ -198,13 +213,28 @@ EOT;
         $userPrompt .= "- Jangan mengarang data yang tidak ada\n";
 
         try {
-            Log::info("Sending request to Groq API...");
-            $response = Http::timeout(30)->withHeaders([
+            $url = match($provider) {
+                'Gemini' => "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                'OpenRouter' => "https://openrouter.ai/api/v1/chat/completions",
+                'GitHub Models' => "https://models.inference.ai.azure.com/chat/completions",
+                default => "https://api.groq.com/openai/v1/chat/completions", // Groq default
+            };
+
+            Log::info("Sending request to {$provider} API...");
+            $requestHeaders = [
                 'Content-Type' => 'application/json',
                 'Authorization' => "Bearer {$apiKey}",
-            ])->withoutVerifying()
-            ->post("https://api.groq.com/openai/v1/chat/completions", [
-                'model' => 'llama-3.3-70b-versatile',
+            ];
+
+            // OpenRouter optional headers
+            if ($provider === 'OpenRouter') {
+                $requestHeaders['HTTP-Referer'] = url('/');
+                $requestHeaders['X-Title'] = 'Protrack Pro AI Auditor';
+            }
+
+            $response = Http::timeout(90)->withHeaders($requestHeaders)->withoutVerifying()
+            ->post($url, [
+                'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user', 'content' => $userPrompt],
@@ -214,12 +244,18 @@ EOT;
                 'max_tokens' => 4096
             ]);
 
+            // Handle Rate Limit FIRST before checking success
+            if ($response->status() === 429) {
+                Log::warning("{$provider} Rate Limit hit (429).");
+                return response()->json(['error' => 'AI sudah mencapai batas limit, silahkan coba lagi besok.'], 429);
+            }
+
             if ($response->successful()) {
-                Log::info("Groq API Response Successful.");
+                Log::info("{$provider} API Response Successful.");
                 $result = $response->json();
 
                 if (!isset($result['choices'][0]['message']['content'])) {
-                    Log::error('Unexpected Groq Response: ' . json_encode($result));
+                    Log::error("Unexpected {$provider} Response: " . json_encode($result));
                     return response()->json(['error' => 'Format respon AI tidak valid.'], 500);
                 }
 
@@ -227,7 +263,7 @@ EOT;
                 $decoded = json_decode($responseText, true);
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    Log::error('Groq JSON Decode Error: ' . json_last_error_msg() . ' | Raw: ' . substr($responseText, 0, 500));
+                    Log::error("{$provider} JSON Decode Error: " . json_last_error_msg() . ' | Raw: ' . substr($responseText, 0, 500));
                     return response()->json(['error' => 'Format data AI tidak valid.'], 500);
                 }
 
@@ -247,14 +283,18 @@ EOT;
                 return response()->json($finalResult);
             }
 
-            Log::error('Groq API Error [' . $response->status() . ']: ' . $response->body());
-            return response()->json(['error' => 'Gagal menghubungi AI Server (Groq). Status: ' . $response->status()], 500);
+            if ($response->status() === 429) {
+                return response()->json(['error' => 'AI sudah mencapai batas limit silahkan coba lagi besok'], 429);
+            }
+
+            Log::error("{$provider} API Error [" . $response->status() . ']: ' . $response->body());
+            return response()->json(['error' => "Gagal menghubungi AI Server ({$provider}). Status: " . $response->status()], 500);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('Groq Connection Timeout: ' . $e->getMessage());
+            Log::error("{$provider} Connection Timeout: " . $e->getMessage());
             return response()->json(['error' => 'Koneksi ke AI Server timeout. Silakan coba lagi.'], 500);
         } catch (\Exception $e) {
-            Log::error('AI Summary (Groq) Exception: ' . $e->getMessage());
+            Log::error("AI Summary ({$provider}) Exception: " . $e->getMessage());
             return response()->json(['error' => 'Terjadi kesalahan sistem saat audit AI.'], 500);
         }
     }
