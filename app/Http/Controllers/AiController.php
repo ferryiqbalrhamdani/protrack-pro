@@ -42,8 +42,7 @@ Setiap proyek juga memiliki status dan progress keseluruhan.
 ATURAN ANALISIS:
 - Analisis WAJIB berbasis data per proyek, BUKAN agregat semata
 - Sebutkan NAMA PROYEK saat membahas temuan spesifik
-- Proyek yang SEMUA modulnya Completed dengan progress 100% = Good Progress
-- Proyek Pending/Ongoing BUKAN good progress meskipun nilai kontraknya besar
+- Good Progress = proyek atau modul yang menunjukkan progres baik (progress tinggi, status berjalan lancar, modul-modul sinkron). TIDAK harus 100% completed — yang penting ada kemajuan positif yang signifikan
 - Semua nilai uang WAJIB format Rupiah: "Rp X Miliar" atau "Rp X Juta"
 - Bahasa: Indonesia profesional
 
@@ -120,27 +119,35 @@ EOT;
         // --- Section 3: Audit Instructions ---
         $userPrompt .= "=== INSTRUKSI AUDIT ===\n\n";
 
-        $userPrompt .= "LANGKAH 1 — IDENTIFIKASI PROYEK TERBAIK (Good Progress):\n";
-        $userPrompt .= "- Cari proyek yang status keseluruhannya Completed DAN progress di SEMUA modul = 100%\n";
-        $userPrompt .= "- Sebutkan nama proyek tersebut, NILAI KONTRAK (dalam Rp), dan jelaskan mengapa kinerjanya baik\n";
-        $userPrompt .= "- Contoh format: 'Proyek [NAMA] dengan nilai kontrak Rp X Miliar berhasil menyelesaikan seluruh modul...'\n";
-        $userPrompt .= "- Proyek Pending atau Ongoing TIDAK BOLEH masuk Good Progress\n\n";
+        $userPrompt .= "LANGKAH 1 — IDENTIFIKASI GOOD PROGRESS:\n";
+        $userPrompt .= "- Evaluasi progress setiap proyek di SETIAP MODUL (Contract, Merchandiser, Billing, Shipping)\n";
+        $userPrompt .= "- Good Progress = proyek atau modul yang menunjukkan kemajuan positif:\n";
+        $userPrompt .= "  * Proyek yang sudah Completed di semua modul (progress 100%) — ini yang TERBAIK\n";
+        $userPrompt .= "  * Proyek Ongoing dengan progress tinggi (misal > 70%) dan modul-modul berjalan sinkron\n";
+        $userPrompt .= "  * Modul tertentu yang sudah selesai lebih dulu (misal Contract sudah 100% sementara modul lain masih berjalan)\n";
+        $userPrompt .= "- Sebutkan nama proyek, NILAI KONTRAK (Rp), dan jelaskan aspek mana yang bagus\n";
+        $userPrompt .= "- Contoh: 'Proyek [NAMA] (Rp X Miliar) menunjukkan progress optimal dengan modul Contract dan Merchandiser telah 100%...'\n\n";
 
         $userPrompt .= "LANGKAH 2 — IDENTIFIKASI ANOMALI (Lacking):\n";
         $userPrompt .= "- Proyek dengan status Completed tapi ada modul yang progressnya < 100%\n";
         $userPrompt .= "- Proyek bernilai besar tapi masih Pending di beberapa modul\n";
-        $userPrompt .= "- Ketidaksinkronan: Contract completed tapi Shipping masih Pending\n";
-        $userPrompt .= "- Tagihan termin Rp 0 padahal ada proyek bernilai besar\n\n";
+        $userPrompt .= "- Ketidaksinkronan antar modul: misal Contract completed tapi Shipping masih Pending\n";
+        $userPrompt .= "- Tagihan termin Rp 0 padahal ada proyek bernilai besar\n";
+        $userPrompt .= "- Modul yang progress-nya jauh tertinggal dibanding modul lain pada proyek yang sama\n\n";
 
         $userPrompt .= "LANGKAH 3 — REKOMENDASI PERBAIKAN (ToImprove):\n";
         $userPrompt .= "- Berikan langkah konkret untuk setiap anomali yang ditemukan\n";
         $userPrompt .= "- Sebutkan nama proyek dan modul yang perlu diperbaiki\n\n";
 
         $userPrompt .= "LANGKAH 4 — SCORING (0-100):\n";
-        $userPrompt .= "- Konsistensi Status (25%): Apakah status sesuai dengan progress per modul?\n";
-        $userPrompt .= "- Efisiensi Operasional (25%): Rasio proyek completed vs total\n";
-        $userPrompt .= "- Kesehatan Finansial (25%): Apakah DP, pembayaran, dan tagihan proporsional?\n";
-        $userPrompt .= "- Sinkronisasi Modul (25%): Apakah semua modul berjalan seimbang?\n\n";
+        $userPrompt .= "- Skor dihitung dari KESELURUHAN kondisi SEMUA proyek dan SEMUA modul, bukan hanya yang sudah 100%\n";
+        $userPrompt .= "- Komponen penilaian:\n";
+        $userPrompt .= "  * Rata-rata progress semua proyek di semua modul (30%): Hitung rata-rata progress Contract + Merchandiser + Billing + Shipping dari semua proyek\n";
+        $userPrompt .= "  * Konsistensi status vs progress (20%): Apakah status modul sesuai dengan angka progress-nya?\n";
+        $userPrompt .= "  * Sinkronisasi antar modul (20%): Apakah modul-modul dalam satu proyek berjalan seimbang?\n";
+        $userPrompt .= "  * Kesehatan finansial (15%): Keseimbangan DP, pembayaran, dan tagihan\n";
+        $userPrompt .= "  * Penyelesaian proyek (15%): Berapa proyek yang sudah fully completed\n";
+        $userPrompt .= "- Skor WAJIB antara 0-100, berupa integer\n\n";
 
         // --- Section 4: Output Structure ---
         $userPrompt .= "=== STRUKTUR OUTPUT JSON ===\n";
@@ -162,8 +169,8 @@ EOT;
         $userPrompt .= "}\n\n";
 
         $userPrompt .= "PERATURAN KETAT:\n";
-        $userPrompt .= "- Setiap poin di 'good' HARUS merujuk proyek yang benar-benar Completed di semua modul\n";
-        $userPrompt .= "- JANGAN masukkan proyek Pending/Ongoing ke dalam 'good'\n";
+        $userPrompt .= "- Poin di 'good' boleh mencakup proyek Ongoing yang progress-nya tinggi dan modul-modulnya sinkron\n";
+        $userPrompt .= "- Prioritaskan proyek yang fully Completed, tapi apresiasi juga progress yang signifikan\n";
         $userPrompt .= "- Field 'desc' di insights WAJIB kalimat lengkap, BUKAN '...' atau placeholder\n";
         $userPrompt .= "- 'score' WAJIB integer\n";
         $userPrompt .= "- Jangan mengarang data yang tidak ada\n";
