@@ -51,7 +51,8 @@ EOT;
 
         // === BUILD USER PROMPT ===
         $periode = $year === 'All' ? 'seluruh periode' : "Tahun " . $year;
-        $userPrompt = "PERIODE ANALISIS: {$periode}\n\n";
+        $userPrompt = "PERIODE ANALISIS: {$periode}\n";
+        $userPrompt .= "TANGGAL HARI INI: " . now()->format('d M Y') . "\n\n";
 
         // --- Section 1: Per-Project Module Data (PRIMARY DATA SOURCE) ---
         $userPrompt .= "=== DATA UTAMA: DETAIL PER PROYEK PER MODUL ===\n";
@@ -108,9 +109,27 @@ EOT;
         }
 
         if (isset($data['dueProjects']) && count($data['dueProjects']) > 0) {
-            $userPrompt .= "Proyek Jatuh Tempo:\n";
+            $userPrompt .= "Proyek Jatuh Tempo (PERHATIAN KHUSUS):\n";
+            $today = now();
             foreach ($data['dueProjects'] as $dp) {
-                $userPrompt .= "  {$dp['name']} — Due: {$dp['due_date']} | Progress: {$dp['progress']}%\n";
+                $dueDate = $dp['due_date'] ?? null;
+                $urgency = '';
+                if ($dueDate && $dueDate !== 'No Date') {
+                    try {
+                        $due = \Carbon\Carbon::parse($dueDate);
+                        $daysLeft = $today->diffInDays($due, false);
+                        if ($daysLeft < 0) {
+                            $urgency = ' ⚠️ SUDAH LEWAT ' . abs((int)$daysLeft) . ' HARI!';
+                        } elseif ($daysLeft <= 30) {
+                            $urgency = ' ⚠️ TERSISA ' . (int)$daysLeft . ' HARI (URGENT!)';
+                        } elseif ($daysLeft <= 60) {
+                            $urgency = ' (tersisa ' . (int)$daysLeft . ' hari)';
+                        }
+                    } catch (\Exception $e) {
+                        // Skip date parsing errors
+                    }
+                }
+                $userPrompt .= "  {$dp['name']} — Due: {$dueDate} | Progress: {$dp['progress']}%{$urgency}\n";
             }
         }
 
@@ -137,7 +156,10 @@ EOT;
 
         $userPrompt .= "LANGKAH 3 — REKOMENDASI PERBAIKAN (ToImprove):\n";
         $userPrompt .= "- Berikan langkah konkret untuk setiap anomali yang ditemukan\n";
-        $userPrompt .= "- Sebutkan nama proyek dan modul yang perlu diperbaiki\n\n";
+        $userPrompt .= "- Sebutkan nama proyek dan modul yang perlu diperbaiki\n";
+        $userPrompt .= "- PERHATIKAN DEADLINE: Jika ada proyek yang sudah LEWAT tenggat waktu (due_date) atau tersisa ≤ 30 hari, WAJIB masukkan ke rekomendasi perbaikan\n";
+        $userPrompt .= "- Untuk proyek yang deadline-nya mendesak, rekomendasikan: percepatan proses, prioritaskan modul yang tertinggal, dan eskalasi ke manajemen\n";
+        $userPrompt .= "- Contoh: 'Proyek [NAMA] sudah melewati tenggat X hari dengan progress baru Y% — perlu eskalasi segera dan percepatan modul [MODUL]'\n\n";
 
         $userPrompt .= "LANGKAH 4 — SCORING (0-100):\n";
         $userPrompt .= "- Skor dihitung dari KESELURUHAN kondisi SEMUA proyek dan SEMUA modul, bukan hanya yang sudah 100%\n";
@@ -162,7 +184,7 @@ EOT;
         $userPrompt .= "  \"insights\": [\n";
         $userPrompt .= "    { \"icon\": \"analytics\", \"color\": \"emerald\", \"title\": \"Capaian Terbesar\", \"desc\": \"Kalimat lengkap tentang pencapaian terbaik\" },\n";
         $userPrompt .= "    { \"icon\": \"running_with_errors\", \"color\": \"rose\", \"title\": \"Anomali Terdeteksi\", \"desc\": \"Kalimat lengkap tentang anomali\" },\n";
-        $userPrompt .= "    { \"icon\": \"trending_up\", \"color\": \"blue\", \"title\": \"Target Perbaikan\", \"desc\": \"Kalimat lengkap tentang area perbaikan\" },\n";
+        $userPrompt .= "    { \"icon\": \"trending_up\", \"color\": \"blue\", \"title\": \"Target Perbaikan\", \"desc\": \"Kalimat tentang area perbaikan — WAJIB menyebutkan proyek yang deadline-nya mendesak/lewat jika ada\" },\n";
         $userPrompt .= "    { \"icon\": \"security\", \"color\": \"amber\", \"title\": \"Audit Administrasi\", \"desc\": \"Kalimat lengkap tentang kualitas data\" }\n";
         $userPrompt .= "  ],\n";
         $userPrompt .= "  \"recommendations\": [\"Rekomendasi 1 spesifik\", \"Rekomendasi 2\", \"Rekomendasi 3\"]\n";

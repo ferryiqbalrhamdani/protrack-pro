@@ -1274,7 +1274,7 @@ export default function Index({
                                             <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 opacity-20 group-hover:opacity-100 transition-opacity"></div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 gap-6">
                                             {/* Capaian Bagus */}
                                             <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] p-8 hover:shadow-xl hover:shadow-emerald-500/5 transition-all group/card relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:rotate-12 transition-transform">
