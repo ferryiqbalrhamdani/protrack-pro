@@ -164,6 +164,7 @@ class MerchandiserController extends Controller
                     'po_number' => $po->po_number,
                     'item_count' => $po->item_count,
                     'ea_count' => $po->ea_count,
+                    'po_value' => $po->po_value,
                     'invoices' => $po->invoices->map(fn($inv) => [
                         'id' => $inv->id,
                         'invoice_number' => $inv->invoice_number,
@@ -252,6 +253,7 @@ class MerchandiserController extends Controller
             'pos.*.po_number' => 'required|string',
             'pos.*.item_count' => 'required|numeric',
             'pos.*.ea_count' => 'required|numeric',
+            'pos.*.po_value' => 'required|numeric',
             'pos.*.invoices' => 'array',
             'pos.*.invoices.*.id' => 'nullable|exists:merchandiser_po_invoices,id',
             'pos.*.invoices.*.invoice_number' => 'required|string',
@@ -302,6 +304,7 @@ class MerchandiserController extends Controller
                     'po_number' => $poData['po_number'],
                     'item_count' => $poData['item_count'],
                     'ea_count' => $poData['ea_count'],
+                    'po_value' => $poData['po_value'],
                 ];
 
                 if (!empty($poData['id'])) {

@@ -148,6 +148,9 @@ class ReportController extends Controller
                     'handle' => ($moduleInstance && $moduleInstance->handle) 
                                 ? $moduleInstance->handle->name 
                                 : '-',
+                    'contract_value' => (float) $proj->contract_value,
+                    'project_status' => $proj->status,
+                    'project_progress' => $proj->progress,
                     // Extracting module specific data
                     'prog' => $moduleInstance ? $moduleInstance->progress : 0,
                     'status' => $moduleInstance ? $moduleInstance->status : 'Pending', // Fallback
@@ -452,13 +455,16 @@ class ReportController extends Controller
                     'contractEA' => $project->merchandiser->contract_ea ?? 0,
                     'receivedItems' => $project->merchandiser->rec_item ?? 0,
                     'receivedEA' => $project->merchandiser->rec_ea ?? 0,
+                    'totalPOValue' => (float) ($project->merchandiser?->pos?->sum('po_value') ?? 0),
+                    'totalPOCount' => (int) ($project->merchandiser?->pos?->count() ?? 0),
                     'pos' => $project->merchandiser?->pos?->map(function($po) {
                         return [
                             'id' => $po->id,
-                            'po_number' => $po->po_number,
-                            'vendor_name' => $po->vendor ? $po->vendor->name : $po->supplier_name_manual,
+                            'no' => $po->po_number,
+                            'vendor' => $po->vendor?->name ?? $po->supplier_name_manual,
                             'items' => $po->item_count,
                             'ea' => $po->ea_count,
+                            'value' => (float) $po->po_value,
                             'invoices' => $po->invoices->map(function($inv) {
                                 return [
                                     'id' => $inv->id,

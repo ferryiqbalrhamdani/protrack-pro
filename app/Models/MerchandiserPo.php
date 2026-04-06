@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MerchandiserPo extends Model
 {
-    protected $fillable = ['merchandiser_id', 'vendor_id', 'supplier_name_manual', 'po_number', 'item_count', 'ea_count'];
+    protected $fillable = ['merchandiser_id', 'vendor_id', 'supplier_name_manual', 'po_number', 'item_count', 'ea_count', 'po_value'];
 
     public function merchandiser()
     {

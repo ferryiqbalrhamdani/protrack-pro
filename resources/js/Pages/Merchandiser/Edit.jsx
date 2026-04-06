@@ -73,9 +73,9 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
 
     // Local states for PO management before submit
     const [showAddPo, setShowAddPo] = useState(false);
-    const [newPo, setNewPo]       = useState({ vendor_id: '', supplier_name: '', po_number: '', item_count: 0, ea_count: 0 });
+    const [newPo, setNewPo]       = useState({ vendor_id: '', supplier_name: '', po_number: '', item_count: 0, ea_count: 0, po_value: 0 });
     const [editPoId, setEditPoId]   = useState(null);
-    const [editPoData, setEditPoData] = useState({ vendor_id: '', supplier_name: '', po_number: '', item_count: 0, ea_count: 0 });
+    const [editPoData, setEditPoData] = useState({ vendor_id: '', supplier_name: '', po_number: '', item_count: 0, ea_count: 0, po_value: 0 });
     const [invoiceFormPoId, setInvoiceFormPoId] = useState(null);
     const [editInvoiceId, setEditInvoiceId]   = useState(null);
     const [newInvoice, setNewInvoice]         = useState({ invoice_number: '', invoice_date: '', item_count: 0, ea_count: 0, status: 'Pending' });
@@ -195,10 +195,11 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
             id: `new_${Date.now()}`, 
             invoices: [],
             item_count: Number(newPo.item_count || 0),
-            ea_count: Number(newPo.ea_count || 0)
+            ea_count: Number(newPo.ea_count || 0),
+            po_value: Number(newPo.po_value || 0)
         };
         setData('pos', [...data.pos, po]);
-        setNewPo({ vendor_id: '', supplier_name: '', po_number: '', item_count: 0, ea_count: 0 });
+        setNewPo({ vendor_id: '', supplier_name: '', po_number: '', item_count: 0, ea_count: 0, po_value: 0 });
         setShowAddPo(false);
     };
 
@@ -214,6 +215,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
             ...editPoData,
             item_count: Number(editPoData.item_count || 0),
             ea_count: Number(editPoData.ea_count || 0),
+            po_value: Number(editPoData.po_value || 0),
         };
         setData('pos', data.pos.map(p => p.id === editPoId ? { ...p, ...preparedPo } : p));
         setEditPoId(null);
@@ -565,6 +567,10 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                         <p className="text-[9px] font-black text-slate-400 uppercase">Item / EA</p>
                                                         <p className="text-sm font-black text-slate-800 dark:text-white">{fmt(po.item_count)} / {fmt(po.ea_count)}</p>
                                                     </div>
+                                                    <div className="text-right border-l border-slate-100 dark:border-white/5 pl-4 ml-4">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Nilai PO</p>
+                                                        <p className="text-sm font-black text-blue-600 dark:text-blue-400">Rp {fmt(po.po_value)}</p>
+                                                    </div>
                                                     {canEdit && (
                                                         <>
                                                             <div className="relative group/t1">
@@ -645,6 +651,10 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                             <div className="space-y-1.5">
                                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah EA</label>
                                                                 <input type="text" value={editPoData.ea_count ? fmt(editPoData.ea_count) : ''} onChange={e => setEditPoData(p => ({ ...p, ea_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/20 dark:text-white font-bold" />
+                                                            </div>
+                                                            <div className="space-y-1.5 md:col-span-2">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nilai PO (Rp)</label>
+                                                                <input type="text" value={editPoData.po_value ? fmt(editPoData.po_value) : ''} onChange={e => setEditPoData(p => ({ ...p, po_value: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/20 dark:text-white font-bold" />
                                                             </div>
                                                         </div>
                                                         <div className="flex justify-end gap-2">
@@ -808,6 +818,10 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah EA <span className="text-slate-300 dark:text-white/20 font-bold normal-case">(maks. {fmt(data.contract_ea)})</span></label>
                                                         <input type="text" value={newPo.ea_count ? fmt(newPo.ea_count) : ''} onChange={e => setNewPo(p => ({ ...p, ea_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold" />
+                                                    </div>
+                                                    <div className="space-y-1.5 md:col-span-2">
+                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nilai PO (Rp)</label>
+                                                        <input type="text" value={newPo.po_value ? fmt(newPo.po_value) : ''} onChange={e => setNewPo(p => ({ ...p, po_value: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold" />
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-3 justify-end">
