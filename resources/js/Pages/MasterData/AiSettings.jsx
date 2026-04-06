@@ -9,6 +9,7 @@ export default function AiSettings({ settings }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editData, setEditData] = useState(null);
     const [testingId, setTestingId] = useState(null); // tracks which row is being tested
+    const [isCustomMode, setIsCustomMode] = useState(false);
 
     const { data, setData, post, put, delete: destroy, processing, errors, reset } = useForm({
         provider: '',
@@ -20,6 +21,8 @@ export default function AiSettings({ settings }) {
     const openModal = (setting = null) => {
         if (setting) {
             setEditData(setting);
+            const isCustom = !Object.values(providersConfig).flat().includes(setting.model);
+            setIsCustomMode(isCustom);
             setData({
                 provider: setting.provider,
                 api_key: setting.api_key,
@@ -28,6 +31,7 @@ export default function AiSettings({ settings }) {
             });
         } else {
             setEditData(null);
+            setIsCustomMode(false);
             reset();
         }
         setIsModalOpen(true);
@@ -36,6 +40,7 @@ export default function AiSettings({ settings }) {
     const closeModal = () => {
         setIsModalOpen(false);
         setEditData(null);
+        setIsCustomMode(false);
         reset();
     };
 
@@ -69,7 +74,20 @@ export default function AiSettings({ settings }) {
 
     const handleProviderChange = (e) => {
         const val = e.target.value;
-        setData(d => ({ ...d, provider: val, model: providersConfig[val]?.[0] || '' }));
+        const defaultModel = providersConfig[val]?.[0] || '';
+        setIsCustomMode(false);
+        setData(d => ({ ...d, provider: val, model: defaultModel }));
+    };
+
+    const handleModelChange = (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+            setIsCustomMode(true);
+            setData('model', '');
+        } else {
+            setIsCustomMode(false);
+            setData('model', val);
+        }
     };
 
     const handleSubmit = (e) => {
@@ -290,8 +308,8 @@ export default function AiSettings({ settings }) {
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Model Name</label>
                             <select
-                                value={data.model}
-                                onChange={e => setData('model', e.target.value)}
+                                value={isCustomMode ? 'custom' : data.model}
+                                onChange={handleModelChange}
                                 className="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 transition-all"
                                 required
                             >
@@ -304,16 +322,18 @@ export default function AiSettings({ settings }) {
                             {errors.model && <p className="mt-1 text-xs text-red-500">{errors.model}</p>}
                         </div>
 
-                        {data.model === 'custom' && (
-                            <div>
+                        {isCustomMode && (
+                            <div className="animate-in slide-in-from-top-2 duration-300">
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Custom Model Name</label>
                                 <input
                                     type="text"
+                                    value={data.model}
                                     onChange={e => setData('model', e.target.value)}
                                     placeholder="e.g. gpt-4-turbo"
-                                    className="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 transition-all border border-blue-500/20"
                                     required
                                 />
+                                <p className="mt-1 text-[9px] text-slate-400 italic px-1">Gunakan nama model sesuai dokumentasi API provider</p>
                             </div>
                         )}
 
