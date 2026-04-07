@@ -664,7 +664,7 @@ export default function Index({ projects, filters, auth }) {
 
                 {/* Card Grid View - Always visible on mobile, toggleable on desktop */}
                 <div className={`${viewMode === 'grid' ? 'flex' : 'flex md:hidden'} flex-col gap-6`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                         {isTableLoading ? (
                                 Array(10).fill(0).map((_, i) => (
                                     <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
@@ -680,115 +680,117 @@ export default function Index({ projects, filters, auth }) {
                                 (projects.data || []).map((project, index) => (
                                     <div 
                                         key={project.id} 
-                                        className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-6 relative overflow-hidden group animate-slide-up-fade"
+                                        className="bg-white dark:bg-white/[0.02] rounded-[2.25rem] border border-slate-200 dark:border-white/5 p-5 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 space-y-5 relative overflow-hidden group animate-slide-up-fade"
                                         style={{ animationDelay: `${index * 50}ms` }}
                                     >
-                                        {/* Header: Name, UP, Status */}
-                                        <div className="flex justify-between items-start gap-4">
+                                        {/* Header: Name, Status, UP */}
+                                        <div className="flex justify-between items-start gap-3">
                                             <div className="min-w-0">
-                                                <h4 className="text-sm md:text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2">{project.name}</h4>
-                                                <p className="text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1.5">UP: {project.up_no || project.id}</p>
+                                                <h4 className="text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2" title={project.name}>
+                                                    {project.name || 'Untitled Project'}
+                                                </h4>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
+                                                    UP: <span className="text-slate-600 dark:text-slate-300">{project.up_no || project.id}</span>
+                                                </p>
                                             </div>
-                                            <div className="flex items-start gap-1 sm:gap-2 shrink-0">
-                                                <div className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ${
-                                                    project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' :
-                                                    project.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
-                                                    project.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
-                                                    'bg-slate-100 text-slate-500 ring-1 ring-slate-200/50 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10'
-                                                }`}>
-                                                    <span className={`material-symbols-outlined text-[12px] md:text-[14px] ${project.status === 'Completed' ? 'font-fill' : ''}`}>
-                                                        {project.status === 'Completed' ? 'check_circle' :
-                                                         project.status === 'Ongoing' ? 'autorenew' :
-                                                         project.status === 'Pending' ? 'schedule' : 'block'}
-                                                    </span>
-                                                    <span className="hidden sm:inline-block">{project.status}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Details: Client & PIC (2 columns) */}
-                                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50 dark:border-white/5">
-                                            <div className="space-y-1 overflow-hidden">
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-[8px] truncate">Client</p>
-                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{project.company?.name || '-'}</p>
-                                            </div>
-                                            <div className="space-y-1 overflow-hidden">
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-[8px] truncate">PIC</p>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="size-5 rounded-md bg-slate-100 dark:bg-white/5 flex flex-shrink-0 items-center justify-center text-slate-400">
-                                                        <span className="material-symbols-outlined text-[14px]">person</span>
-                                                    </div>
-                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{project.pic?.name || '-'}</p>
-                                                </div>
+                                            <div className={`shrink-0 flex items-center gap-1.2 px-2.5 py-1.2 rounded-xl text-[9px] font-black uppercase tracking-widest ${
+                                                project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' :
+                                                project.status === 'Ongoing'   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
+                                                project.status === 'Pending'   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
+                                                'bg-slate-100 text-slate-500 ring-1 ring-slate-200/50 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10'
+                                            }`}>
+                                                <span className="material-symbols-outlined text-[13px]">
+                                                    {project.status === 'Completed' ? 'check_circle' : 
+                                                     project.status === 'Pending' ? 'schedule' : 'autorenew'}
+                                                </span>
+                                                {project.status}
                                             </div>
                                         </div>
 
-                                        {/* Nilai & Nomor Kontrak */}
-                                        <div className="bg-slate-50 dark:bg-white/[0.02] p-4 rounded-[1.25rem] border border-slate-100 dark:border-white/5 flex flex-col gap-3">
+                                        {/* Metadata: Client & PIC */}
+                                        <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-[8px] mb-1">Nomor Kontrak</p>
-                                                <p className="text-sm sm:text-base font-black text-slate-800 dark:text-white truncate">{project.contract_no || '-'}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Client</p>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight">{project.company?.name || '-'}</p>
                                             </div>
-                                            <div className="pt-3 border-t border-slate-200/60 dark:border-white/10 flex justify-between items-center">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-[8px]">Nilai Kontrak</p>
-                                                <p className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                            <div className="space-y-1">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">PIC</p>
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="size-5 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                                        <span className="material-symbols-outlined text-[12px]">person</span>
+                                                    </div>
+                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight">{project.pic?.name || '-'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Contract Box */}
+                                        <div className="bg-slate-50 dark:bg-white/[0.02] p-4 md:p-5 rounded-[1.75rem] border border-slate-100 dark:border-white/5 space-y-3.5 shadow-sm">
+                                            <div className="space-y-1">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Nomor Kontrak</p>
+                                                <p className="text-xs md:text-sm font-black text-slate-800 dark:text-white truncate tracking-tight uppercase">
+                                                    {project.contract_no || '-'}
+                                                </p>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-3 border-t border-slate-200/60 dark:border-white/10">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nilai Kontrak</p>
+                                                <p className="text-base font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
                                                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(project.contract_value || 0)}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {/* Progress */}
+                                        {/* Progress Bar */}
                                         <div className="space-y-3">
-                                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em]">
                                                 <span className="text-slate-400">Project Progress</span>
                                                 <span className={project.progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{project.progress || 0}%</span>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner uppercase tracking-widest transition-all duration-1000">
+                                            <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner ring-1 ring-slate-200/50 dark:ring-white/5">
                                                 <div 
-                                                    className={`h-full rounded-full transition-all duration-1000 ${project.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
+                                                    className={`h-full rounded-full transition-all duration-1000 ${project.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-[0_0_12px_rgba(59,130,246,0.3)]'}`} 
                                                     style={{ width: `${project.progress || 0}%` }}
                                                 ></div>
                                             </div>
                                         </div>
 
                                         {/* Dates */}
-                                        <div className="flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01] p-3 rounded-2xl border border-slate-100/50 dark:border-white/5">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak</span>
-                                                <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                                        <div className="flex justify-between items-start">
+                                            <div className="space-y-1">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Tgl Kontrak</p>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-tight">
                                                     {project.contract_date ? new Date(project.contract_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                                 </p>
                                             </div>
-                                            <div className="w-px h-6 bg-slate-200 dark:bg-white/10"></div>
-                                            <div className="flex flex-col gap-0.5 text-right">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</span>
-                                                <p className="text-[10px] font-black text-rose-500">
+                                            <div className="space-y-1 text-right">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Due Date</p>
+                                                <p className="text-xs font-black text-rose-500 tracking-tight">
                                                     {project.due_date ? new Date(project.due_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                                 </p>
                                             </div>
                                         </div>
-                                        
-                                        {/* Actions */}
-                                        <div className="grid grid-cols-3 gap-2 pt-2">
+
+                                        {/* Action Buttons */}
+                                        <div className="grid grid-cols-3 gap-2.5 pt-1.5">
                                             <Link 
                                                 href={route('projects.show', project.hashed_id)} 
-                                                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-[9px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 group/btn"
                                             >
-                                                <span className="material-symbols-outlined text-[14px]">visibility</span>
+                                                <span className="material-symbols-outlined text-[18px] group-hover/btn:scale-110 transition-transform">visibility</span>
                                                 Lihat
                                             </Link>
                                             <Link 
                                                 href={route('projects.edit', project.id)}
-                                                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-[9px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 group/btn"
                                             >
-                                                <span className="material-symbols-outlined text-[14px]">edit</span>
+                                                <span className="material-symbols-outlined text-[18px] group-hover/btn:scale-110 transition-transform">edit</span>
                                                 Ubah
                                             </Link>
                                             <button 
                                                 onClick={() => confirmDelete(project)}
-                                                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-[9px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 group/btn"
                                             >
-                                                <span className="material-symbols-outlined text-[14px]">delete</span>
+                                                <span className="material-symbols-outlined text-[18px] group-hover/btn:scale-110 transition-transform">delete</span>
                                                 Hapus
                                             </button>
                                         </div>

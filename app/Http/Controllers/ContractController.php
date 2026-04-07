@@ -32,7 +32,7 @@ class ContractController extends Controller
         }
 
         if ($request->status && $request->status !== 'Semua Status') {
-            $query->where('contracts.status', $request->status);
+            $query->whereRaw('LOWER(contracts.status) = ?', [strtolower($request->status)]);
         }
 
         if ($request->company && $request->company !== 'Semua Perusahaan') {

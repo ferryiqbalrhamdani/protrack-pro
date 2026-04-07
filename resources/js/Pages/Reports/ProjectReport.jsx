@@ -92,7 +92,7 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
     return (
         <AuthenticatedLayout
             stickySlot={
-                <div className="sticky top-0 z-40 hidden xl:block w-full backdrop-blur-md bg-white/90 dark:bg-[#0b1120]/90 border-b border-slate-200 dark:border-white/5 transition-all transition-all duration-300">
+                <div className="sticky top-0 z-40 hidden xl:block w-full backdrop-blur-md bg-white/90 dark:bg-[#0b1120]/90 border-b border-slate-200 dark:border-white/5 transition-all duration-300">
                     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
                             <div className="flex items-center justify-between w-full lg:w-auto gap-4">
@@ -497,23 +497,23 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                 {/* ─── CARD / GRID VIEW ─── */}
                 {effectiveViewMode === 'grid' && (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                             {data.length > 0 ? (
                                 data.map((row, index) => (
                                     <div 
                                         key={index}
-                                        className="bg-white dark:bg-[#141720] rounded-[2.5rem] p-6 border border-slate-100 dark:border-white/5 shadow-[0_8px_40px_rgb(0,0,0,0.06)] dark:shadow-none hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 animate-slide-up-fade flex flex-col gap-5"
+                                        className="bg-white dark:bg-[#141720] rounded-[2rem] p-5 md:p-6 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-slide-up-fade flex flex-col gap-5"
                                         style={{ animationDelay: `${index * 50}ms` }}
                                     >
                                         {/* Header: Project name, client, status */}
                                         <div className="flex justify-between items-start gap-3">
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <div className="size-12 flex-shrink-0 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 font-black text-sm uppercase italic tracking-tighter shadow-inner ring-1 ring-slate-100 dark:ring-white/5">
+                                                <div className="size-10 flex-shrink-0 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 font-black text-[10px] uppercase italic tracking-tighter shadow-inner ring-1 ring-slate-100 dark:ring-white/5">
                                                     {row.proj.substring(0,2).toUpperCase()}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <h4 className="text-base font-black text-slate-800 dark:text-white leading-tight uppercase italic tracking-tighter line-clamp-2">{row.proj}</h4>
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 truncate">{row.client}</p>
+                                                    <h4 className="text-sm md:text-base font-black text-slate-800 dark:text-white leading-tight uppercase italic tracking-tighter line-clamp-2">{row.proj}</h4>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 truncate">{row.client}</p>
                                                 </div>
                                             </div>
                                             <div className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset shadow-sm ${
@@ -530,17 +530,17 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50 dark:border-white/5">
                                             {/* No. Kontrak */}
                                             <div className="space-y-1 overflow-hidden">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">No. Kontrak</p>
-                                                <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tight truncate">{row.no}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No. Kontrak</p>
+                                                <p className="text-[10px] md:text-xs font-black text-slate-700 dark:text-slate-300 tracking-tight truncate">{row.no}</p>
                                             </div>
                                             {/* PIC */}
                                             <div className="space-y-1 border-l border-slate-50 dark:border-white/5 pl-4 overflow-hidden">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">PIC</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PIC</p>
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="size-5 rounded-full bg-primary/10 flex flex-shrink-0 items-center justify-center text-primary text-[8px] font-black">
                                                         {row.pic?.charAt(0) || '?'}
                                                     </div>
-                                                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 truncate">{row.pic}</p>
+                                                    <p className="text-[10px] md:text-xs font-black text-slate-700 dark:text-slate-300 truncate">{row.pic}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -548,15 +548,15 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                         {/* Tanggal Kontrak & Due Date */}
                                         <div className="flex justify-between items-center bg-slate-50/80 dark:bg-white/[0.02] px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/5">
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak</span>
-                                                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak</span>
+                                                <p className="text-[10px] md:text-[11px] font-bold text-slate-700 dark:text-slate-300">
                                                     {row.contractDate ? new Date(row.contractDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                                 </p>
                                             </div>
                                             <div className="w-px h-6 bg-slate-200 dark:bg-white/10"></div>
                                             <div className="flex flex-col gap-0.5 text-right">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</span>
-                                                <p className="text-[11px] font-black text-amber-500">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</span>
+                                                <p className="text-[10px] md:text-[11px] font-black text-amber-500">
                                                     {row.dueDate ? new Date(row.dueDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                                 </p>
                                             </div>
@@ -566,14 +566,14 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                         <div className="space-y-2 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-100 dark:border-white/5">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Progress Fisik</span>
-                                                <span className={`text-xs font-black ${
+                                                <span className={`text-[10px] md:text-xs font-black ${
                                                     row.c === 'emerald' ? 'text-emerald-500' :
                                                     row.c === 'amber' ? 'text-amber-500' :
                                                     row.c === 'rose' ? 'text-rose-500' :
                                                     'text-blue-500'
                                                 }`}>{row.prog}%</span>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
+                                            <div className="h-1.5 md:h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
                                                 <div className={`h-full rounded-full ${
                                                     row.c === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
                                                     row.c === 'amber' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
@@ -584,17 +584,19 @@ export default function ProjectReport({ projects, companies = [], queryParams = 
                                         </div>
 
                                         {/* Tombol Lihat Detail */}
-                                        <Link
-                                            href={route('reports.project.detail', { hashedId: row.hashed_id })}
-                                            className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary/10 dark:bg-blue-500/10 text-primary dark:text-blue-400 hover:bg-primary hover:text-white dark:hover:bg-blue-500 dark:hover:text-white text-[10px] font-black uppercase tracking-widest transition-all duration-300 group/btn active:scale-95"
-                                        >
-                                            <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-12 transition-transform">open_in_new</span>
-                                            Lihat Detail
-                                        </Link>
+                                        <div className="pt-1">
+                                            <Link
+                                                href={route('reports.project.detail', { hashedId: row.hashed_id })}
+                                                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 dark:bg-blue-500/10 text-primary dark:text-blue-400 hover:bg-primary hover:text-white dark:hover:bg-blue-500 dark:hover:text-white text-[10px] font-black uppercase tracking-widest transition-all duration-300 group/btn active:scale-95"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-12 transition-transform">open_in_new</span>
+                                                Lihat Detail
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-1 md:col-span-2 py-20 flex flex-col items-center gap-4 bg-white dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5">
+                                <div className="col-span-1 md:col-span-2 lg:col-span-3 py-20 flex flex-col items-center gap-4 bg-white dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5">
                                     <div className="size-20 rounded-[2rem] bg-slate-50 dark:bg-white/10 flex items-center justify-center text-slate-200 dark:text-white/10">
                                         <span className="material-symbols-outlined text-5xl italic font-black">inventory_2</span>
                                     </div>

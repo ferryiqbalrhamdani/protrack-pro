@@ -43,6 +43,10 @@ class LoginRequest extends FormRequest
 
         $loginField = filter_var($this->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
+        if ($this->boolean('remember')) {
+            config(['auth.guards.web.remember' => 43200]);
+        }
+
         if (!Auth::attempt([$loginField => $this->login, 'password' => $this->password], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AiController extends Controller
 {
@@ -102,7 +103,12 @@ ATURAN ANALISIS:
 - Semua nilai uang WAJIB format Rupiah: "Rp X Miliar" atau "Rp X Juta"
 - Bahasa: Indonesia profesional
 
-OUTPUT: JSON murni tanpa markdown, tanpa komentar.
+FORMAT OUTPUT KETAT:
+- WAJIB JSON murni.
+- JANGAN sertakan markdown blocks (```json atau ```).
+- JANGAN ada teks pembuka atau penutup di luar JSON.
+- Langsung mulai dengan karakter { dan akhiri dengan }.
+- JANGAN gunakan karakter newline asli (control character) di dalam teks; gunakan \n jika perlu baris baru.
 EOT;
 
         // === BUILD USER PROMPT ===
@@ -213,21 +219,105 @@ EOT;
         $userPrompt .= "- Jangan mengarang data yang tidak ada\n";
 
         try {
+            Log::info("Sending request to {$provider} API...");
+
+            // --- RATE LIMITING (3x per provider per day) ---
+            $limitKey = "ai_limit_" . strtolower(str_replace(' ', '_', $provider)) . "_" . date('Y-m-d');
+            $currentUsage = Cache::get($limitKey, 0);
+
+            if ($currentUsage >= 3) {
+                Log::warning("AI Daily Limit reached for {$provider}. Usage: {$currentUsage}");
+                return response()->json(['error' => 'Sudah mencapai batas harian AI. Silakan coba lagi besok.'], 429);
+            }
+
+            // ============================================================
+            // GEMINI: Use the native Google AI REST API for reliability.
+            // The OpenAI-compat endpoint truncates responses, causing broken JSON.
+            // ============================================================
+            if ($provider === 'Gemini') {
+                // Native Gemini API URL
+                $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+                $geminiPayload = [
+                    'system_instruction' => [
+                        'parts' => [['text' => $systemPrompt]]
+                    ],
+                    'contents' => [
+                        ['role' => 'user', 'parts' => [['text' => $userPrompt]]]
+                    ],
+                    'generationConfig' => [
+                        'response_mime_type' => 'application/json',
+                        'temperature' => 0.1,
+                        'maxOutputTokens' => 8192,
+                    ],
+                ];
+
+                $response = Http::timeout(120)->withoutVerifying()
+                    ->post($nativeUrl, $geminiPayload);
+
+                if ($response->status() === 429) {
+                    $body = $response->json();
+                    $errorMsg = $body['error']['message'] ?? 'Gemini AI sudah mencapai batas limit, silahkan coba lagi besok.';
+                    Log::warning("Gemini API Internal Rate Limit hit (429): " . $errorMsg);
+                    return response()->json(['error' => $errorMsg], 429);
+                }
+
+                if (!$response->successful()) {
+                    Log::error("Gemini Native API Error [" . $response->status() . ']: ' . $response->body());
+                    return response()->json(['error' => "Gagal menghubungi Gemini AI. Status: " . $response->status()], 500);
+                }
+
+                $result = $response->json();
+                $responseText = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+                if (!$responseText) {
+                    Log::error("Unexpected Gemini Native Response: " . json_encode($result));
+                    return response()->json(['error' => 'Format respon Gemini tidak valid.'], 500);
+                }
+
+                Log::info("Gemini Native API Response Successful. Incrementing usage.");
+                Cache::put($limitKey, $currentUsage + 1, now()->addDay());
+
+                // Extract and clean JSON
+                $responseText = $this->extractAndCleanJson($responseText, 'Gemini');
+                if (is_array($responseText)) {
+                    return response()->json($responseText); // error response
+                }
+
+                $decoded = json_decode($responseText, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    Log::error("Gemini JSON Decode Error: " . json_last_error_msg() . ' | Raw: ' . substr($responseText, 0, 1000));
+                    return response()->json(['error' => 'Format data AI tidak valid.'], 500);
+                }
+
+                if (isset($decoded['score']) && !is_int($decoded['score'])) {
+                    $decoded['score'] = (int) $decoded['score'];
+                }
+
+                return response()->json(array_merge([
+                    'execSummary' => 'Analisis tidak tersedia.',
+                    'score' => 0,
+                    'analysis' => ['good' => [], 'lacking' => [], 'toImprove' => []],
+                    'insights' => [],
+                    'recommendations' => []
+                ], $decoded));
+            }
+
+            // ============================================================
+            // ALL OTHER PROVIDERS: OpenAI-compatible chat completions API
+            // ============================================================
             $url = match($provider) {
                 'OpenAI' => "https://api.openai.com/v1/chat/completions",
-                'Gemini' => "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
                 'OpenRouter' => "https://openrouter.ai/api/v1/chat/completions",
                 'GitHub Models' => "https://models.inference.ai.azure.com/chat/completions",
-                default => "https://api.groq.com/openai/v1/chat/completions", // Groq default
+                default => "https://api.groq.com/openai/v1/chat/completions",
             };
 
-            Log::info("Sending request to {$provider} API...");
             $requestHeaders = [
                 'Content-Type' => 'application/json',
                 'Authorization' => "Bearer {$apiKey}",
             ];
 
-            // OpenRouter optional headers
             if ($provider === 'OpenRouter') {
                 $requestHeaders['HTTP-Referer'] = url('/');
                 $requestHeaders['X-Title'] = 'Protrack Pro AI Auditor';
@@ -242,19 +332,21 @@ EOT;
                 ],
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.1,
-                'max_tokens' => 4096
+                'max_tokens' => 8192
             ]);
 
             // Handle Rate Limit FIRST before checking success
             if ($response->status() === 429) {
                 $body = $response->json();
                 $errorMsg = $body['error']['message'] ?? 'AI sudah mencapai batas limit, silahkan coba lagi besok.';
-                Log::warning("{$provider} Rate Limit hit (429): " . $errorMsg);
+                Log::warning("{$provider} API Internal Rate Limit hit (429): " . $errorMsg);
                 return response()->json(['error' => $errorMsg], 429);
             }
 
             if ($response->successful()) {
-                Log::info("{$provider} API Response Successful.");
+                Log::info("{$provider} API Response Successful. Incrementing usage.");
+                Cache::put($limitKey, $currentUsage + 1, now()->addDay());
+                
                 $result = $response->json();
 
                 if (!isset($result['choices'][0]['message']['content'])) {
@@ -263,10 +355,16 @@ EOT;
                 }
 
                 $responseText = $result['choices'][0]['message']['content'];
+                
+                $responseText = $this->extractAndCleanJson($responseText, $provider);
+                if (is_array($responseText)) {
+                    return response()->json($responseText); // error response
+                }
+
                 $decoded = json_decode($responseText, true);
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    Log::error("{$provider} JSON Decode Error: " . json_last_error_msg() . ' | Raw: ' . substr($responseText, 0, 500));
+                    Log::error("{$provider} JSON Decode Error: " . json_last_error_msg() . ' | Raw: ' . substr($responseText, 0, 1000));
                     return response()->json(['error' => 'Format data AI tidak valid.'], 500);
                 }
 
@@ -302,5 +400,47 @@ EOT;
             Log::error("AI Summary ({$provider}) Exception: " . $e->getMessage());
             return response()->json(['error' => 'Terjadi kesalahan sistem saat audit AI.'], 500);
         }
+    }
+
+    /**
+     * Extract and clean JSON from an AI response string.
+     * Handles: markdown blocks, surrounding text, and control characters.
+     * Returns the cleaned JSON string, or an error array if extraction fails.
+     */
+    private function extractAndCleanJson(string $raw, string $provider): string|array
+    {
+        $text = $raw;
+
+        // Step 1: Strip markdown code blocks (```json ... ``` or ``` ... ```)
+        if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $text, $m)) {
+            $text = $m[1];
+        }
+
+        // Step 2: Recursive balanced-brace extraction to isolate the first complete JSON object
+        if (preg_match('/\{(?:[^{}]|(?R))*\}/s', $text, $m)) {
+            $text = $m[0];
+        }
+
+        // Step 3: Try decoding as-is
+        $decoded = json_decode($text, true);
+
+        // Step 4: If it fails due to control characters, aggressively clean them
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Replace literal newlines/tabs INSIDE string values with escaped versions
+            $cleaned = preg_replace_callback('/"(?:[^"\\\\]|\\\\.)*"/s', function ($match) {
+                // Only clean inside string values
+                return preg_replace('/[\x00-\x1F\x7F]/', ' ', $match[0]);
+            }, $text);
+
+            $decoded = json_decode($cleaned ?? $text, true);
+        }
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            Log::error("{$provider} JSON Clean Failed: " . json_last_error_msg() . ' | Raw snippet: ' . substr($raw, 0, 500));
+            return ['error' => 'Format data AI tidak valid.'];
+        }
+
+        // Re-encode to get a clean, consistent JSON string
+        return json_encode($decoded);
     }
 }

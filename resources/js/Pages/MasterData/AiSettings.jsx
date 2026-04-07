@@ -108,14 +108,12 @@ export default function AiSettings({ settings }) {
             put(route('master.data.ai-setting.update', editData.id), {
                 onSuccess: () => {
                     closeModal();
-                    toast.success('Konfigurasi AI berhasil diperbarui');
                 },
             });
         } else {
             post(route('master.data.ai-setting.store'), {
                 onSuccess: () => {
                     closeModal();
-                    toast.success('Konfigurasi AI berhasil ditambahkan');
                 },
             });
         }
@@ -123,16 +121,13 @@ export default function AiSettings({ settings }) {
 
     const handleDelete = (id) => {
         if (confirm('Apakah Anda yakin ingin menghapus konfigurasi ini?')) {
-            destroy(route('master.data.ai-setting.destroy', id), {
-                onSuccess: () => toast.success('Konfigurasi AI berhasil dihapus'),
-            });
+            destroy(route('master.data.ai-setting.destroy', id));
         }
     };
 
     const toggleActive = (setting) => {
         put(route('master.data.ai-setting.update', setting.id), {
-            data: { ...setting, is_active: !setting.is_active },
-            onSuccess: () => toast.success('Status aktif berhasil diubah'),
+            data: { ...setting, is_active: !setting.is_active }
         });
     };
 

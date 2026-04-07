@@ -600,7 +600,7 @@ export default function Index({ projects, summary, queryParams = null }) {
                 {/* ─── CARD / GRID VIEW ─── */}
                 {effectiveViewMode === 'grid' && (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                             {isTableLoading ? (
                                 Array(10).fill(0).map((_, i) => (
                                     <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
@@ -624,17 +624,17 @@ export default function Index({ projects, summary, queryParams = null }) {
                                     return (
                                         <div 
                                             key={row.id} 
-                                            className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-6 relative overflow-hidden group animate-slide-up-fade"
+                                            className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-5 md:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5 md:space-y-6 relative overflow-hidden group animate-slide-up-fade"
                                             style={{ animationDelay: `${index * 50}ms` }}
                                         >
                                             {/* Header */}
                                             <div className="flex justify-between items-start gap-4">
                                                 <div className="min-w-0">
                                                     <h4 className="text-sm md:text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2">{row.name || 'Untitled Project'}</h4>
-                                                    <p className="text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1.5">UP: {row.upNo || '-'}</p>
+                                                    <p className="text-[9px] font-black text-primary dark:text-blue-400 uppercase tracking-widest mt-1.5">UP: {row.upNo || '-'}</p>
                                                 </div>
                                                 <div className="flex items-start gap-1 sm:gap-2 shrink-0">
-                                                    <div className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
+                                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shrink-0 ring-1 ring-inset ${sc.bg} ${sc.text} ${sc.ring}`}>
                                                         <span className={`material-symbols-outlined text-[12px] md:text-[14px] ${row.status === 'Completed' ? 'font-fill' : ''}`}>
                                                             {sc.icon}
                                                         </span>
@@ -647,7 +647,7 @@ export default function Index({ projects, summary, queryParams = null }) {
                                             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-50 dark:border-white/5">
                                                 {/* Anggaran */}
                                                 <div className="space-y-1 overflow-hidden">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Anggaran</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">Anggaran</p>
                                                     <span className={`inline-block px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
                                                         row.budgetType === 'APBN' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400' :
                                                         row.budgetType === 'APBD' ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' :
@@ -656,22 +656,22 @@ export default function Index({ projects, summary, queryParams = null }) {
                                                 </div>
                                                 {/* PIC */}
                                                 <div className="space-y-1 overflow-hidden">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">PIC</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">PIC</p>
                                                     <div className="flex items-center gap-1.5">
                                                         <div className="size-5 rounded-md bg-primary/10 dark:bg-blue-500/10 flex flex-shrink-0 items-center justify-center text-primary dark:text-blue-400">
                                                             <span className="material-symbols-outlined text-[12px]">person</span>
                                                         </div>
-                                                        <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{row.pic || '-'}</p>
+                                                        <p className="text-[9px] md:text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{row.pic || '-'}</p>
                                                     </div>
                                                 </div>
                                                 {/* Handler */}
                                                 <div className="space-y-1 overflow-hidden">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Handler</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">Handler</p>
                                                     <div className="flex items-center gap-1.5">
                                                         <div className="size-5 rounded-md bg-violet-500/10 flex flex-shrink-0 items-center justify-center text-violet-500 dark:text-violet-400">
                                                             <span className="material-symbols-outlined text-[12px]">manage_accounts</span>
                                                         </div>
-                                                        <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{row.handler || row.handle?.name || '-'}</p>
+                                                        <p className="text-[9px] md:text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{row.handler || row.handle?.name || '-'}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -679,24 +679,24 @@ export default function Index({ projects, summary, queryParams = null }) {
                                             {/* No Kontrak & Info Barang */}
                                             <div className="bg-slate-50 dark:bg-white/[0.02] p-4 rounded-[1.25rem] border border-slate-100 dark:border-white/5 flex flex-col gap-3">
                                                 <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor Kontrak</p>
-                                                    <p className="text-sm font-black text-slate-800 dark:text-white truncate">{row.no_kontrak || '-'}</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor Kontrak</p>
+                                                    <p className="text-xs md:text-sm font-black text-slate-800 dark:text-white truncate">{row.no_kontrak || '-'}</p>
                                                 </div>
                                                 <div className="pt-3 border-t border-slate-200/60 dark:border-white/10 flex justify-between items-center">
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Progress Terima Barang</p>
-                                                    <p className={`text-xs font-black ${sisaBarang > 0 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Progress Terima Barang</p>
+                                                    <p className={`text-[10px] md:text-xs font-black ${sisaBarang > 0 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                                         {barangDiterima.toLocaleString('id-ID')} / {barangDikontrak.toLocaleString('id-ID')} unit
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {/* Progress */}
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                            <div className="space-y-2.5">
+                                                <div className="flex justify-between items-center text-[9px] md:text-[10px] font-black uppercase tracking-widest">
                                                     <span className="text-slate-400">Project Progress</span>
                                                     <span className={row.progres === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{row.progres || 0}%</span>
                                                 </div>
-                                                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner transition-all duration-1000">
+                                                <div className="h-1.5 md:h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner transition-all duration-1000">
                                                     <div 
                                                         className={`h-full rounded-full transition-all duration-1000 ${row.progres === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
                                                         style={{ width: `${row.progres || 0}%` }}
@@ -705,7 +705,7 @@ export default function Index({ projects, summary, queryParams = null }) {
                                             </div>
                                             
                                             {/* Actions */}
-                                            <div className="grid grid-cols-1 gap-2 pt-2">
+                                            <div className="grid grid-cols-1 gap-2 pt-1">
                                                 <Link 
                                                     href={route('merchandiser.edit', row.hashed_id)}
                                                     className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors ${
@@ -724,7 +724,7 @@ export default function Index({ projects, summary, queryParams = null }) {
                                     );
                                 })
                             ) : (
-                                <div className="col-span-1 md:col-span-2 py-20 text-center flex flex-col items-center gap-4">
+                                <div className="col-span-1 md:col-span-2 lg:col-span-3 py-20 text-center flex flex-col items-center gap-4">
                                     <div className="size-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300">
                                         <span className="material-symbols-outlined text-4xl">inventory_2</span>
                                     </div>

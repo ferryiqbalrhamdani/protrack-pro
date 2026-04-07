@@ -374,7 +374,27 @@ export default function AuthenticatedLayout({
                         },
                     },
                 }}
-            />
+            >
+                {(t) => (
+                    <div style={{opacity: t.visible ? 1 : 0, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', background: 'rgba(255, 255, 255, 0.95)', padding: '12px 20px', borderRadius: '1.25rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', border: '1px solid rgba(0, 0, 0, 0.05)', color: '#1e293b', gap: '10px' }} className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
+                        {t.type === 'success' && <span className="material-symbols-outlined text-emerald-500 font-fill">check_circle</span>}
+                        {t.type === 'error' && <span className="material-symbols-outlined text-red-500 font-fill">error</span>}
+                        {t.type === 'loading' && <span className="material-symbols-outlined text-blue-500 animate-spin">progress_activity</span>}
+                        <div style={{ flex: 1, fontSize: '0.875rem', fontWeight: '600' }}>
+                            {/* Render the message natively without ToastBar which brings overhead */}
+                            {typeof t.message === 'function' ? t.message(t) : t.message}
+                        </div>
+                        {t.type !== 'loading' && (
+                            <button 
+                                onClick={() => toast.dismiss(t.id)}
+                                className="ml-1 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center shrink-0"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">close</span>
+                            </button>
+                        )}
+                    </div>
+                )}
+            </Toaster>
             {/* Header */}
             <div 
                 className={`fixed xl:sticky top-0 left-0 right-0 z-[60] w-full transition-transform duration-300 xl:translate-y-0 ${hideTopbarMobile ? 'hidden xl:block' : ''}`}

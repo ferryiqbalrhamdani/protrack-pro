@@ -116,9 +116,9 @@ export default function Index({ contracts, stats, queryParams, auth_user }) {
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 touch-pan-x -mx-4 px-4 md:mx-0 md:px-0">
                     {[
                         { id: 'Semua Status', label: 'Semua', icon: 'apps', color: 'slate' },
-                        { id: 'ONGOING', label: 'Ongoing', icon: 'autorenew', color: 'blue' },
-                        { id: 'PENDING', label: 'Pending', icon: 'schedule', color: 'amber' },
-                        { id: 'COMPLETED', label: 'Completed', icon: 'check_circle', color: 'emerald' }
+                        { id: 'Ongoing', label: 'Ongoing', icon: 'autorenew', color: 'blue' },
+                        { id: 'Pending', label: 'Pending', icon: 'schedule', color: 'amber' },
+                        { id: 'Completed', label: 'Completed', icon: 'check_circle', color: 'emerald' }
                     ].map((tab) => {
                         const isActive = statusFilter === tab.id;
                         const colors = {
@@ -165,7 +165,7 @@ export default function Index({ contracts, stats, queryParams, auth_user }) {
 
                         {/* Status Filter */}
                         <SearchableSelect 
-                            options={['Semua Status', 'ONGOING', 'PENDING', 'COMPLETED']}
+                            options={['Semua Status', 'Ongoing', 'Pending', 'Completed']}
                             value={statusFilter}
                             onChange={(val) => {
                                 setStatusFilter(val);
@@ -535,7 +535,7 @@ export default function Index({ contracts, stats, queryParams, auth_user }) {
                 {/* ─── CARD / GRID VIEW ─── */}
                 {effectiveViewMode === 'grid' && (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                             {isTableLoading ? (
                                 Array(10).fill(0).map((_, i) => (
                                     <div key={i} className="bg-white dark:bg-white/5 rounded-[2rem] p-4 border border-slate-100 dark:border-white/5 animate-pulse">
@@ -548,117 +548,107 @@ export default function Index({ contracts, stats, queryParams, auth_user }) {
                                     </div>
                                 ))
                             ) : (contracts.data || []).length > 0 ? (
-                                (contracts.data || []).map((contract, index) => (
-                                    <div 
-                                        key={contract.id} 
-                                        className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-6 relative overflow-hidden group animate-slide-up-fade"
-                                        style={{ animationDelay: `${index * 50}ms` }}
-                                    >
-                                        {/* Header: Name, UP, Status */}
-                                        <div className="flex justify-between items-start gap-4">
-                                            <div className="min-w-0">
-                                                <h4 className="text-sm md:text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2">{contract.name}</h4>
-                                                <p className="text-[10px] font-bold text-primary dark:text-blue-400 uppercase tracking-widest mt-1.5">UP: {contract.up_no || contract.id}</p>
-                                            </div>
-                                            <div className="flex items-start gap-1 sm:gap-2 shrink-0">
-                                                <div className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ${
-                                                    (contract.status === 'COMPLETED' || contract.status === 'Completed') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' :
-                                                    (contract.status === 'ONGOING'   || contract.status === 'Ongoing')   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
-                                                    (contract.status === 'PENDING'   || contract.status === 'Pending')   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
-                                                    'bg-slate-100 text-slate-500 ring-1 ring-slate-200/50 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10'
-                                                }`}>
-                                                    <span className={`material-symbols-outlined text-[12px] md:text-[14px] ${(contract.status === 'COMPLETED' || contract.status === 'Completed') ? 'font-fill' : ''}`}>
-                                                        {(contract.status === 'COMPLETED' || contract.status === 'Completed') ? 'check_circle' :
-                                                         (contract.status === 'ONGOING'   || contract.status === 'Ongoing') ? 'autorenew' :
-                                                         (contract.status === 'PENDING'   || contract.status === 'Pending') ? 'schedule' : 'block'}
+                                (contracts.data || []).map((contract, index) => {
+                                    // Colors mapping following the mockup
+                                    const statusColorMap = {
+                                        'Ongoing': 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20',
+                                        'Pending': 'bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20',
+                                        'Completed': 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20',
+                                        'ONGOING': 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20',
+                                        'PENDING': 'bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20',
+                                        'COMPLETED': 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20',
+                                    };
+
+                                    return (
+                                        <div 
+                                            key={contract.id} 
+                                            className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-200 dark:border-white/5 p-5 md:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5 md:space-y-6 relative overflow-hidden group animate-slide-up-fade"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
+                                            {/* Header: NO UP & Status */}
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                                    NO: {contract.up_no || '-'}
+                                                </p>
+                                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${statusColorMap[contract.status] || 'bg-slate-100 text-slate-500'}`}>
+                                                    <span className="material-symbols-outlined text-[13px]">
+                                                        {contract.status === 'Completed' || contract.status === 'COMPLETED' ? 'check_circle' : 
+                                                         contract.status === 'Pending' || contract.status === 'PENDING' ? 'schedule' : 'autorenew'}
                                                     </span>
-                                                    <span className="hidden sm:inline-block">{contract.status}</span>
+                                                    {contract.status}
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Details: Client, PIC, Handler (3 columns) */}
-                                        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-50 dark:border-white/5">
-                                            {/* Client */}
-                                            <div className="space-y-1 overflow-hidden">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Client</p>
-                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{contract.company || '-'}</p>
+                                            {/* Project Name (Truncated) */}
+                                            <div className="min-w-0">
+                                                <h4 className="text-sm md:text-base font-black text-slate-800 dark:text-white leading-tight line-clamp-2" title={contract.name}>
+                                                    {contract.name || 'Untitled Project'}
+                                                </h4>
                                             </div>
-                                            {/* PIC */}
-                                            <div className="space-y-1 overflow-hidden">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">PIC</p>
-                                                <div className="flex items-center gap-1.5">
-                                                    <div className="size-5 rounded-md bg-primary/10 dark:bg-blue-500/10 flex flex-shrink-0 items-center justify-center text-primary dark:text-blue-400">
-                                                        <span className="material-symbols-outlined text-[12px]">person</span>
-                                                    </div>
-                                                    <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{contract.pic?.name || '-'}</p>
-                                                </div>
-                                            </div>
-                                            {/* Handler */}
-                                            <div className="space-y-1 overflow-hidden">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Handler</p>
-                                                <div className="flex items-center gap-1.5">
-                                                    <div className="size-5 rounded-md bg-violet-500/10 flex flex-shrink-0 items-center justify-center text-violet-500 dark:text-violet-400">
-                                                        <span className="material-symbols-outlined text-[12px]">manage_accounts</span>
-                                                    </div>
-                                                    <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{contract.handle?.name || '-'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        {/* Nomor Kontrak Highlight */}
-                                        <div className="bg-slate-50 dark:bg-white/[0.02] p-4 rounded-[1.25rem] border border-slate-100 dark:border-white/5 flex flex-col gap-3">
+                                            {/* Client Name Section */}
                                             <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor Kontrak</p>
-                                                <p className="text-sm sm:text-base font-black text-slate-800 dark:text-white truncate">{contract.no_kontrak || '-'}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Client Name</p>
+                                                <p className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight">{contract.company || '-'}</p>
                                             </div>
-                                        </div>
 
-                                        {/* Progress */}
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                                <span className="text-slate-400">Project Progress</span>
-                                                <span className={contract.progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}>{contract.progress || 0}%</span>
+                                            {/* PIC & Dates Section */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">PIC / Handler</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="size-5 rounded-full bg-primary/10 dark:bg-blue-500/10 flex items-center justify-center text-[9px] font-black text-primary dark:text-blue-400 shrink-0">
+                                                            {contract.pic?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '??'}
+                                                        </div>
+                                                        <p className="text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight">
+                                                            {contract.pic?.name || '-'} / {contract.handle?.name || '-'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5 text-right">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Dates</p>
+                                                    <p className="text-[10px] md:text-[11px] font-black text-slate-700 dark:text-slate-300 tracking-tight">
+                                                        {contract.start_date ? new Date(contract.start_date).toLocaleDateString('id-ID', { month: 'short', day: '2-digit' }) : '-'} — {contract.end_date ? new Date(contract.end_date).toLocaleDateString('id-ID', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner transition-all duration-1000">
-                                                <div 
-                                                    className={`h-full rounded-full transition-all duration-1000 ${contract.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} 
-                                                    style={{ width: `${contract.progress || 0}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
 
-                                        {/* Dates */}
-                                        <div className="flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01] p-3 rounded-2xl border border-slate-100/50 dark:border-white/5">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Tgl Kontrak</span>
-                                                <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                                                    {contract.start_date ? new Date(contract.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
-                                                </p>
+                                            {/* No Kontrak Highlight */}
+                                            <div className="bg-slate-50 dark:bg-white/[0.02] px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">No. Kontrak</p>
+                                                <p className="text-xs md:text-sm font-black text-slate-800 dark:text-white truncate">{contract.no_kontrak || '-'}</p>
                                             </div>
-                                            <div className="w-px h-6 bg-slate-200 dark:bg-white/10"></div>
-                                            <div className="flex flex-col gap-0.5 text-right">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</span>
-                                                <p className="text-[10px] font-black text-amber-500">
-                                                    {contract.end_date ? new Date(contract.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
-                                                </p>
+
+                                            {/* Progress Section */}
+                                            <div className="space-y-2.5">
+                                                <div className="flex justify-between items-center">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Project Progress</p>
+                                                    <p className={`text-[10px] md:text-xs font-black leading-none ${contract.progress === 100 ? 'text-emerald-500' : 'text-primary dark:text-blue-400'}`}>
+                                                        {contract.progress || 0}%
+                                                    </p>
+                                                </div>
+                                                <div className="h-1.5 md:h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner transition-all duration-1000">
+                                                    <div 
+                                                        className={`h-full rounded-full transition-all duration-1000 ${contract.progress === 100 ? 'bg-emerald-500' : 'bg-primary dark:bg-blue-500'}`} 
+                                                        style={{ width: `${contract.progress || 0}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Actions */}
+                                            <div className="pt-1">
+                                                <Link 
+                                                    href={route('contracts.edit', contract.hashed_id)}
+                                                    className="flex items-center justify-center w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-black uppercase tracking-[0.1em] transition-all"
+                                                >
+                                                    Ubah Kontrak
+                                                </Link>
                                             </div>
                                         </div>
-                                        
-                                        {/* Actions */}
-                                        <div className="grid grid-cols-1 gap-2 pt-2">
-                                            <Link 
-                                                href={route('contracts.edit', contract.hashed_id)}
-                                                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-[10px] font-black uppercase tracking-widest transition-colors"
-                                            >
-                                                <span className="material-symbols-outlined text-[14px]">edit</span>
-                                                Ubah Kontrak
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             ) : (
-                                <div className="col-span-1 md:col-span-2 py-20 text-center flex flex-col items-center gap-4">
+                                <div className="col-span-1 md:col-span-2 lg:col-span-3 py-20 text-center flex flex-col items-center gap-4">
                                     <div className="size-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300">
                                         <span className="material-symbols-outlined text-4xl">inventory_2</span>
                                     </div>
