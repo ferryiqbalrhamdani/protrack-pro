@@ -144,6 +144,7 @@ class MerchandiserController extends Controller
                 'bank_name' => $merchandiser->bank_name,
                 'account_number' => $merchandiser->account_number,
                 'account_name' => $merchandiser->account_name,
+                'item_type' => $merchandiser->item_type ?? 'EA',
                 'contract_item' => $merchandiser->contract_item,
                 'contract_ea' => $merchandiser->contract_ea,
                 'shipping_produksi_item' => $merchandiser->prod_item,
@@ -229,6 +230,7 @@ class MerchandiserController extends Controller
             'bank_name' => 'nullable|string',
             'account_number' => 'nullable|string',
             'account_name' => 'nullable|string',
+            'item_type' => 'nullable|string|in:EA,PCS,SET,UNIT',
             'contract_item' => 'nullable|numeric',
             'contract_ea' => 'nullable|numeric',
             
@@ -273,6 +275,7 @@ class MerchandiserController extends Controller
                 'bank_name' => $validated['bank_name'],
                 'account_number' => $validated['account_number'],
                 'account_name' => $validated['account_name'],
+                'item_type' => $validated['item_type'] ?? 'EA',
                 'contract_item' => $validated['contract_item'] ?? 0,
                 'contract_ea' => $validated['contract_ea'] ?? 0,
                 'prod_item' => $validated['shipping_produksi_item'] ?? 0,

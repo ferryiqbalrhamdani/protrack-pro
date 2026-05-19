@@ -671,7 +671,7 @@ export default function Show({ project }) {
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="text-2xl font-black text-primary dark:text-blue-400">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractEA)}</p>
-                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total EA</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total {project.relations.merchandiser.itemType || 'EA'}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -686,7 +686,7 @@ export default function Show({ project }) {
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="text-2xl font-black text-emerald-600 dark:text-emerald-500">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedEA)}</p>
-                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total EA</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Total {project.relations.merchandiser.itemType || 'EA'}</p>
                                                             </div>
                                                         </div>
                                                     </div>

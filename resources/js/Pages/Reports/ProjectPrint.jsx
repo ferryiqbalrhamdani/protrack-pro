@@ -400,11 +400,11 @@ export default function ProjectPrint({ project }) {
                                 <div className="grid grid-cols-2 gap-4">
                                      <div>
                                         <div className="text-[10px] text-gray-500 font-bold uppercase mb-1">Items Kontrak</div>
-                                        <div className="text-sm font-black">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractItems)} <span className="text-[10px] font-normal text-gray-400">({new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractEA)} EA)</span></div>
+                                        <div className="text-sm font-black">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractItems)} <span className="text-[10px] font-normal text-gray-400">({new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.contractEA)} {project.relations.merchandiser.itemType || 'EA'})</span></div>
                                      </div>
                                      <div>
                                         <div className="text-[10px] text-gray-500 font-bold uppercase mb-1">Items Diterima</div>
-                                        <div className="text-sm font-black text-emerald-600">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedItems)} <span className="text-[10px] font-normal text-gray-400">({new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedEA)} EA)</span></div>
+                                        <div className="text-sm font-black text-emerald-600">{new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedItems)} <span className="text-[10px] font-normal text-gray-400">({new Intl.NumberFormat('id-ID').format(project.relations.merchandiser.receivedEA)} {project.relations.merchandiser.itemType || 'EA'})</span></div>
                                      </div>
                                 </div>
                                 {project.relations.merchandiser.pos && project.relations.merchandiser.pos.length > 0 && (
@@ -420,7 +420,7 @@ export default function ProjectPrint({ project }) {
                                                         </div>
                                                         <div className="text-right">
                                                             <span className="text-xs font-semibold">{new Intl.NumberFormat('id-ID').format(po.items)} <span className="text-[9px] text-gray-400">Items</span></span>
-                                                            <span className="text-[10px] text-gray-400 block">({new Intl.NumberFormat('id-ID').format(po.ea)} EA)</span>
+                                                            <span className="text-[10px] text-gray-400 block">({new Intl.NumberFormat('id-ID').format(po.ea)} {project.relations.merchandiser.itemType || 'EA'})</span>
                                                         </div>
                                                     </div>
                                                     {po.invoices && po.invoices.length > 0 && (

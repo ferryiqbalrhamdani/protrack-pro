@@ -472,6 +472,7 @@ class ProjectController extends Controller
                     'paymentAccount' => $project->merchandiser->account_number ?? '-',
                     'contractItems' => $project->merchandiser->contract_item ?? 0,
                     'contractEA' => $project->merchandiser->contract_ea ?? 0,
+                    'itemType' => $project->merchandiser->item_type ?? 'EA',
                     'receivedItems' => $project->merchandiser->rec_item ?? 0,
                     'receivedEA' => $project->merchandiser->rec_ea ?? 0,
                     'totalPOValue' => (float) ($project->merchandiser?->pos?->sum('po_value') ?? 0),

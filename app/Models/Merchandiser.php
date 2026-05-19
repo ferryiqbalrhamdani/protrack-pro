@@ -8,7 +8,7 @@ class Merchandiser extends Model
 {
     protected $fillable = [
         'project_id', 'status', 'bank_name', 'account_number', 'account_name',
-        'contract_item', 'contract_ea', 'prod_item', 'prod_ea', 'prod_etd',
+        'contract_item', 'item_type', 'contract_ea', 'prod_item', 'prod_ea', 'prod_etd',
         'ship_item', 'ship_ea', 'ship_etd', 'stock_item', 'stock_ea',
         'rec_item', 'rec_ea', 'handle_id', 'last_modifier_id'
     ];

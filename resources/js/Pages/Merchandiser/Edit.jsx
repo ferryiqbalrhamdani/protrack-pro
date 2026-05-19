@@ -63,6 +63,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
         shipping_stok_ea: Number(merchandiser.shipping_stok_ea || 0),
         shipping_penerimaan_item: Number(merchandiser.shipping_penerimaan_item || 0),
         shipping_penerimaan_ea: Number(merchandiser.shipping_penerimaan_ea || 0),
+        item_type: merchandiser.item_type || 'EA',
     });
 
     const [activeTab, setActiveTab] = useState(0);
@@ -484,7 +485,22 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                         </div>
                                         <h4 className="text-xs font-black text-slate-700 dark:text-white uppercase tracking-widest">Barang di Kontrak</h4>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-md">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jenis Item</label>
+                                            <select
+                                                value={data.item_type}
+                                                onChange={e => setData('item_type', e.target.value)}
+                                                disabled={!canEdit}
+                                                className={`w-full px-5 py-4 bg-slate-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed ${errors.item_type ? 'border-rose-500 ring-1 ring-rose-500/20' : ''}`}
+                                            >
+                                                <option value="EA">EA</option>
+                                                <option value="PCS">PCS</option>
+                                                <option value="SET">SET</option>
+                                                <option value="UNIT">UNIT</option>
+                                            </select>
+                                            {errors.item_type && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.item_type}</p>}
+                                        </div>
                                         <InputField
                                             label="Jumlah Item"
                                             type="text"
@@ -495,12 +511,12 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                             error={errors.contract_item}
                                         />
                                         <InputField
-                                            label="Jumlah EA"
+                                            label={`Jumlah ${data.item_type || 'EA'}`}
                                             type="text"
                                             value={data.contract_ea !== null && data.contract_ea !== '' ? fmt(data.contract_ea) : ''}
                                             onChange={e => setData('contract_ea', e.target.value.replace(/\./g, '').replace(/[^\d]/g, ''))}
                                             disabled={!canEdit}
-                                            suffix="ea"
+                                            suffix={(data.item_type || 'EA').toLowerCase()}
                                             error={errors.contract_ea}
                                         />
                                     </div>
@@ -531,8 +547,8 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                     {[
                                         { label: 'Target Item', val: Number(data.contract_item || 0), color: 'slate' },
                                         { label: 'Total PO Item', val: totalPoItem, color: totalPoItem === Number(data.contract_item || 0) ? 'emerald' : totalPoItem > Number(data.contract_item || 0) ? 'rose' : 'amber' },
-                                        { label: 'Target EA', val: Number(data.contract_ea || 0), color: 'slate' },
-                                        { label: 'Total PO EA', val: totalPoEa, color: totalPoEa === Number(data.contract_ea || 0) ? 'emerald' : totalPoEa > Number(data.contract_ea || 0) ? 'rose' : 'amber' },
+                                        { label: `Target ${data.item_type || 'EA'}`, val: Number(data.contract_ea || 0), color: 'slate' },
+                                        { label: `Total PO ${data.item_type || 'EA'}`, val: totalPoEa, color: totalPoEa === Number(data.contract_ea || 0) ? 'emerald' : totalPoEa > Number(data.contract_ea || 0) ? 'rose' : 'amber' },
                                     ].map((s, i) => (
                                         <div key={i} className={`p-4 rounded-2xl bg-${s.color}-500/5 border border-${s.color}-500/10 dark:border-transparent text-center`}>
                                             <p className={`text-[9px] font-black text-${s.color}-500 uppercase tracking-widest`}>{s.label}</p>
@@ -543,7 +559,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                 {!poValid && (
                                     <div className="flex items-center gap-3 px-5 py-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
                                         <span className="material-symbols-outlined text-amber-500">warning</span>
-                                        <p className="text-xs font-black text-amber-600 dark:text-amber-400">Total item dan EA pada PO harus sama dengan barang di kontrak (Tab 1).</p>
+                                        <p className="text-xs font-black text-amber-600 dark:text-amber-400">Total item dan {data.item_type || 'EA'} pada PO harus sama dengan barang di kontrak (Tab 1).</p>
                                     </div>
                                 )}
 
@@ -564,7 +580,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <div className="text-right">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Item / EA</p>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Item / {data.item_type || 'EA'}</p>
                                                         <p className="text-sm font-black text-slate-800 dark:text-white">{fmt(po.item_count)} / {fmt(po.ea_count)}</p>
                                                     </div>
                                                     <div className="text-right border-l border-slate-100 dark:border-white/5 pl-4 ml-4">
@@ -649,7 +665,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                                 <input type="text" value={editPoData.item_count ? fmt(editPoData.item_count) : ''} onChange={e => setEditPoData(p => ({ ...p, item_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/20 dark:text-white font-bold" />
                                                             </div>
                                                             <div className="space-y-1.5">
-                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah EA</label>
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah {data.item_type || 'EA'}</label>
                                                                 <input type="text" value={editPoData.ea_count ? fmt(editPoData.ea_count) : ''} onChange={e => setEditPoData(p => ({ ...p, ea_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/20 dark:text-white font-bold" />
                                                             </div>
                                                             <div className="space-y-1.5 md:col-span-2">
@@ -680,7 +696,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                                     <span className="material-symbols-outlined text-slate-400 text-lg">receipt</span>
                                                                     <div>
                                                                         <p className="text-xs font-black text-slate-700 dark:text-white">{inv.invoice_number}</p>
-                                                                        <p className="text-[10px] font-bold text-slate-400">{inv.invoice_date} · {fmt(inv.item_count)} item · {fmt(inv.ea_count)} EA</p>
+                                                                        <p className="text-[10px] font-bold text-slate-400">{inv.invoice_date} · {fmt(inv.item_count)} item · {fmt(inv.ea_count)} {data.item_type || 'EA'}</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
@@ -746,7 +762,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                                 <input type="text" value={newInvoice.item_count ? fmt(newInvoice.item_count) : ''} onChange={e => setNewInvoice(p => ({ ...p, item_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold text-sm" />
                                                             </div>
                                                             <div className="space-y-1.5">
-                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah EA</label>
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah {data.item_type || 'EA'}</label>
                                                                 <input type="text" value={newInvoice.ea_count ? fmt(newInvoice.ea_count) : ''} onChange={e => setNewInvoice(p => ({ ...p, ea_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold text-sm" />
                                                             </div>
                                                             <div className="space-y-1.5">
@@ -816,7 +832,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                         <input type="text" value={newPo.item_count ? fmt(newPo.item_count) : ''} onChange={e => setNewPo(p => ({ ...p, item_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold" />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah EA <span className="text-slate-300 dark:text-white/20 font-bold normal-case">(maks. {fmt(data.contract_ea)})</span></label>
+                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Jumlah {data.item_type || 'EA'} <span className="text-slate-300 dark:text-white/20 font-bold normal-case">(maks. {fmt(data.contract_ea)})</span></label>
                                                         <input type="text" value={newPo.ea_count ? fmt(newPo.ea_count) : ''} onChange={e => setNewPo(p => ({ ...p, ea_count: e.target.value.replace(/\./g, '').replace(/[^\d]/g, '') }))} className="w-full px-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 dark:text-white font-bold" />
                                                     </div>
                                                     <div className="space-y-1.5 md:col-span-2">
@@ -864,7 +880,7 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                             <div className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`} style={{ width: `${progress}%` }} />
                                         </div>
                                     </div>
-                                    <p className="text-[10px] font-bold text-slate-400 whitespace-nowrap">Target: <span className="text-slate-700 dark:text-white font-black">{fmt(data.contract_ea)} EA</span></p>
+                                    <p className="text-[10px] font-bold text-slate-400 whitespace-nowrap">Target: <span className="text-slate-700 dark:text-white font-black">{fmt(data.contract_ea)} {data.item_type || 'EA'}</span></p>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -892,12 +908,12 @@ export default function Edit({ project, merchandiser, vendors, canEdit, isReview
                                                     suffix="item"
                                                 />
                                                 <InputField
-                                                    label="Jumlah EA"
+                                                    label={`Jumlah ${data.item_type || 'EA'}`}
                                                     type="text"
                                                     value={data[`shipping_${sec.key}_ea`] !== null && data[`shipping_${sec.key}_ea`] !== '' ? fmt(data[`shipping_${sec.key}_ea`]) : ''}
                                                     onChange={e => setData(`shipping_${sec.key}_ea`, e.target.value.replace(/\./g, '').replace(/[^\d]/g, ''))}
                                                     disabled={!canEdit}
-                                                    suffix="ea"
+                                                    suffix={(data.item_type || 'EA').toLowerCase()}
                                                 />
                                                 {sec.hasEtd && (
                                                     <div className="col-span-2 md:col-span-1">
